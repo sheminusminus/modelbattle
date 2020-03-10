@@ -14,18 +14,86 @@
 }
 
 .App-header {
+  padding: 40px;
   background-color: #282c34;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
 }
 
+.title {
+  display: block;
+}
+
+hr {
+  margin-top: 60px;
+  margin-bottom: 60px;
+}
+
+.exp-image-wrap {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  height: 200px;
+  margin-bottom: 40px;
+}
+
+.exp-image {
+  display: block;
+  max-width: 100%;
+  height: 100%;
+  width: calc(50% - 10px);
+  object-fit: cover;
+  vertical-align: middle;
+  border: 4px solid transparent;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.exp-image:hover, .exp-image.selected {
+  cursor: pointer;
+  border-color: blue;
+}
+
+.exp-image.selected {
+  border-color: cyan;
+}
+
+.exp-image:first-child {
+  margin-right: 20px;
+}
+
 .App-link {
   color: #61dafb;
+}
+
+.btn {
+  padding: 12px 14px;
+  background-color: white;
+  color: #282c34;
+  font-variant: small-caps;
+  font-weight: bold;
+  font-size: 18px;
+  margin-top: 40px;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+}
+
+.btn.logout {
+  position: absolute;
+  top: -10px;
+  right: 40px;
+  padding: 0;
+  background-color: transparent;
+  color: white;
+  border: 0;
+  transition: color 0.2s ease-in-out;
+}
+
+.btn.logout:hover {
+  color: cyan;
 }
 
 @keyframes App-logo-spin {
