@@ -33,8 +33,10 @@ const uiConfig = {
       if (window.location.href.includes('choose')) {
         window.location.replace('/exp/choose');
       } else {
-        const name = localStorage.getItem('name') || 'default';
-        window.location.replace(`/exp?n=${name}`);
+        const name = localStorage.getItem('name');
+        if (name) {
+          window.location.replace(`/exp?n=${name}`);
+        }
       }
     },
   },
@@ -78,7 +80,7 @@ function Choose(props) {
               onClick={() => {
                 localStorage.setItem('name', n);
                 props.setName(n);
-                window.location.assign(`/exp?n=${n}`);
+                window.location.assign(`/exp?n=${n}`); // `
               }}
               type="button"
             >
@@ -91,6 +93,19 @@ function Choose(props) {
     </React.Fragment>
   );
 }
+
+const listImages = async () => {
+  const { n } = qs.parse(window.location.search);
+  if (!n) { return; }
+  const expName = n;
+  const dirASnap = await db.ref('meta').child(expName).child('a_dir').once('value');
+  const dirBSnap = await db.ref('meta').child(expName).child('b_dir').once('value');
+  const dirA = dirASnap.val();
+  const dirB = dirBSnap.val();
+  const { items: itemsA } = await store.ref(dirA).listAll();
+  const { items: itemsB } = await store.ref(dirB).listAll();
+  return { a: [shuffle(itemsA)[0]], b: [shuffle(itemsB)[0]] };
+};
 
 function Main(props) {
   const { name } = props;
@@ -129,32 +144,24 @@ function Main(props) {
     let shouldSet = true;
 
     if (user) {
-      const listImages = async () => {
-        const { n } = qs.parse(window.location.search);
-        const expName = n || 'default';
-        const dirASnap = await db.ref('meta').child(expName).child('a_dir').once('value');
-        const dirBSnap = await db.ref('meta').child(expName).child('b_dir').once('value');
-        const dirA = dirASnap.val();
-        const dirB = dirBSnap.val();
-        const { items: itemsA } = await store.ref(dirA).listAll();
-        const { items: itemsB } = await store.ref(dirB).listAll();
-        return { a: itemsA, b: itemsB };
-      };
-
-      listImages().then(async ({ a, b }) => {
-        if (shouldSet && !urlsA.length && !urlsB.length) {
-          const aUrls = await Promise.all(a.map(async (ref) => {
-            return ref.getDownloadURL();
-          }));
-          const bUrls = await Promise.all(b.map(async (ref) => {
-            return ref.getDownloadURL();
-          }));
-          const ordering = aUrls.map(() => coinFlip());
-          setUrlsA(shuffle(aUrls));
-          setUrlsB(shuffle(bUrls));
-          setAFirstList(ordering);
+      (async () => {
+        const images = await listImages()
+        if (images) {
+          const { a, b } = images;
+          if (shouldSet && !urlsA.length && !urlsB.length) {
+            const aUrls = await Promise.all(a.map(async (ref) => {
+              return ref.getDownloadURL();
+            }));
+            const bUrls = await Promise.all(b.map(async (ref) => {
+              return ref.getDownloadURL();
+            }));
+            const ordering = aUrls.map(() => coinFlip());
+            setUrlsA(shuffle(aUrls));
+            setUrlsB(shuffle(bUrls));
+            setAFirstList(ordering);
+          }
         }
-      });
+      })()
     }
 
     return () => {
@@ -197,42 +204,107 @@ function Main(props) {
           </React.Fragment>
         )}
 
-        <span className="title">Which is best?</span>
-        <br />
+        <span className="title">Which is better? If neither one is better, just skip it.</span>
+        <button
+          className="btn done"
+          disabled={submitting}
+          type="button"
+          onClick={async () => {
+
+            /*
+                <div
+                  className={`none exp-image${selected[idx] && selected[idx].vote === 'none' ? ' selected' : ''}`} // `
+                  onClick={() => {
+                    const nextSelected = [...selected];
+                    nextSelected[idx] = nextSelected[idx] = {
+                      a: url,
+                      b: b,
+                      vote: 'none',
+                    };
+                    setSelected(nextSelected);
+                  }}
+                >
+                  <span>Neither</span>
+                </div>
+                */
+            if (!submitting) {
+              const { n: expName } = qs.parse(window.location.search);
+              if (expName) {
+                setSubmitting(true);
+                const { uid } = firebase.auth().currentUser;
+                await db.ref('results').child(expName).child(uid).push(selected);
+                localStorage.clear();
+                setSelected([]);
+                await (async () => {
+                  const images = await listImages()
+                  if (images) {
+                    const { a, b } = images;
+                    const aUrls = await Promise.all(a.map(async (ref) => {
+                      return ref.getDownloadURL();
+                    }));
+                    const bUrls = await Promise.all(b.map(async (ref) => {
+                      return ref.getDownloadURL();
+                    }));
+                    const ordering = aUrls.map(() => coinFlip());
+                    setUrlsA(shuffle(aUrls));
+                    setUrlsB(shuffle(bUrls));
+                    setAFirstList(ordering);
+                  }
+                  setSubmitting(false);
+                })()
+                window.scrollTo({
+                  top: 0,
+                  left: 0,
+                  behavior: 'smooth',
+                });
+              }
+            }
+          }}
+        >
+          Next
+        </button>
         {urlsA.length === urlsB.length && urlsA.map((url, idx) => {
           const aFirst = aFirstList[idx];
           const b = urlsB[idx];
 
           const aImg = (
             <img
-              className={`exp-image${selected[idx] && selected[idx].vote === 'a' ? ' selected' : ''}`}
+              className={`exp-image${selected[idx] && selected[idx].vote === 'a' ? ' a_selected' : ''}`} // `
               src={url}
               alt={url}
               onClick={() => {
-                const nextSelected = [...selected];
-                nextSelected[idx] = {
-                  a: url,
-                  b: b,
-                  vote: 'a',
-                };
-                setSelected(nextSelected);
+                if (selected[idx] && selected[idx].vote === 'a') {
+                  setSelected([]);
+                } else {
+                  const nextSelected = [...selected];
+                  nextSelected[idx] = {
+                    a: url,
+                    b: b,
+                    vote: 'a',
+                  };
+                  setSelected(nextSelected);
+                }
               }}
             />
           );
 
           const bImg = (
             <img
-              className={`exp-image${selected[idx] && selected[idx].vote === 'b' ? ' selected' : ''}`}
+              className={`exp-image${selected[idx] && selected[idx].vote === 'b' ? ' b_selected' : ''}`} // `
               src={b}
               alt={b}
               onClick={() => {
-                const nextSelected = [...selected];
-                nextSelected[idx] = nextSelected[idx] = {
-                  a: url,
-                  b: b,
-                  vote: 'b',
-                };
-                setSelected(nextSelected);
+                if (selected[idx] && selected[idx].vote === 'b') {
+                  setSelected([]);
+                } else {
+                  const nextSelected = [...selected];
+                  nextSelected[idx] = nextSelected[idx] = {
+                    a: url,
+                    b: b,
+                    vote: 'b',
+                  };
+                  setSelected(nextSelected);
+                }
               }}
             />
           );
@@ -253,21 +325,6 @@ function Main(props) {
                     {aImg}
                   </React.Fragment>
                 )}
-
-                <div
-                  className={`none exp-image${selected[idx] && selected[idx].vote === 'none' ? ' selected' : ''}`}
-                  onClick={() => {
-                    const nextSelected = [...selected];
-                    nextSelected[idx] = nextSelected[idx] = {
-                      a: url,
-                      b: b,
-                      vote: 'none',
-                    };
-                    setSelected(nextSelected);
-                  }}
-                >
-                  <span>None</span>
-                </div>
               </div>
 
               {idx < urlsA.length - 1 && (
@@ -276,31 +333,6 @@ function Main(props) {
             </React.Fragment>
           );
         })}
-
-        <button
-          className="btn done"
-          disabled={submitting || selected.filter(opt => !!opt).length !== urlsA.length}
-          type="button"
-          onClick={async () => {
-            if (!submitting) {
-              setSubmitting(true);
-              const { n } = qs.parse(window.location.search);
-              const expName = n || 'default';
-              const { uid } = firebase.auth().currentUser;
-              await db.ref('results').child(expName).child(uid).push(selected);
-              localStorage.clear();
-              setSelected([]);
-              setSubmitting(false);
-              window.scrollTo({
-                top: 0,
-                left: 0,
-                behavior: 'smooth',
-              });
-            }
-          }}
-        >
-          Save
-        </button>
       </div>
     </div>
   );
@@ -316,9 +348,11 @@ function Auth(props) {
       setChecked(true);
 
       if (user) {
-        const { displayName, email, photoURL, uid, providerId } = user;
-        await db.ref('users').child(uid).set({ displayName, email, photoUrl: photoURL, uid, providerId });
-        props.history.push(`/exp?n=${props.name || 'default'}`);
+        const { displayName, email, photoURL, uid, providerId, isAnonymous } = user;
+        await db.ref('users').child(uid).set({ displayName: displayName || uid, email, photoUrl: photoURL, uid, providerId, isAnonymous });
+        if (props.name) {
+          props.history.push(`/exp?n=${props.name}`);
+        }
       }
     });
 
@@ -327,8 +361,23 @@ function Auth(props) {
     };
   });
 
+  /*
+  React.useEffect(() => {
+    if (checked && firebase.auth().currentUser) {
+    } else {
+      (async () => {
+        await firebase.auth().signInAnonymously()
+      })();
+    }
+  });
+  */
+
   if (checked && firebase.auth().currentUser) {
-    return <Redirect to={`/exp?n=${props.name || 'default'}`} />;
+    if (props.name) {
+      return <Redirect to={`/exp?n=${props.name}`} />; // `
+    } else {
+      return <Redirect to={`/exp`} />;
+    }
   }
 
   return (
