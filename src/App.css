@@ -96,7 +96,7 @@ hr {
   cursor: not-allowed;
 }
 
-.btn.logout {
+.btn.logout, .btn.choose {
   position: absolute;
   top: -10px;
   right: 40px;
@@ -105,6 +105,14 @@ hr {
   color: white;
   border: 0;
   transition: color 0.2s ease-in-out;
+}
+
+.btn.logout {
+  right: 40px;
+}
+
+.btn.choose {
+  left: 40px;
 }
 
 .btn.logout:hover {

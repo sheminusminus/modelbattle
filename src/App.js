@@ -28,6 +28,16 @@ const uiConfig = {
   signInFlow: 'popup',
   // Redirect to /signedIn after sign in is successful. Alternatively you can provide a callbacks.signInSuccess function.
   signInSuccessUrl: '/exp',
+  callbacks: {
+    signInSuccess: () => {
+      if (window.location.href.includes('choose')) {
+        window.location.replace('/exp/choose');
+      } else {
+        const name = localStorage.getItem('name') || 'default';
+        window.location.replace(`/exp?n=${name}`);
+      }
+    },
+  },
   // We will display Google and Facebook as auth providers.
   signInOptions: [
     firebase.auth.GoogleAuthProvider.PROVIDER_ID,
@@ -43,8 +53,47 @@ function coinFlip() {
   return Math.floor(Math.random() * 2) === 0;
 }
 
+function Choose(props) {
+  const [names, setNames] = React.useState([]);
+
+  React.useEffect(() => {
+    const getExperiments = async () => {
+      const snap = await db.ref('meta').once('value');
+      const expData = snap.val();
+      return Object.keys(expData || {});
+    };
+
+    getExperiments().then((names) => {
+      setNames(names);
+    });
+  }, []);
+
+  return (
+    <React.Fragment>
+      {names.map((n) => {
+        return (
+          <React.Fragment>
+            <button
+              key={n}
+              onClick={() => {
+                localStorage.setItem('name', n);
+                props.setName(n);
+                window.location.assign(`/exp?n=${n}`);
+              }}
+              type="button"
+            >
+              {n}
+            </button>
+            <br />
+          </React.Fragment>
+        );
+      })}
+    </React.Fragment>
+  );
+}
+
 function Main(props) {
-  const { n: name } = qs.parse(window.location.search);
+  const { name } = props;
 
   const user = firebase.auth().currentUser;
   const [checked, setChecked] = React.useState(false);
@@ -81,7 +130,8 @@ function Main(props) {
 
     if (user) {
       const listImages = async () => {
-        const expName = name || 'default';
+        const { n } = qs.parse(window.location.search);
+        const expName = n || 'default';
         const dirASnap = await db.ref('meta').child(expName).child('a_dir').once('value');
         const dirBSnap = await db.ref('meta').child(expName).child('b_dir').once('value');
         const dirA = dirASnap.val();
@@ -116,19 +166,35 @@ function Main(props) {
     return <Redirect to="/" />
   }
 
+  if (name === null) {
+    return <Redirect from="/exp" to="/exp/choose" />
+  }
+
   return (
     <div className='App'>
       <div className="App-header images">
         {!!user && (
-          <button
-            className="btn logout"
-            type="button"
-            onClick={async () => {
-              await firebase.auth().signOut();
-            }}
-          >
-            Logout
-          </button>
+          <React.Fragment>
+            <button
+              className="btn choose"
+              type="button"
+              onClick={() => {
+                props.history.push('/exp/choose');
+              }}
+            >
+              Choose Experiment
+            </button>
+
+            <button
+              className="btn logout"
+              type="button"
+              onClick={async () => {
+                await firebase.auth().signOut();
+              }}
+            >
+              Logout
+            </button>
+          </React.Fragment>
         )}
 
         <span className="title">Which is best?</span>
@@ -218,9 +284,11 @@ function Main(props) {
           onClick={async () => {
             if (!submitting) {
               setSubmitting(true);
-              const expName = name || 'default';
+              const { n } = qs.parse(window.location.search);
+              const expName = n || 'default';
               const { uid } = firebase.auth().currentUser;
               await db.ref('results').child(expName).child(uid).push(selected);
+              localStorage.clear();
               setSelected([]);
               setSubmitting(false);
               window.scrollTo({
@@ -250,7 +318,7 @@ function Auth(props) {
       if (user) {
         const { displayName, email, photoURL, uid, providerId } = user;
         await db.ref('users').child(uid).set({ displayName, email, photoUrl: photoURL, uid, providerId });
-        props.history.push('/exp');
+        props.history.push(`/exp?n=${props.name || 'default'}`);
       }
     });
 
@@ -260,7 +328,7 @@ function Auth(props) {
   });
 
   if (checked && firebase.auth().currentUser) {
-    return <Redirect to="/exp" />;
+    return <Redirect to={`/exp?n=${props.name || 'default'}`} />;
   }
 
   return (
@@ -269,11 +337,40 @@ function Auth(props) {
 }
 
 function App() {
+  const [name, setName] = React.useState(null);
+
+  React.useEffect(() => {
+    const prevName = localStorage.getItem('name');
+
+    if (!name) {
+      const { n } = qs.parse(window.location.search);
+
+      if (n) {
+        localStorage.setItem('name', n);
+        setName(n);
+      } else if (prevName) {
+        setName(n);
+      } else {
+        localStorage.setItem('name', '');
+        setName('');
+      }
+    }
+  }, []);
+
+  const handleSetName = (n) => {
+    localStorage.setItem('name', n);
+    setName(n);
+    window.location.replace(`/exp?n=${n}`);
+  };
+
   return (
     <Router>
       <Switch>
-        <Route path="/exp" component={Main} />
-        <Route path="/" component={Auth}  />
+        <Route exact path="/exp/choose" render={() => (
+          <Choose setName={handleSetName} />
+        )} />
+        <Route path="/exp" component={Main} name={name} />
+        <Route path="/" component={Auth} name={name} />
       </Switch>
     </Router>
   );
