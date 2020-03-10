@@ -1,5 +1,6 @@
 import React from 'react';
 import firebase from 'firebase';
+import qs from 'query-string';
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
 import './App.css';
@@ -38,9 +39,16 @@ function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
+function coinFlip() {
+  return Math.floor(Math.random() * 2) === 0;
+}
+
 function Main(props) {
+  const { n: name } = qs.parse(window.location.search);
+
   const user = firebase.auth().currentUser;
   const [checked, setChecked] = React.useState(false);
+  const [aFirstList, setAFirstList] = React.useState([]);
 
   const handle = React.useRef();
 
@@ -52,11 +60,14 @@ function Main(props) {
   const [submitting, setSubmitting] = React.useState(false);
 
   React.useEffect(() => {
-    handle.current = firebase.auth().onAuthStateChanged((u) => {
+    handle.current = firebase.auth().onAuthStateChanged(async (u) => {
       setChecked(true);
 
       if (!u) {
         props.history.push('/');
+      } else {
+        const { displayName, email, photoURL, uid, providerId } = u;
+        await db.ref('users').child(uid).set({ displayName, email, photoUrl: photoURL, uid, providerId });
       }
 
       return () => {
@@ -70,8 +81,9 @@ function Main(props) {
 
     if (user) {
       const listImages = async () => {
-        const dirASnap = await db.ref('meta').child('a_dir').once('value');
-        const dirBSnap = await db.ref('meta').child('b_dir').once('value');
+        const expName = name || 'default';
+        const dirASnap = await db.ref('meta').child(expName).child('a_dir').once('value');
+        const dirBSnap = await db.ref('meta').child(expName).child('b_dir').once('value');
         const dirA = dirASnap.val();
         const dirB = dirBSnap.val();
         const { items: itemsA } = await store.ref(dirA).listAll();
@@ -87,8 +99,10 @@ function Main(props) {
           const bUrls = await Promise.all(b.map(async (ref) => {
             return ref.getDownloadURL();
           }));
+          const ordering = aUrls.map(() => coinFlip());
           setUrlsA(shuffle(aUrls));
           setUrlsB(shuffle(bUrls));
+          setAFirstList(ordering);
         }
       });
     }
@@ -96,7 +110,7 @@ function Main(props) {
     return () => {
       shouldSet = false;
     };
-  }, [urlsA.length, urlsB.length, user]);
+  }, [name, urlsA.length, urlsB.length, user]);
 
   if (!user && checked) {
     return <Redirect to="/" />
@@ -117,43 +131,77 @@ function Main(props) {
           </button>
         )}
 
-        <span className="title">Which is better?</span>
+        <span className="title">Which is best?</span>
         <br />
         {urlsA.length === urlsB.length && urlsA.map((url, idx) => {
+          const aFirst = aFirstList[idx];
           const b = urlsB[idx];
+
+          const aImg = (
+            <img
+              className={`exp-image${selected[idx] && selected[idx].vote === 'a' ? ' selected' : ''}`}
+              src={url}
+              alt={url}
+              onClick={() => {
+                const nextSelected = [...selected];
+                nextSelected[idx] = {
+                  a: url,
+                  b: b,
+                  vote: 'a',
+                };
+                setSelected(nextSelected);
+              }}
+            />
+          );
+
+          const bImg = (
+            <img
+              className={`exp-image${selected[idx] && selected[idx].vote === 'b' ? ' selected' : ''}`}
+              src={b}
+              alt={b}
+              onClick={() => {
+                const nextSelected = [...selected];
+                nextSelected[idx] = nextSelected[idx] = {
+                  a: url,
+                  b: b,
+                  vote: 'b',
+                };
+                setSelected(nextSelected);
+              }}
+            />
+          );
 
           return (
             <React.Fragment key={url}>
               <div className="exp-image-wrap">
-                <img
-                  className={`exp-image${selected[idx] && selected[idx].vote === 'a' ? ' selected' : ''}`}
-                  src={url}
-                  alt={url}
-                  onClick={() => {
-                    const nextSelected = [...selected];
-                    nextSelected[idx] = {
-                      a: url,
-                      b: b,
-                      vote: 'a',
-                    };
-                    setSelected(nextSelected);
-                  }}
-                />
+                {aFirst && (
+                  <React.Fragment>
+                    {aImg}
+                    {bImg}
+                  </React.Fragment>
+                )}
 
-                <img
-                  className={`exp-image${selected[idx] && selected[idx].vote === 'b' ? ' selected' : ''}`}
-                  src={b}
-                  alt={b}
+                {!aFirst && (
+                  <React.Fragment>
+                    {bImg}
+                    {aImg}
+                  </React.Fragment>
+                )}
+
+                <div
+                  className={`none exp-image${selected[idx] && selected[idx].vote === 'none' ? ' selected' : ''}`}
                   onClick={() => {
                     const nextSelected = [...selected];
                     nextSelected[idx] = nextSelected[idx] = {
                       a: url,
                       b: b,
-                      vote: 'b',
+                      vote: 'none',
                     };
                     setSelected(nextSelected);
                   }}
-                />
+                >
+                  <span>None</span>
+                </div>
               </div>
 
               {idx < urlsA.length - 1 && (
@@ -170,8 +218,9 @@ function Main(props) {
           onClick={async () => {
             if (!submitting) {
               setSubmitting(true);
+              const expName = name || 'default';
               const { uid } = firebase.auth().currentUser;
-              await db.ref('results').child(uid).push(selected);
+              await db.ref('results').child(expName).child(uid).push(selected);
               setSelected([]);
               setSubmitting(false);
               window.scrollTo({
@@ -182,7 +231,7 @@ function Main(props) {
             }
           }}
         >
-          Done
+          Save
         </button>
       </div>
     </div>
@@ -195,10 +244,12 @@ function Auth(props) {
   const handle = React.useRef();
 
   React.useEffect(() => {
-    handle.current = firebase.auth().onAuthStateChanged((user) => {
+    handle.current = firebase.auth().onAuthStateChanged(async (user) => {
       setChecked(true);
 
       if (user) {
+        const { displayName, email, photoURL, uid, providerId } = user;
+        await db.ref('users').child(uid).set({ displayName, email, photoUrl: photoURL, uid, providerId });
         props.history.push('/exp');
       }
     });
