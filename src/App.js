@@ -105,19 +105,21 @@ const Choose = (props) => {
 
       <br />
 
-      {names.map((n) => {
-        return (
-          <ArrowButton
-            key={n}
-            onClick={() => {
-              localStorage.setItem('name', n);
-              props.setName(n);
-              window.location.assign(`/exp?n=${n}`); // `
-            }}
-            name={n}
-          />
-        );
-      })}
+      <div className="choose-btns">
+        {names.map((n) => {
+          return (
+            <ArrowButton
+              key={n}
+              onClick={() => {
+                localStorage.setItem('name', n);
+                props.setName(n);
+                window.location.assign(`/exp?n=${n}`); // `
+              }}
+              name={n}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };
@@ -224,6 +226,8 @@ const Main = (props) => {
 
   const [submitting, setSubmitting] = React.useState(false);
 
+  const [menuOpen, setMenuOpen] = React.useState(false);
+
   const loadImages = async (shouldSet) => {
     const images = await listImages();
 
@@ -273,7 +277,13 @@ const Main = (props) => {
         setSelected([]);
 
         const { uid } = firebase.auth().currentUser;
-        await db.ref('results').child(expName).child(uid).push(selected);
+        const data = isNoneSelected ? {
+          a: urlsA[0],
+          b: urlsB[0],
+          vote: 'none',
+        } : selection;
+
+        await db.ref('results').child(expName).child(uid).push(data);
 
         await loadImages(true);
 
@@ -398,7 +408,7 @@ const Main = (props) => {
     <div className='App'>
       <div className="App-header images">
         <div className={classNames({ heading: true, loading: submitting })}>
-          <div className="totals">
+          <div className={classNames({ totals: true, show: menuOpen })}>
             <span
               title="Your historical picks for this experiment"
             >
@@ -426,7 +436,7 @@ const Main = (props) => {
             </span>
           </div>
 
-          <div className="legend">
+          <div className="legend hide-mobile">
             <span className="desc">Hotkeys: </span>
             <span>
               <span className="key">1</span> <span className="desc">(Left)</span>
@@ -465,30 +475,70 @@ const Main = (props) => {
         </div>
 
         {!!user && (
-          <div className="actions">
-            <button
-              className="btn choose"
-              type="button"
-              onClick={() => {
-                props.history.push('/exp/choose');
-              }}
-            >
-              Choose Another Experiment
-            </button>
+          <React.Fragment>
+            <div className="hide-large mobile-nav-trigger">
+              <button
+                className="show-stats-btn"
+                onClick={() => {
+                  setMenuOpen(true);
+                }}
+                type="button"
+              >
+                <i className="material-icons">
+                  apps
+                </i>
+              </button>
+            </div>
 
-            <button
-              className="btn logout"
-              type="button"
-              onClick={async () => {
-                const expName = localStorage.getItem('name');
-                localStorage.clear();
-                await firebase.auth().signOut();
-                localStorage.setItem('name', expName);
-              }}
+            <div
+              className={classNames({
+                actions: true,
+                'mobile-nav': true,
+                open: menuOpen,
+              })}
             >
-              Logout
-            </button>
-          </div>
+              <div className="menu">
+                <div className="hide-large mobile-nav-trigger close">
+                  <button
+                    className="show-stats-btn close"
+                    onClick={() => {
+                      setMenuOpen(false);
+                    }}
+                    type="button"
+                  >
+                    <i className="material-icons">
+                      close
+                    </i>
+                  </button>
+                </div>
+              </div>
+
+              <div className="menu-btns">
+                <button
+                  className="btn choose"
+                  type="button"
+                  onClick={() => {
+                    props.history.push('/exp/choose');
+                  }}
+                >
+                  Choose Another Experiment
+                </button>
+
+                <button
+                  className="btn logout"
+                  type="button"
+                  onClick={async () => {
+                    const expName = localStorage.getItem('name');
+                    localStorage.clear();
+                    await firebase.auth().signOut();
+                    localStorage.setItem('name', expName);
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </React.Fragment>
         )}
 
         {(urlsA.length === urlsB.length) && urlsA.map((url, idx) => {

@@ -1,4 +1,4 @@
-# experiments
+# modelbattle
 
 <img width="1538" alt="screenshot" src="https://user-images.githubusercontent.com/9907610/76509336-15b8b380-640d-11ea-9dc3-f5a0a03d79a4.png">
 
