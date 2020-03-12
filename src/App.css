@@ -38,12 +38,20 @@ body {
 }
 
 .App-header, .choose-exp {
-  padding: 125px 40px 40px;
   background-color: #282c34;
-  min-height: 120vh;
   font-size: calc(10px + 2vmin);
   color: white;
   position: relative;
+}
+
+.App-header, .choose-exp {
+  padding: 125px 40px 40px;
+  min-height: 120vh;
+}
+
+.choose-exp {
+  padding: 0 40px;
+  min-height: 100vh;
 }
 
 .choose-exp .title {
@@ -288,6 +296,10 @@ hr {
   margin-bottom: 40px;
 }
 
+.choose-btns {
+  max-width: 440px;
+}
+
 .arrow-btn {
   background-color: transparent;
   border-radius: 3px;
@@ -295,12 +307,12 @@ hr {
   color: #0EBCF3;
   display: block;
   filter: brightness(0.99);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1.7em !important;
   margin-bottom: 30px;
   width: 440px;
-  padding: 1.5rem 0.8rem;
+  padding: 1.2rem 0.6rem;
   position: relative;
   transition: all 0.2s;
   word-break: break-all;
@@ -309,7 +321,6 @@ hr {
 .arrow-btn:hover {
   background: rgba(255, 255, 255, 0.05);
   box-shadow: none;
-  padding: 1.5rem 1rem;
   border: 2px solid transparent;
   transition: all 0.2s;
   outline: none;
@@ -331,7 +342,7 @@ hr {
 .arrow-btn .cta-btn {
   color: #0EBCF3;
   display: flex;
-  font-size: 18px;
+  font-size: 16px;
   justify-content: center;
   padding: 0 0 0 0;
   text-align: center;
@@ -383,7 +394,7 @@ hr {
 }
 
 .cta-btn span:first-child {
-  padding-top: 4px;
+  padding-top: 2px;
 }
 
 .arrow-btn i {
@@ -401,6 +412,75 @@ hr {
 
 .hide-large {
   display: none;
+}
+
+.easter {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  line-height: 1.55;
+}
+
+.egg {
+  width: 100%;
+  color: white;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-right: 180px;
+}
+
+.egg code {
+  max-width: 520px;
+  text-align: justify;
+  font-size: 14px;
+  padding-left: 20px;
+}
+
+.modelbattle {
+  width: 160px;
+  display: block;
+  align-self: flex-start;
+  margin: 0 0 30px 40px;
+}
+
+.header-page {
+  position: relative;
+}
+
+.back-header {
+  width: 100%;
+  height: 40px;
+  padding: 20px 40px;
+  position: absolute;
+  top: 0;
+  z-index: 1000;
+}
+
+button.back {
+  background-color: transparent;
+  color: white;
+  opacity: 0.5;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-appearance: none;
+  border: 0;
+  margin: 0 auto;
+  display: block;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+button.back:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+button.back:active, button.back:focus {
+  outline: none;
 }
 
 @keyframes App-logo-spin {
@@ -552,6 +632,12 @@ hr {
   .arrow-btn {
     width: 100%;
     min-width: 100%;
+    max-width: unset;
+    font-size: 14px;
+  }
+
+  .arrow-btn .cta-btn {
+    font-size: 14px;
   }
 
   .choose-exp {
@@ -560,6 +646,36 @@ hr {
   }
 
   .choose-exp .title {
-    width: 90vw;
+    max-width: 440px;
+    width: 100%;
+  }
+
+  .choose-btns {
+    width: 100%;
+  }
+
+  .easter {
+    padding: 30px;
+  }
+
+  .egg {
+    max-width: 440px;
+    flex-direction: column;
+    padding-right: 0;
+    padding-top: 50px;
+    align-items: center;
+  }
+
+  .modelbattle {
+    width: 140px;
+    display: block;
+    align-self: flex-start;
+    margin: 0 0 30px 0;
+  }
+
+  .egg code {
+    font-size: 14px;
+    max-width: 440px;
+    padding-left: 0;
   }
 }

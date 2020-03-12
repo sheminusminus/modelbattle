@@ -8,12 +8,17 @@ import {
   Switch,
   Route,
   Redirect,
+  Link,
+  useLocation,
+  useHistory,
 } from 'react-router-dom';
 import Loader from 'react-loader-spinner';
 
 import classNames from './classNames';
 
 import firebaseConfig from './firebaseConfig';
+
+import Easter from './Easter';
 
 import './App.css';
 
@@ -84,6 +89,31 @@ const ArrowButton = ({ onClick, name }) => (
   </button>
 );
 
+const EggHunt = ({ backUrl }) => {
+  const history = useHistory();
+
+  return (
+    <Link
+      to="/egg"
+      onClick={(evt) => {
+        evt.preventDefault();
+        history.push('/egg', { backUrl });
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: 'transparent',
+          width: '60px',
+          height: '60px',
+          position: 'absolute',
+          bottom: '0',
+          left: '0',
+        }}
+      />
+    </Link>
+  );
+};
+
 const Choose = (props) => {
   const [names, setNames] = React.useState([]);
 
@@ -107,13 +137,15 @@ const Choose = (props) => {
 
       <div className="choose-btns">
         {names.map((n) => {
+          const saveName = n.replace('?', '');
+
           return (
             <ArrowButton
               key={n}
               onClick={() => {
-                localStorage.setItem('name', n);
+                localStorage.setItem('name', saveName);
                 props.setName(n);
-                window.location.assign(`/exp?n=${n}`); // `
+                window.location.assign(`/exp?n=${saveName}`); // `
               }}
               name={n}
             />
@@ -124,10 +156,12 @@ const Choose = (props) => {
   );
 };
 
-const listImages = async () => {
-  const { n: expName } = qs.parse(window.location.search);
+const listImages = async (searchQuery) => {
+  const queries = qs.parse(searchQuery);
 
-  if (!expName) { return; }
+  const expName = queries.n || queries['?n'];
+
+  if (!expName) { return { a: [], b: [] }; }
 
   const dirASnap = await db.ref('meta').child(expName).child('a_dir').once('value');
   const dirBSnap = await db.ref('meta').child(expName).child('b_dir').once('value');
@@ -135,6 +169,7 @@ const listImages = async () => {
   const dirB = dirBSnap.val();
   const { items: itemsA } = await store.ref(dirA).listAll();
   const { items: itemsB } = await store.ref(dirB).listAll();
+
   return { a: [shuffle(itemsA)[0]], b: [shuffle(itemsB)[0]] };
 };
 
@@ -232,8 +267,10 @@ const Main = (props) => {
 
   const [menuOpen, setMenuOpen] = React.useState(false);
 
-  const loadImages = async (shouldSet) => {
-    const images = await listImages();
+  const loc = useLocation();
+
+  const loadImages = React.useCallback(async () => {
+    const images = await listImages(loc.search);
 
     if (images) {
       const {a, b} = images;
@@ -245,15 +282,13 @@ const Main = (props) => {
       }));
       const ordering = aUrls.map(() => coinFlip());
 
-      if (shouldSet) {
-        setUrlsA(shuffle(aUrls));
-        setUrlsB(shuffle(bUrls));
-        setAFirstList(ordering);
-      }
+      setUrlsA(shuffle(aUrls));
+      setUrlsB(shuffle(bUrls));
+      setAFirstList(ordering);
     }
 
     setSubmitting(false);
-  };
+  }, [loc.search]);
 
   const onSubmit = React.useCallback(async (overrideSelected) => {
     if (!submitting) {
@@ -303,7 +338,17 @@ const Main = (props) => {
         setLoadedTime((new Date()).toUTCString());
       }
     }
-  }, [submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime]);
+  }, [
+    loadedTime,
+    loadImages,
+    selected,
+    submitting,
+    totals.a,
+    totals.b,
+    totals.none,
+    urlsA,
+    urlsB,
+  ]);
 
   const onSelection = ({ index, whichImg, urls }) => {
     if (selected[index] && selected[index].vote === whichImg) {
@@ -390,18 +435,15 @@ const Main = (props) => {
   });
 
   React.useEffect(() => {
-    let shouldSet = true;
-
     if (user) {
       setSubmitting(true);
-      loadImages(shouldSet);
+      loadImages(true);
     }
 
     return () => {
       setSubmitting(false);
-      shouldSet = false;
     };
-  }, [user]);
+  }, [loadImages, user]);
 
   if (!user && checked) {
     return <Redirect to="/" />
@@ -538,7 +580,10 @@ const Main = (props) => {
                     const expName = localStorage.getItem('name');
                     localStorage.clear();
                     await firebase.auth().signOut();
-                    localStorage.setItem('name', expName);
+                    const saveName = typeof expName === 'string'
+                      ? expName.replace('?', '')
+                      : expName;
+                    localStorage.setItem('name', saveName);
                   }}
                 >
                   Logout
@@ -633,6 +678,8 @@ const Main = (props) => {
           );
         })}
       </div>
+
+      <EggHunt backUrl={`${loc.pathname}${loc.search}`} />
     </div>
   );
 };
@@ -693,7 +740,7 @@ const App = () => {
       const { n } = qs.parse(window.location.search);
 
       if (n) {
-        localStorage.setItem('name', n);
+        localStorage.setItem('name', n.replace('?', ''));
         setName(n);
       } else if (prevName) {
         setName(n);
@@ -705,9 +752,10 @@ const App = () => {
   }, [name]);
 
   const handleSetName = (n) => {
-    localStorage.setItem('name', n);
-    setName(n);
-    window.location.replace(`/exp?n=${n}`);
+    const saveName = n.replace('?', '');
+    localStorage.setItem('name', saveName);
+    setName(saveName);
+    window.location.replace(`/exp?n=${saveName}`);
   };
 
   return (
@@ -717,6 +765,7 @@ const App = () => {
           <Choose setName={handleSetName} />
         )} />
         <Route path="/exp" component={Main} name={name} />
+        <Route path="/egg" component={Easter} />
         <Route path="/" component={Auth} name={name} />
       </Switch>
     </Router>
