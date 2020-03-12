@@ -47,7 +47,7 @@ body {
 }
 
 .choose-exp .title {
-  font-variant: small-caps;
+  font-variant: all-petite-caps;
   font-size: 20px;
   font-weight: 500;
   display: block;
@@ -71,7 +71,7 @@ body {
   top: -5px;
   font-size: 16px;
   font-weight: 600;
-  font-variant: small-caps;
+  font-variant: all-petite-caps;
   transition: opacity 0.1s;
 }
 
@@ -226,9 +226,9 @@ hr {
   padding: 12px 14px;
   background-color: white;
   color: #282c34;
-  font-variant: small-caps;
+  font-variant: all-petite-caps;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 16px;
   margin-top: 10px;
   margin-bottom: 10px;
   cursor: pointer;
@@ -269,7 +269,7 @@ hr {
   opacity: 0.6;
   border: 0;
   transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  font-weight: 400;
+  font-weight: bold;
   font-size: 16px;
 }
 
@@ -412,7 +412,17 @@ hr {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1080px) {
+  .heading .title {
+    margin-top: 20px;
+  }
+
+  .App-header {
+    padding-top: 145px;
+  }
+}
+
+@media (max-width: 980px) {
   .hide-mobile {
     display: none;
   }
@@ -500,6 +510,9 @@ hr {
     margin: 0;
     transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     text-shadow: 2px 8px 6px rgba(0, 0, 0, 0.2), 0 -5px 35px rgba(255, 255, 255, 0.3);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
   }
 
   .show-stats-btn.close {
@@ -511,7 +524,7 @@ hr {
   }
 
   .show-stats-btn i {
-    color: rgba(255, 255, 255, 0.5);
+    /*color: rgba(255, 255, 255, 0.5);*/
     transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
