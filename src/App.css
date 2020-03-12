@@ -422,6 +422,7 @@ hr {
   }
 
   .App-header {
+    padding-top: 145px;
     padding-left: 10px;
     padding-right: 10px;
   }
@@ -429,6 +430,10 @@ hr {
   .heading {
     top: 10px;
     width: calc(100% - 10px);
+  }
+
+  .heading .title {
+    margin-top: 30px;
   }
 
   /*.mobile-nav {*/
@@ -444,7 +449,7 @@ hr {
     background-color: #282c34;
     position: fixed;
     width: 0;
-    height: 120px;
+    height: 140px;
     font-size: 1.5em;
     transform: translateX(100vw);
     z-index: 999;
@@ -471,7 +476,6 @@ hr {
 
   .mobile-nav.open {
     width: 100vw;
-    height: 120px;
     transform: translateX(0);
     transition-delay: 0s;
   }
@@ -533,21 +537,22 @@ hr {
     right: 10px;
     top: 0;
     text-align: right;
-    height: 0;
+    /*height: 0;*/
     overflow: hidden;
-    opacity: 0;
-    transition: opacity 0.1s;
+    /*opacity: 0;*/
+    /*transition: opacity 0.1s;*/
     z-index: 1100;
     font-size: 14px;
-  }
-
-  .totals.show {
-    height: initial;
-    z-index: 1000;
-    opacity: 1;
-    transition-delay: 0.4s;
     pointer-events: none;
   }
+
+  /*.totals.show {*/
+  /*  height: initial;*/
+  /*  z-index: 1000;*/
+  /*  opacity: 1;*/
+  /*  transition-delay: 0.4s;*/
+  /*  pointer-events: none;*/
+  /*}*/
 
   .arrow-btn {
     width: 100%;
