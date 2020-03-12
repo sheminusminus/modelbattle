@@ -23,12 +23,8 @@ firebase.analytics();
 const store = firebase.storage();
 const db = firebase.database();
 
-// Configure FirebaseUI.
 const uiConfig = {
-  // Popup signin flow rather than redirect flow.
   signInFlow: 'popup',
-  // Redirect to /signedIn after sign in is successful. Alternatively you can provide a callbacks.signInSuccess function.
-  signInSuccessUrl: '/exp',
   callbacks: {
     signInSuccess: () => {
       if (window.location.href.includes('choose')) {
@@ -41,7 +37,6 @@ const uiConfig = {
       }
     },
   },
-  // We will display Google and Facebook as auth providers.
   signInOptions: [
     firebase.auth.GoogleAuthProvider.PROVIDER_ID,
     firebase.auth.GithubAuthProvider.PROVIDER_ID,
@@ -49,6 +44,7 @@ const uiConfig = {
   ],
 };
 
+// hotkeys
 const Keys = {
   ONE: '1',
   TWO: '2',
@@ -58,21 +54,15 @@ const Keys = {
 
 const validKeys = Object.values(Keys);
 
-const ActionForKey = {
-  [Keys.ONE]: 'a',
-  [Keys.TWO]: 'b',
-  [Keys.SKIP]: 'none',
+const shuffle = (array) => {
+  return array.sort(() => Math.random() - 0.5);
 };
 
-function shuffle(array) {
-  return array.sort(() => Math.random() - 0.5);
-}
-
-function coinFlip() {
+const coinFlip = () => {
   return Math.floor(Math.random() * 2) === 0;
-}
+};
 
-function Choose(props) {
+const Choose = (props) => {
   const [names, setNames] = React.useState([]);
 
   React.useEffect(() => {
@@ -109,7 +99,7 @@ function Choose(props) {
       })}
     </React.Fragment>
   );
-}
+};
 
 const listImages = async () => {
   const { n: expName } = qs.parse(window.location.search);
@@ -143,7 +133,57 @@ const Spinner = ({ isLoading }) => {
   );
 };
 
-function Main(props) {
+const Image = (props) => {
+  const {
+    className,
+    idx,
+    isSelected,
+    onImgKeyPress,
+    onSelection,
+    url,
+    urlsA,
+    urlsB,
+    whichImg,
+  } = props;
+
+  return (
+    <img
+      tabIndex="0"
+      className={className}
+      src={url}
+      alt={url}
+      onKeyDown={(evt) => {
+        const { key, target } = evt;
+
+        if (!isSelected) {
+          target.blur();
+        }
+
+        onImgKeyPress({
+          evtKey: key,
+          urls: { a: urlsA[idx], b: urlsB[idx] },
+          whichImg: whichImg,
+          index: idx,
+        });
+      }}
+      onClick={(evt) => {
+        const { target } = evt;
+
+        if (!isSelected) {
+          target.blur();
+        }
+
+        onSelection({
+          urls: { a: urlsA[idx], b: urlsB[idx] },
+          whichImg: whichImg,
+          index: idx,
+        });
+      }}
+    />
+  );
+};
+
+const Main = (props) => {
   const { name } = props;
 
   const user = firebase.auth().currentUser;
@@ -437,84 +477,40 @@ function Main(props) {
           const isBSelected = selected[idx] && selected[idx].vote === 'b';
 
           const aImg = (
-            <img
-              tabIndex="0"
+            <Image
               className={classNames({
                 disabled: submitting,
                 'a-img': true,
                 'exp-image': true,
                 'a_selected': isASelected,
               })}
-              src={url}
-              alt={url}
-              onKeyDown={(evt) => {
-                const { key, target } = evt;
-
-                if (!isASelected) {
-                  target.blur();
-                }
-
-                onImgKeyPress({
-                  evtKey: key,
-                  urls: { a: urlsA[idx], b: urlsB[idx] },
-                  whichImg: 'a',
-                  index: idx,
-                });
-              }}
-              onClick={(evt) => {
-                const { target } = evt;
-
-                if (!isASelected) {
-                  target.blur();
-                }
-
-                onSelection({
-                  urls: { a: urlsA[idx], b: urlsB[idx] },
-                  whichImg: 'a',
-                  index: idx,
-                });
-              }}
+              idx={idx}
+              isSelected={isASelected}
+              onImgKeyPress={onImgKeyPress}
+              onSelection={onSelection}
+              url={url}
+              urlsA={urlsA}
+              urlsB={urlsB}
+              whichImg="a"
             />
           );
 
           const bImg = (
-            <img
-              tabIndex="0"
+            <Image
               className={classNames({
                 disabled: submitting,
                 'b-img': true,
                 'exp-image': true,
                 'b_selected': isBSelected,
               })}
-              src={b}
-              alt={b}
-              onKeyDown={(evt) => {
-                const { key, target } = evt;
-
-                if (!isBSelected) {
-                  target.blur();
-                }
-
-                onImgKeyPress({
-                  evtKey: key,
-                  urls: { a: urlsA[idx], b: urlsB[idx] },
-                  whichImg: 'b',
-                  index: idx,
-                });
-              }}
-              onClick={(evt) => {
-                const { target } = evt;
-
-                if (!isASelected) {
-                  target.blur();
-                }
-
-                onSelection({
-                  urls: { a: urlsA[idx], b: urlsB[idx] },
-                  whichImg: 'b',
-                  index: idx,
-                });
-              }}
+              idx={idx}
+              isSelected={isBSelected}
+              onImgKeyPress={onImgKeyPress}
+              onSelection={onSelection}
+              url={b}
+              urlsA={urlsA}
+              urlsB={urlsB}
+              whichImg="b"
             />
           );
 
@@ -545,9 +541,9 @@ function Main(props) {
       </div>
     </div>
   );
-}
+};
 
-function Auth(props) {
+const Auth = (props) => {
   const [checked, setChecked] = React.useState(false);
 
   const handle = React.useRef();
@@ -591,9 +587,9 @@ function Auth(props) {
   return (
     <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />
   );
-}
+};
 
-function App() {
+const App = () => {
   const [name, setName] = React.useState(null);
 
   React.useEffect(() => {
@@ -631,6 +627,6 @@ function App() {
       </Switch>
     </Router>
   );
-}
+};
 
 export default App;
