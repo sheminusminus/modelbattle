@@ -7,8 +7,8 @@
 ## setup
 
 ```
-git clone https://github.com/sheminusminus/shawwn-experiments
-cd shawwn-experiments
+git clone https://github.com/sheminusminus/modelbattle
+cd modelbattle
 yarn
 ```
 
