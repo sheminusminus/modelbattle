@@ -162,6 +162,7 @@ const Image = (props) => {
     idx,
     isSelected,
     onImgKeyPress,
+    onLoad,
     onSelection,
     url,
     urlsA,
@@ -175,6 +176,7 @@ const Image = (props) => {
       className={className}
       src={url}
       alt={url}
+      onLoad={onLoad}
       onKeyDown={(evt) => {
         const { key, target } = evt;
 
@@ -221,6 +223,8 @@ const Main = (props) => {
 
   const [urlsA, setUrlsA] = React.useState([]);
   const [urlsB, setUrlsB] = React.useState([]);
+  const [loaded, setLoaded] = React.useState({ a: false, b: false });
+  const [loadedTime, setLoadedTime] = React.useState('');
 
   const [selected, setSelected] = React.useState([]);
 
@@ -283,20 +287,23 @@ const Main = (props) => {
           vote: 'none',
         } : selection;
 
-        await db.ref('results').child(expName).child(uid).push(data);
+        const now = new Date();
+        const loadedMillis = (new Date(loadedTime)).valueOf();
+        const submittedMillis = now.valueOf();
+
+        await db.ref('results').child(expName).child(uid).push({
+          ...data,
+          submitted: now.toUTCString(),
+          duration_ms: submittedMillis - loadedMillis,
+        });
 
         await loadImages(true);
 
-        window.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: 'smooth',
-        });
-
         setSubmitting(false);
+        setLoadedTime((new Date()).toUTCString());
       }
     }
-  }, [selected, submitting, totals]);
+  }, [submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime]);
 
   const onSelection = ({ index, whichImg, urls }) => {
     if (selected[index] && selected[index].vote === whichImg) {
@@ -405,7 +412,7 @@ const Main = (props) => {
   }
 
   return (
-    <div className='App'>
+    <div className={classNames({ App: true })}>
       <div className="App-header images">
         <div className={classNames({ heading: true, loading: submitting })}>
           <div className={classNames({ totals: true, show: menuOpen })}>
@@ -559,6 +566,14 @@ const Main = (props) => {
               isSelected={isASelected}
               onImgKeyPress={onImgKeyPress}
               onSelection={onSelection}
+              onLoad={() => {
+                if (loaded.b) {
+                  setLoaded({ a: true, b: true });
+                  setLoadedTime((new Date()).toUTCString());
+                } else {
+                  setLoaded({ a: true, b: loaded.b });
+                }
+              }}
               url={url}
               urlsA={urlsA}
               urlsB={urlsB}
@@ -578,6 +593,14 @@ const Main = (props) => {
               isSelected={isBSelected}
               onImgKeyPress={onImgKeyPress}
               onSelection={onSelection}
+              onLoad={() => {
+                if (loaded.a) {
+                  setLoaded({ a: true, b: true });
+                  setLoadedTime((new Date()).toUTCString());
+                } else {
+                  setLoaded({ a: loaded.a, b: true });
+                }
+              }}
               url={b}
               urlsA={urlsA}
               urlsB={urlsB}
