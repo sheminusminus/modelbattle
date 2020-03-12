@@ -376,10 +376,12 @@ const Main = (props) => {
     let shouldSet = true;
 
     if (user) {
+      setSubmitting(true);
       loadImages(shouldSet);
     }
 
     return () => {
+      setSubmitting(false);
       shouldSet = false;
     };
   }, [user]);
