@@ -31,8 +31,11 @@ const uiConfig = {
         window.location.replace('/exp/choose');
       } else {
         const name = localStorage.getItem('name');
+
         if (name) {
           window.location.replace(`/exp?n=${name}`);
+        } else {
+          window.location.replace('/exp/choose');
         }
       }
     },
