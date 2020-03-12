@@ -1,3 +1,7 @@
+html, body, * {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif
+}
+
 .App {
   text-align: center;
 }
@@ -14,15 +18,96 @@
 }
 
 .App-header {
-  padding: 40px;
+  padding: 125px 40px 40px;
   background-color: #282c34;
   min-height: 100vh;
   font-size: calc(10px + 2vmin);
   color: white;
+  position: relative;
+}
+
+.heading {
+  position: absolute;
+  top: 15px;
+  transform-origin: center top;
+  width: calc(100% - 80px);
+  display: flex;
+  justify-content: center;
+}
+
+.totals, .legend {
+  position: absolute;
+  left: 0;
+  top: -5px;
+  font-size: 16px;
+  font-weight: 600;
+  font-variant: small-caps;
+  transition: opacity 0.1s;
+}
+
+.legend {
+  top: 20px;
+}
+
+.legend .key {
+  color: #0EBCF3;
+}
+
+.legend span {
+  cursor: alias;
+}
+
+.legend .bar, .legend .desc {
+  opacity: 0.5;
+}
+
+.legend .lower {
+  font-variant: none;
+}
+
+.totals:hover {
+  opacity: 1;
+}
+
+.totals span {
+  opacity: 0.5;
+  cursor: crosshair;
+  transition: opacity 0.1s;
+}
+
+.totals span:hover {
+  opacity: 1;
+}
+
+.totals span.bar:hover {
+  opacity: 0.5;
+}
+
+.totals .total-a {
+  color: pink;
+  margin-left: 10px;
+}
+
+.totals .total-b {
+  color: orange;
+}
+
+.total-none {
+  color: #0EBCF3;
+  text-decoration: line-through;
 }
 
 .title {
   display: block;
+  margin-bottom: 15px;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+}
+
+.subtitle {
+  font-size: 16px;
+  opacity: 0.6;
 }
 
 hr {
@@ -39,18 +124,32 @@ hr {
 
 .exp-image {
   display: block;
-  max-width: 100%;
   height: 100%;
-  width: calc((100% / 2) - 5px);
   object-fit: cover;
-  vertical-align: middle;
   border: 4px solid transparent;
-  transition: border-color 0.2s ease-in-out;
+  opacity: 1;
+  max-width: calc((100% / 2) - 5px);
+  width: calc((100% / 2) - 5px);
+  vertical-align: middle;
+  transition: border-color 0.2s ease-in-out, opacity 0.1s;
 }
 
-.exp-image:hover, .exp-image.selected {
+.exp-image.disabled {
+  opacity: 0.4;
+}
+
+.exp-image:hover, .exp-image:focus, .exp-image:active, .exp-image.selected {
   cursor: pointer;
-  /*border-color: blue;*/
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.a-img:focus, .a-img:active {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.b-img:focus, .b-img:active {
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .exp-image.selected {
@@ -66,11 +165,11 @@ hr {
 }
 
 .exp-image:first-child {
-  margin-right: 20px;
+  margin-right: 10px;
 }
 
 .exp-image:nth-child(2) {
-  margin-right: 20px;
+  /*margin-right: 20px;*/
 }
 
 .exp-image.none {
@@ -89,6 +188,14 @@ hr {
   color: #61dafb;
 }
 
+.actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
 .btn {
   padding: 12px 14px;
   background-color: white;
@@ -105,27 +212,59 @@ hr {
   cursor: not-allowed;
 }
 
+.btn.done {
+  opacity: 0.7;
+  margin-bottom: 30px;
+  padding: 12px 22px 14px;
+  transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,border 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  background-color: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+  min-width: 162px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-height: 49px;
+}
+
+.btn.done:hover, .btn.done:focus, .btn.done:active {
+  opacity: 1;
+  outline: none;
+  border: 1px solid white;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
 .btn.logout, .btn.choose {
-  position: absolute;
-  top: 0px;
-  right: 40px;
   padding: 0;
   background-color: transparent;
   color: white;
+  opacity: 0.6;
   border: 0;
-  transition: color 0.2s ease-in-out;
+  transition: color 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 400;
+  font-size: 16px;
 }
 
-.btn.logout {
-  right: 40px;
+.btn.choose, .btn.logout {
+  margin-right: 40px;
 }
 
-.btn.choose {
-  left: 40px;
+.btn.logout:hover, .btn.choose:hover {
+  color: #0EBCF3;
+  transition-duration: 0.2s;
+  opacity: 1;
+  text-shadow: 2px 8px 6px rgba(0,0,0,0.2), 0px -5px 35px rgba(255,255,255,0.3);
 }
 
-.btn.logout:hover {
-  color: cyan;
+.firebaseui-idp-anonymous {
+  background-color: midnightblue !important;
+}
+
+.spinner {
+  opacity: 0.5;
+  margin-top: 5px;
 }
 
 @keyframes App-logo-spin {

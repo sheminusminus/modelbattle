@@ -1,20 +1,21 @@
 import React from 'react';
 import firebase from 'firebase';
 import qs from 'query-string';
-import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
-import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
-import './App.css';
+import { StyledFirebaseAuth }  from 'react-firebaseui';
+import * as firebaseUi from 'firebaseui';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Redirect,
+} from 'react-router-dom';
+import Loader from 'react-loader-spinner';
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyDc8kZCL0_ai9tCds8bwXYiJiy8xgEv3uU',
-  authDomain: 'experiments-573d7.firebaseapp.com',
-  databaseURL: 'https://experiments-573d7.firebaseio.com',
-  projectId: 'experiments-573d7',
-  storageBucket: 'experiments-573d7.appspot.com',
-  messagingSenderId: '450691706719',
-  appId: '1:450691706719:web:e60b4879afd17d34cbd0ea',
-  measurementId: 'G-CHD125KKCH',
-};
+import classNames from './classNames';
+
+import firebaseConfig from './firebaseConfig';
+
+import './App.css';
 
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
@@ -43,8 +44,24 @@ const uiConfig = {
   // We will display Google and Facebook as auth providers.
   signInOptions: [
     firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-    firebase.auth.GithubAuthProvider.PROVIDER_ID
-  ]
+    firebase.auth.GithubAuthProvider.PROVIDER_ID,
+    firebaseUi.auth.AnonymousAuthProvider.PROVIDER_ID,
+  ],
+};
+
+const Keys = {
+  ONE: '1',
+  TWO: '2',
+  SKIP: 'q',
+  NEXT: 'Enter',
+};
+
+const validKeys = Object.values(Keys);
+
+const ActionForKey = {
+  [Keys.ONE]: 'a',
+  [Keys.TWO]: 'b',
+  [Keys.SKIP]: 'none',
 };
 
 function shuffle(array) {
@@ -74,7 +91,7 @@ function Choose(props) {
     <React.Fragment>
       {names.map((n) => {
         return (
-          <React.Fragment>
+          <React.Fragment key={n}>
             <button
               key={n}
               onClick={() => {
@@ -95,9 +112,10 @@ function Choose(props) {
 }
 
 const listImages = async () => {
-  const { n } = qs.parse(window.location.search);
-  if (!n) { return; }
-  const expName = n;
+  const { n: expName } = qs.parse(window.location.search);
+
+  if (!expName) { return; }
+
   const dirASnap = await db.ref('meta').child(expName).child('a_dir').once('value');
   const dirBSnap = await db.ref('meta').child(expName).child('b_dir').once('value');
   const dirA = dirASnap.val();
@@ -107,14 +125,37 @@ const listImages = async () => {
   return { a: [shuffle(itemsA)[0]], b: [shuffle(itemsB)[0]] };
 };
 
+const Spinner = ({ isLoading }) => {
+  if (!isLoading) {
+    return null;
+  }
+
+  return (
+    <div className="spinner">
+      <Loader
+        type="Puff"
+        color="#0EBCF3"
+        height={20}
+        width={20}
+        timeout={3000}
+      />
+    </div>
+  );
+};
+
 function Main(props) {
   const { name } = props;
 
   const user = firebase.auth().currentUser;
+
+  console.log(user);
   const [checked, setChecked] = React.useState(false);
   const [aFirstList, setAFirstList] = React.useState([]);
 
+  const [totals, setTotals] = React.useState({ a: 0, b: 0, none: 0 });
+
   const handle = React.useRef();
+  const nextBtn = React.useRef();
 
   const [urlsA, setUrlsA] = React.useState([]);
   const [urlsB, setUrlsB] = React.useState([]);
@@ -123,6 +164,129 @@ function Main(props) {
 
   const [submitting, setSubmitting] = React.useState(false);
 
+  const loadImages = async (shouldSet) => {
+    const images = await listImages();
+
+    if (images) {
+      const {a, b} = images;
+      const aUrls = await Promise.all(a.map(async (ref) => {
+        return ref.getDownloadURL();
+      }));
+      const bUrls = await Promise.all(b.map(async (ref) => {
+        return ref.getDownloadURL();
+      }));
+      const ordering = aUrls.map(() => coinFlip());
+
+      if (shouldSet) {
+        setUrlsA(shuffle(aUrls));
+        setUrlsB(shuffle(bUrls));
+        setAFirstList(ordering);
+      }
+    }
+
+    setSubmitting(false);
+  };
+
+  const onSubmit = React.useCallback(async (overrideSelected) => {
+    if (!submitting) {
+      const selection = overrideSelected || selected[0];
+
+      const { n: expName } = qs.parse(window.location.search);
+
+      if (expName) {
+        setSubmitting(true);
+
+        const isASelected = selection && selection.vote === 'a';
+        const isBSelected = selection && selection.vote === 'b';
+        const isNoneSelected = !selection || selection.vote === 'none';
+
+        const nextTotals = {
+          a: isASelected ? totals.a + 1 : totals.a,
+          b: isBSelected ? totals.b + 1 : totals.b,
+          none: isNoneSelected ? totals.none + 1 : totals.none,
+        };
+
+        console.log(totals, nextTotals);
+        setTotals(nextTotals);
+
+        localStorage.setItem(`totals:${expName}`, JSON.stringify(nextTotals));
+
+        setSelected([]);
+
+        const { uid } = firebase.auth().currentUser;
+        await db.ref('results').child(expName).child(uid).push(selected);
+
+        await loadImages(true);
+
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'smooth',
+        });
+
+        setSubmitting(false);
+      }
+    }
+  }, [selected, submitting, totals]);
+
+  const onSelection = ({ index, whichImg, urls }) => {
+    if (selected[index] && selected[index].vote === whichImg) {
+      setSelected([]);
+    } else {
+      const nextSelected = [...selected];
+      nextSelected[index] = {
+        a: urls.a,
+        b: urls.b,
+        vote: whichImg,
+      };
+      setSelected(nextSelected);
+    }
+  };
+
+  const onImgKeyPress = ({ evtKey, ...rest }) => {
+    if (evtKey === 'Enter') {
+      onSelection(rest);
+    }
+  };
+
+  const handleKeyDown = React.useCallback((evt) => {
+    const { key } = evt;
+
+    if (validKeys.includes(key)) {
+      const isA = (key === Keys.ONE && aFirstList[0])
+        || (key === Keys.TWO && !aFirstList[0]);
+      const isB = (key === Keys.ONE && !aFirstList[0])
+        || (key === Keys.TWO && aFirstList[0]);
+
+      const vote = (isA) ? 'a' : ((isB) ? 'b' : 'none');
+
+      const selection = {
+        a: urlsA[0],
+        b: urlsB[0],
+        vote,
+      };
+
+      onSubmit(selection);
+    }
+  }, [aFirstList, onSubmit, urlsA, urlsB]);
+
+  React.useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [totals.a, totals.b, totals.none, selected, handleKeyDown]);
+
+  React.useEffect(() => {
+    const { n: expName } = qs.parse(window.location.search);
+    const savedTotals = localStorage.getItem(`totals:${expName}`);
+    if (savedTotals) {
+      const totalsObj = JSON.parse(savedTotals);
+      setTotals(totalsObj);
+    }
+  }, []);
+
   React.useEffect(() => {
     handle.current = firebase.auth().onAuthStateChanged(async (u) => {
       setChecked(true);
@@ -130,8 +294,17 @@ function Main(props) {
       if (!u) {
         props.history.push('/');
       } else {
-        const { displayName, email, photoURL, uid, providerId } = u;
-        await db.ref('users').child(uid).set({ displayName, email, photoUrl: photoURL, uid, providerId });
+        const { displayName, email, photoURL, uid, providerId, isAnonymous } = u;
+
+        let userData;
+
+        if (isAnonymous) {
+          userData = { displayName: uid, uid, anon: isAnonymous };
+        } else {
+          userData = { displayName: displayName || uid, email, photoUrl: photoURL, uid, providerId };
+        }
+
+        await db.ref('users').child(uid).set(userData);
       }
 
       return () => {
@@ -144,30 +317,13 @@ function Main(props) {
     let shouldSet = true;
 
     if (user) {
-      (async () => {
-        const images = await listImages()
-        if (images) {
-          const { a, b } = images;
-          if (shouldSet && !urlsA.length && !urlsB.length) {
-            const aUrls = await Promise.all(a.map(async (ref) => {
-              return ref.getDownloadURL();
-            }));
-            const bUrls = await Promise.all(b.map(async (ref) => {
-              return ref.getDownloadURL();
-            }));
-            const ordering = aUrls.map(() => coinFlip());
-            setUrlsA(shuffle(aUrls));
-            setUrlsB(shuffle(bUrls));
-            setAFirstList(ordering);
-          }
-        }
-      })()
+      loadImages(shouldSet);
     }
 
     return () => {
       shouldSet = false;
     };
-  }, [name, urlsA.length, urlsB.length, user]);
+  }, [user]);
 
   if (!user && checked) {
     return <Redirect to="/" />
@@ -180,8 +336,75 @@ function Main(props) {
   return (
     <div className='App'>
       <div className="App-header images">
+        <div className={classNames({ heading: true, loading: submitting })}>
+          <div className="totals">
+            <span
+              title="Your historical picks for this experiment"
+            >
+              Picks:
+            </span>
+            <span
+              className="total-a"
+              title={`${totals.a} pink images chosen`}
+            >
+              {totals.a}
+            </span>
+            <span className="bar">{' | '}</span>
+            <span
+              className="total-b"
+              title={`${totals.b} orange images chosen`}
+            >
+              {totals.b}
+            </span>
+            <span className="bar">{' | '}</span>
+            <span
+              className="total-none"
+              title={`${totals.none} rounds skipped`}
+            >
+              ({totals.none})
+            </span>
+          </div>
+
+          <div className="legend">
+            <span className="desc">Hotkeys: </span>
+            <span>
+              <span className="key">1</span> <span className="desc">(Left)</span>
+            </span>
+            <span className="bar">{' | '}</span>
+            <span>
+              <span className="key">2</span> <span className="desc">(Right)</span>
+            </span>
+            <span className="bar">{' | '}</span>
+            <span>
+              <span className="key lower">q</span> <span className="desc">(Skip)</span>
+            </span>
+          </div>
+
+          <div className="title-wrapper">
+            <span className="title">
+              Which is better?
+            </span>
+
+            <button
+              ref={nextBtn}
+              className="btn done"
+              disabled={submitting}
+              type="button"
+              onFocus={(evt) => evt.preventDefault()}
+              onBlur={(evt) => evt.preventDefault()}
+              onClick={() => onSubmit()}
+            >
+              {submitting && (
+                <Spinner isLoading={submitting} />
+              )}
+              {!submitting && selected.length > 0 && 'Save & Next'}
+              {!submitting && selected.length === 0 && 'Neither, skip'}
+            </button>
+          </div>
+        </div>
+
         {!!user && (
-          <React.Fragment>
+          <div className="actions">
             <button
               className="btn choose"
               type="button"
@@ -189,122 +412,108 @@ function Main(props) {
                 props.history.push('/exp/choose');
               }}
             >
-              Choose Experiment
+              Choose Another Experiment
             </button>
 
             <button
               className="btn logout"
               type="button"
               onClick={async () => {
+                const expName = localStorage.getItem('name');
+                localStorage.clear();
                 await firebase.auth().signOut();
+                localStorage.setItem('name', expName);
               }}
             >
               Logout
             </button>
-          </React.Fragment>
+          </div>
         )}
 
-        <span className="title">Which is better? If neither one is better, just skip it.</span>
-        <button
-          className="btn done"
-          disabled={submitting}
-          type="button"
-          onClick={async () => {
-
-            /*
-                <div
-                  className={`none exp-image${selected[idx] && selected[idx].vote === 'none' ? ' selected' : ''}`} // `
-                  onClick={() => {
-                    const nextSelected = [...selected];
-                    nextSelected[idx] = nextSelected[idx] = {
-                      a: url,
-                      b: b,
-                      vote: 'none',
-                    };
-                    setSelected(nextSelected);
-                  }}
-                >
-                  <span>Neither</span>
-                </div>
-                */
-            if (!submitting) {
-              const { n: expName } = qs.parse(window.location.search);
-              if (expName) {
-                setSubmitting(true);
-                const { uid } = firebase.auth().currentUser;
-                await db.ref('results').child(expName).child(uid).push(selected);
-                localStorage.clear();
-                setSelected([]);
-                await (async () => {
-                  const images = await listImages()
-                  if (images) {
-                    const { a, b } = images;
-                    const aUrls = await Promise.all(a.map(async (ref) => {
-                      return ref.getDownloadURL();
-                    }));
-                    const bUrls = await Promise.all(b.map(async (ref) => {
-                      return ref.getDownloadURL();
-                    }));
-                    const ordering = aUrls.map(() => coinFlip());
-                    setUrlsA(shuffle(aUrls));
-                    setUrlsB(shuffle(bUrls));
-                    setAFirstList(ordering);
-                  }
-                  setSubmitting(false);
-                })()
-                window.scrollTo({
-                  top: 0,
-                  left: 0,
-                  behavior: 'smooth',
-                });
-              }
-            }
-          }}
-        >
-          Next
-        </button>
-        {urlsA.length === urlsB.length && urlsA.map((url, idx) => {
+        {(urlsA.length === urlsB.length) && urlsA.map((url, idx) => {
           const aFirst = aFirstList[idx];
           const b = urlsB[idx];
+          const isASelected = selected[idx] && selected[idx].vote === 'a';
+          const isBSelected = selected[idx] && selected[idx].vote === 'b';
 
           const aImg = (
             <img
-              className={`exp-image${selected[idx] && selected[idx].vote === 'a' ? ' a_selected' : ''}`} // `
+              tabIndex="0"
+              className={classNames({
+                disabled: submitting,
+                'a-img': true,
+                'exp-image': true,
+                'a_selected': isASelected,
+              })}
               src={url}
               alt={url}
-              onClick={() => {
-                if (selected[idx] && selected[idx].vote === 'a') {
-                  setSelected([]);
-                } else {
-                  const nextSelected = [...selected];
-                  nextSelected[idx] = {
-                    a: url,
-                    b: b,
-                    vote: 'a',
-                  };
-                  setSelected(nextSelected);
+              onKeyDown={(evt) => {
+                const { key, target } = evt;
+
+                if (!isASelected) {
+                  target.blur();
                 }
+
+                onImgKeyPress({
+                  evtKey: key,
+                  urls: { a: urlsA[idx], b: urlsB[idx] },
+                  whichImg: 'a',
+                  index: idx,
+                });
+              }}
+              onClick={(evt) => {
+                const { target } = evt;
+
+                if (!isASelected) {
+                  target.blur();
+                }
+
+                onSelection({
+                  urls: { a: urlsA[idx], b: urlsB[idx] },
+                  whichImg: 'a',
+                  index: idx,
+                });
               }}
             />
           );
 
           const bImg = (
             <img
-              className={`exp-image${selected[idx] && selected[idx].vote === 'b' ? ' b_selected' : ''}`} // `
+              tabIndex="0"
+              className={classNames({
+                disabled: submitting,
+                'b-img': true,
+                'exp-image': true,
+                'b_selected': isBSelected,
+              })}
               src={b}
               alt={b}
-              onClick={() => {
-                if (selected[idx] && selected[idx].vote === 'b') {
-                  setSelected([]);
-                } else {
-                  const nextSelected = [...selected];
-                  nextSelected[idx] = nextSelected[idx] = {
-                    a: url,
-                    b: b,
-                    vote: 'b',
-                  };
-                  setSelected(nextSelected);
+              onKeyDown={(evt) => {
+                const { key, target } = evt;
+
+                if (!isBSelected) {
+                  target.blur();
                 }
+
+                onImgKeyPress({
+                  evtKey: key,
+                  urls: { a: urlsA[idx], b: urlsB[idx] },
+                  whichImg: 'b',
+                  index: idx,
+                });
+              }}
+              onClick={(evt) => {
+                const { target } = evt;
+
+                if (!isASelected) {
+                  target.blur();
+                }
+
+                onSelection({
+                  urls: { a: urlsA[idx], b: urlsB[idx] },
+                  whichImg: 'b',
+                  index: idx,
+                });
               }}
             />
           );
@@ -349,7 +558,17 @@ function Auth(props) {
 
       if (user) {
         const { displayName, email, photoURL, uid, providerId, isAnonymous } = user;
-        await db.ref('users').child(uid).set({ displayName: displayName || uid, email, photoUrl: photoURL, uid, providerId, isAnonymous });
+
+        let userData;
+
+        if (isAnonymous) {
+          userData = { displayName: uid, uid, anon: isAnonymous };
+        } else {
+          userData = { displayName: displayName || uid, email, photoUrl: photoURL, uid, providerId };
+        }
+
+        await db.ref('users').child(uid).set(userData);
+
         if (props.name) {
           props.history.push(`/exp?n=${props.name}`);
         }
@@ -361,17 +580,6 @@ function Auth(props) {
     };
   });
 
-  /*
-  React.useEffect(() => {
-    if (checked && firebase.auth().currentUser) {
-    } else {
-      (async () => {
-        await firebase.auth().signInAnonymously()
-      })();
-    }
-  });
-  */
-
   if (checked && firebase.auth().currentUser) {
     if (props.name) {
       return <Redirect to={`/exp?n=${props.name}`} />; // `
@@ -381,7 +589,7 @@ function Auth(props) {
   }
 
   return (
-    <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()}/>
+    <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />
   );
 }
 
@@ -404,7 +612,7 @@ function App() {
         setName('');
       }
     }
-  }, []);
+  }, [name]);
 
   const handleSetName = (n) => {
     localStorage.setItem('name', n);
