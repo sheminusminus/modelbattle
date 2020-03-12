@@ -1,5 +1,7 @@
 # experiments
 
+[Live](https://experiments-573d7.firebaseapp.com/)
+
 ## setup
 
 ```
