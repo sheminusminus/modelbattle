@@ -87,3 +87,7 @@ this was bootstrapped with create-react-app. ejection hasn't yet been necessary,
 ## using this code
 
 please do! just credit me in your code comments :)
+
+## say hi
+
+come chirp at us on twitter, at [@theshawwn](https://twitter.com/theshawwn) and [@sheminusminus](https://twitter.com/sheminusminus).
