@@ -188,7 +188,6 @@ const Main = (props) => {
 
   const user = firebase.auth().currentUser;
 
-  console.log(user);
   const [checked, setChecked] = React.useState(false);
   const [aFirstList, setAFirstList] = React.useState([]);
 
@@ -246,7 +245,6 @@ const Main = (props) => {
           none: isNoneSelected ? totals.none + 1 : totals.none,
         };
 
-        console.log(totals, nextTotals);
         setTotals(nextTotals);
 
         localStorage.setItem(`totals:${expName}`, JSON.stringify(nextTotals));
