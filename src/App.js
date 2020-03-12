@@ -65,6 +65,25 @@ const coinFlip = () => {
   return Math.floor(Math.random() * 2) === 0;
 };
 
+const ArrowButton = ({ onClick, name }) => (
+  <button
+    className="arrow-btn"
+    onClick={onClick}
+    type="button"
+  >
+    <a
+      className="cta-btn"
+      href={`/exp?n=${name}`}
+      onClick={evt => evt.preventDefault()}
+    >
+      <span>{name}</span>
+      <span>
+        <i className="material-icons right cta-icon hidden">keyboard_arrow_right</i>
+      </span>
+    </a>
+  </button>
+);
+
 const Choose = (props) => {
   const [names, setNames] = React.useState([]);
 
@@ -81,26 +100,25 @@ const Choose = (props) => {
   }, []);
 
   return (
-    <React.Fragment>
+    <div className="choose-exp">
+      <span className="title">Available experiments:</span>
+
+      <br />
+
       {names.map((n) => {
         return (
-          <React.Fragment key={n}>
-            <button
-              key={n}
-              onClick={() => {
-                localStorage.setItem('name', n);
-                props.setName(n);
-                window.location.assign(`/exp?n=${n}`); // `
-              }}
-              type="button"
-            >
-              {n}
-            </button>
-            <br />
-          </React.Fragment>
+          <ArrowButton
+            key={n}
+            onClick={() => {
+              localStorage.setItem('name', n);
+              props.setName(n);
+              window.location.assign(`/exp?n=${n}`); // `
+            }}
+            name={n}
+          />
         );
       })}
-    </React.Fragment>
+    </div>
   );
 };
 

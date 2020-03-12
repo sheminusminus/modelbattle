@@ -1,9 +1,25 @@
-html, body, * {
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+.App, .choose-exp {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif
 }
 
 .App {
   text-align: center;
+}
+
+.choose-exp {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .App-logo {
@@ -17,13 +33,23 @@ html, body, * {
   }
 }
 
-.App-header {
+.App-header, .choose-exp {
   padding: 125px 40px 40px;
   background-color: #282c34;
   min-height: 100vh;
   font-size: calc(10px + 2vmin);
   color: white;
   position: relative;
+}
+
+.choose-exp .title {
+  font-variant: small-caps;
+  font-size: 20px;
+  font-weight: 500;
+  display: block;
+  width: 440px;
+  text-align: left;
+  opacity: 0.5;
 }
 
 .heading {
@@ -255,7 +281,112 @@ hr {
   color: #0EBCF3;
   transition-duration: 0.2s;
   opacity: 1;
-  text-shadow: 2px 8px 6px rgba(0,0,0,0.2), 0px -5px 35px rgba(255,255,255,0.3);
+  text-shadow: 2px 8px 6px rgba(0,0,0,0.2), 0 -5px 35px rgba(255,255,255,0.3);
+}
+
+.choose-exp .btn.done {
+  margin-bottom: 40px;
+}
+
+.arrow-btn {
+  background-color: transparent;
+  border-radius: 3px;
+  border: 2px solid #0EBCF3;
+  color: #0EBCF3;
+  display: block;
+  filter: brightness(0.99);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.7em !important;
+  margin-bottom: 30px;
+  min-width: 440px;
+  padding: 1.5rem 0.8rem;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.arrow-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+  padding: 1.5rem 1rem;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  outline: none;
+  cursor: pointer;
+  filter: brightness(0.95);
+}
+
+.arrow-btn:focus {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid transparent;
+  box-shadow: none;
+  cursor: pointer;
+  filter: brightness(0.95);
+  outline: none;
+  padding: 1.5rem 1rem;
+  transition: all 0.2s;
+}
+
+.arrow-btn .cta-btn {
+  color: #0EBCF3;
+  display: flex;
+  font-size: 18px;
+  justify-content: center;
+  padding: 0 0 0 0;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.arrow-btn .cta-btn span {
+  font-weight: bold;
+}
+
+.arrow-btn .cta-btn .cta-icon {
+  color: #0EBCF3;
+  font-size: 40px;
+  margin-left: 1em;
+  opacity: 0;
+  transition: all 0.2s;
+  width: 0;
+}
+
+.arrow-btn .cta-btn .cta-icon {
+  font-size: 32px;
+  line-height: 1em;
+  margin-left: -0.5em;
+  opacity: 0;
+  position: absolute;
+  transition: all 0.2s;
+}
+
+.arrow-btn:hover .cta-btn {
+  color: #0EBCF3;
+  margin-left: -1em;
+  text-shadow: 0 0 1px rgba(255,255,255,1);
+  transition: all 0.2s;
+}
+
+.arrow-btn:hover .cta-btn .cta-icon {
+  margin-left: 0;
+  opacity: 1;
+  transition: all 0.2s;
+}
+
+.cta-btn span {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cta-btn span:first-child {
+  padding-top: 4px;
+}
+
+.arrow-btn i {
+  margin-top: 1px;
 }
 
 .firebaseui-idp-anonymous {
