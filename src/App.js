@@ -101,15 +101,24 @@ const EggHunt = ({ backUrl }) => {
       }}
     >
       <div
+        className="secret-heart"
         style={{
+          display: 'flex',
+          justifyContent: 'flex-start',
+          alignItems: 'flex-end',
           backgroundColor: 'transparent',
           width: '60px',
           height: '60px',
           position: 'absolute',
           bottom: '0',
           left: '0',
+          padding: '0 0 10px 10px',
         }}
-      />
+      >
+        <i className="material-icons">
+          favorite_border
+        </i>
+      </div>
     </Link>
   );
 };

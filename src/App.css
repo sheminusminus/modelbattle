@@ -483,6 +483,16 @@ button.back:active, button.back:focus {
   outline: none;
 }
 
+.secret-heart i {
+  color: #0EBCF3;
+  opacity: 0.4;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.secret-heart:hover i {
+  opacity: 1;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
