@@ -70,6 +70,43 @@ const coinFlip = () => {
   return Math.floor(Math.random() * 2) === 0;
 };
 
+/**
+ * @param {Object} options
+ * @param {Object} options.history
+ * @param {?string} [options.expName]
+ * @param {Function} options.setChecked
+ * @return {function(...[*]=)}
+ */
+const makeAuthHandler = (options) => async (user) => {
+  const { expName, history, setChecked } = options;
+
+  setChecked(true);
+
+  if (user) {
+    const { displayName, email, photoURL, uid, providerId, isAnonymous } = user;
+
+    let userData;
+
+    if (isAnonymous) {
+      userData = { anon: isAnonymous, displayName: uid, uid };
+    } else {
+      userData = {
+        displayName: displayName || uid,
+        email,
+        photoUrl: photoURL,
+        providerId,
+        uid,
+      };
+    }
+
+    await db.ref('users').child(uid).set(userData);
+
+    if (expName) {
+      history.push(`/exp?n=${expName}`);
+    }
+  }
+};
+
 const ArrowButton = ({ onClick, name }) => (
   <button
     className="arrow-btn"
@@ -154,7 +191,7 @@ const Choose = (props) => {
               onClick={() => {
                 localStorage.setItem('name', saveName);
                 props.setName(n);
-                window.location.assign(`/exp?n=${saveName}`); // `
+                window.location.assign(`/exp?n=${saveName}`);
               }}
               name={n}
             />
@@ -168,6 +205,9 @@ const Choose = (props) => {
 const listImages = async (searchQuery) => {
   const queries = qs.parse(searchQuery);
 
+  /**
+   * @type {?string}
+   */
   const expName = queries.n || queries['?n'];
 
   if (!expName) { return { a: [], b: [] }; }
@@ -212,68 +252,83 @@ const Image = (props) => {
     urlsA,
     urlsB,
     whichImg,
+    wrapperClassName,
   } = props;
 
+  /**
+   * @param {KeyboardEvent} evt
+   */
+  const handleKeyDown = ({ key, target }) => {
+    if (!isSelected) {
+      target.blur();
+    }
+
+    onImgKeyPress({
+      evtKey: key,
+      urls: { a: urlsA[idx], b: urlsB[idx] },
+      whichImg: whichImg,
+      index: idx,
+    });
+  };
+
+  /**
+   * @param {MouseEvent} evt
+   */
+  const handleClick = ({ target }) => {
+    if (!isSelected) {
+      target.blur();
+    }
+
+    onSelection({
+      urls: { a: urlsA[idx], b: urlsB[idx] },
+      whichImg: whichImg,
+      index: idx,
+    });
+  };
+
   return (
-    <img
-      tabIndex="0"
-      className={className}
-      src={url}
-      alt={url}
-      onLoad={onLoad}
-      onKeyDown={(evt) => {
-        const { key, target } = evt;
-
-        if (!isSelected) {
-          target.blur();
-        }
-
-        onImgKeyPress({
-          evtKey: key,
-          urls: { a: urlsA[idx], b: urlsB[idx] },
-          whichImg: whichImg,
-          index: idx,
-        });
-      }}
-      onClick={(evt) => {
-        const { target } = evt;
-
-        if (!isSelected) {
-          target.blur();
-        }
-
-        onSelection({
-          urls: { a: urlsA[idx], b: urlsB[idx] },
-          whichImg: whichImg,
-          index: idx,
-        });
-      }}
-    />
+    <div
+      className={classNames({
+        'img-bg': true,
+        [wrapperClassName]: !!wrapperClassName,
+      })}
+    >
+      <img
+        tabIndex="0"
+        className={className}
+        src={url}
+        alt={url}
+        onLoad={onLoad}
+        onKeyDown={handleKeyDown}
+        onClick={handleClick}
+      />
+    </div>
   );
 };
 
-const Main = (props) => {
-  const { name } = props;
-
+const Main = ({ history, name }) => {
   const user = firebase.auth().currentUser;
 
   const [checked, setChecked] = React.useState(false);
   const [aFirstList, setAFirstList] = React.useState([]);
-
   const [totals, setTotals] = React.useState({ a: 0, b: 0, none: 0 });
+  const [wrapperClasses, setWrapperClasses] = React.useState('');
 
+  /**
+   * @type {React.MutableRefObject<firebase.Unsubscribe>}
+   */
   const handle = React.useRef();
+  /**
+   * @type {React.MutableRefObject<HTMLButtonElement>}
+   */
   const nextBtn = React.useRef();
 
   const [urlsA, setUrlsA] = React.useState([]);
   const [urlsB, setUrlsB] = React.useState([]);
   const [loaded, setLoaded] = React.useState({ a: false, b: false });
   const [loadedTime, setLoadedTime] = React.useState('');
-
   const [selected, setSelected] = React.useState([]);
-
   const [submitting, setSubmitting] = React.useState(false);
-
   const [menuOpen, setMenuOpen] = React.useState(false);
 
   const loc = useLocation();
@@ -303,7 +358,12 @@ const Main = (props) => {
     if (!submitting) {
       const selection = overrideSelected || selected[0];
 
-      const { n: expName } = qs.parse(window.location.search);
+      const queries = qs.parse(window.location.search);
+
+      /**
+       * @type {?string}
+       */
+      const expName = queries.n || queries['?n'];
 
       if (expName) {
         setSubmitting(true);
@@ -341,7 +401,7 @@ const Main = (props) => {
           duration_ms: submittedMillis - loadedMillis,
         });
 
-        await loadImages(true);
+        await loadImages();
 
         setSubmitting(false);
         setLoadedTime((new Date()).toUTCString());
@@ -389,6 +449,15 @@ const Main = (props) => {
         || (key === Keys.TWO && aFirstList[0]);
 
       const vote = (isA) ? 'a' : ((isB) ? 'b' : 'none');
+      const nextWrapperClasses = (isA) ? 'beep beep-a' : ((isB) ? 'beep beep-b' : 'beep beep-skip');
+
+      if (key !== Keys.NEXT) {
+        setWrapperClasses(nextWrapperClasses);
+
+        setTimeout(() => {
+          setWrapperClasses('');
+        }, 1000);
+      }
 
       const selection = {
         a: urlsA[0],
@@ -418,35 +487,19 @@ const Main = (props) => {
   }, []);
 
   React.useEffect(() => {
-    handle.current = firebase.auth().onAuthStateChanged(async (u) => {
-      setChecked(true);
-
-      if (!u) {
-        props.history.push('/');
-      } else {
-        const { displayName, email, photoURL, uid, providerId, isAnonymous } = u;
-
-        let userData;
-
-        if (isAnonymous) {
-          userData = { displayName: uid, uid, anon: isAnonymous };
-        } else {
-          userData = { displayName: displayName || uid, email, photoUrl: photoURL, uid, providerId };
-        }
-
-        await db.ref('users').child(uid).set(userData);
-      }
-
-      return () => {
-        handle.current();
-      };
+    const authHandler = makeAuthHandler({
+      expName: name,
+      history,
+      setChecked,
     });
-  });
+
+    handle.current = firebase.auth().onAuthStateChanged(authHandler);
+  }, [history, name]);
 
   React.useEffect(() => {
     if (user) {
       setSubmitting(true);
-      loadImages(true);
+      loadImages();
     }
 
     return () => {
@@ -464,7 +517,13 @@ const Main = (props) => {
 
   return (
     <div className={classNames({ App: true })}>
-      <div className="App-header images">
+      <div
+        className={classNames({
+          'App-header': true,
+          images: true,
+          [wrapperClasses]: true,
+        })}
+      >
         <div className={classNames({ heading: true, loading: submitting })}>
           <div className={classNames({ totals: true, show: menuOpen })}>
             <span
@@ -577,7 +636,7 @@ const Main = (props) => {
                   className="btn choose"
                   type="button"
                   onClick={() => {
-                    props.history.push('/exp/choose');
+                    history.push('/exp/choose');
                   }}
                 >
                   Choose Another Experiment
@@ -633,6 +692,9 @@ const Main = (props) => {
               urlsA={urlsA}
               urlsB={urlsB}
               whichImg="a"
+              wrapperClassName={classNames({
+                'a_selected': isASelected,
+              })}
             />
           );
 
@@ -660,6 +722,9 @@ const Main = (props) => {
               urlsA={urlsA}
               urlsB={urlsB}
               whichImg="b"
+              wrapperClassName={classNames({
+                'b_selected': isBSelected,
+              })}
             />
           );
 
@@ -694,42 +759,32 @@ const Main = (props) => {
   );
 };
 
-const Auth = (props) => {
+const Auth = ({ history, name }) => {
   const [checked, setChecked] = React.useState(false);
 
+  /**
+   *
+   * @type {React.MutableRefObject<firebase.Unsubscribe>}
+   */
   const handle = React.useRef();
 
   React.useEffect(() => {
-    handle.current = firebase.auth().onAuthStateChanged(async (user) => {
-      setChecked(true);
-
-      if (user) {
-        const { displayName, email, photoURL, uid, providerId, isAnonymous } = user;
-
-        let userData;
-
-        if (isAnonymous) {
-          userData = { displayName: uid, uid, anon: isAnonymous };
-        } else {
-          userData = { displayName: displayName || uid, email, photoUrl: photoURL, uid, providerId };
-        }
-
-        await db.ref('users').child(uid).set(userData);
-
-        if (props.name) {
-          props.history.push(`/exp?n=${props.name}`);
-        }
-      }
+    const authHandler = makeAuthHandler({
+      expName: name,
+      history,
+      setChecked,
     });
+
+    handle.current = firebase.auth().onAuthStateChanged(authHandler);
 
     return () => {
       handle.current();
     };
-  });
+  }, [history, name]);
 
   if (checked && firebase.auth().currentUser) {
-    if (props.name) {
-      return <Redirect to={`/exp?n=${props.name}`} />; // `
+    if (name) {
+      return <Redirect to={`/exp?n=${name}`} />;
     } else {
       return <Redirect to={`/exp`} />;
     }
