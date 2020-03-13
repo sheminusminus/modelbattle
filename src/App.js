@@ -1,310 +1,40 @@
 import React from 'react';
-import firebase from 'firebase';
 import qs from 'query-string';
 import { StyledFirebaseAuth }  from 'react-firebaseui';
-import * as firebaseUi from 'firebaseui';
 import {
   BrowserRouter as Router,
   Switch,
   Route,
   Redirect,
-  Link,
   useLocation,
-  useHistory,
 } from 'react-router-dom';
-import Loader from 'react-loader-spinner';
+
+import { Keys, validKeyDownKeys } from './constants';
+
+import firebase, {
+  firebaseUiConfig,
+  listImages,
+  makeAuthHandler,
+} from './firebase';
 
 import classNames from './classNames';
+import { coinFlip, shuffle } from './util';
 
-import firebaseConfig from './firebaseConfig';
-
+import Choose from './Choose';
 import Easter from './Easter';
+import {
+  ABTest,
+  EggHuntButton,
+  Image,
+  LegendHotKeys,
+  Nav,
+  TaglineAction,
+  Totals,
+} from './components';
 
-import './App.css';
+import { useInitExperimentName, useInitTotalsHistory } from './hooks';
 
-firebase.initializeApp(firebaseConfig);
-firebase.analytics();
-
-const store = firebase.storage();
 const db = firebase.database();
-
-const uiConfig = {
-  signInFlow: 'popup',
-  callbacks: {
-    signInSuccess: () => {
-      if (window.location.href.includes('choose')) {
-        window.location.replace('/exp/choose');
-      } else {
-        const name = localStorage.getItem('name');
-
-        if (name) {
-          window.location.replace(`/exp?n=${name}`);
-        } else {
-          window.location.replace('/exp/choose');
-        }
-      }
-    },
-  },
-  signInOptions: [
-    firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-    firebase.auth.GithubAuthProvider.PROVIDER_ID,
-    firebaseUi.auth.AnonymousAuthProvider.PROVIDER_ID,
-  ],
-};
-
-// hotkeys
-const Keys = {
-  ONE: '1',
-  TWO: '2',
-  SKIP: 'q',
-  NEXT: 'Enter',
-};
-
-const validKeys = Object.values(Keys);
-
-const shuffle = (array) => {
-  return array.sort(() => Math.random() - 0.5);
-};
-
-const coinFlip = () => {
-  return Math.floor(Math.random() * 2) === 0;
-};
-
-/**
- * @param {Object} options
- * @param {Object} options.history
- * @param {?string} [options.expName]
- * @param {Function} options.setChecked
- * @return {function(...[*]=)}
- */
-const makeAuthHandler = (options) => async (user) => {
-  const { expName, history, setChecked } = options;
-
-  setChecked(true);
-
-  if (user) {
-    const { displayName, email, photoURL, uid, providerId, isAnonymous } = user;
-
-    let userData;
-
-    if (isAnonymous) {
-      userData = { anon: isAnonymous, displayName: uid, uid };
-    } else {
-      userData = {
-        displayName: displayName || uid,
-        email,
-        photoUrl: photoURL,
-        providerId,
-        uid,
-      };
-    }
-
-    await db.ref('users').child(uid).set(userData);
-
-    if (expName) {
-      history.push(`/exp?n=${expName}`);
-    }
-  }
-};
-
-const ArrowButton = ({ onClick, name }) => (
-  <button
-    className="arrow-btn"
-    onClick={onClick}
-    type="button"
-  >
-    <a
-      className="cta-btn"
-      href={`/exp?n=${name}`}
-      onClick={evt => evt.preventDefault()}
-    >
-      <span>{name}</span>
-      <span>
-        <i className="material-icons right cta-icon hidden">keyboard_arrow_right</i>
-      </span>
-    </a>
-  </button>
-);
-
-const EggHunt = ({ backUrl }) => {
-  const history = useHistory();
-
-  return (
-    <Link
-      to="/egg"
-      onClick={(evt) => {
-        evt.preventDefault();
-        history.push('/egg', { backUrl });
-      }}
-    >
-      <div
-        className="secret-heart"
-        style={{
-          display: 'flex',
-          justifyContent: 'flex-start',
-          alignItems: 'flex-end',
-          backgroundColor: 'transparent',
-          width: '60px',
-          height: '60px',
-          position: 'absolute',
-          bottom: '0',
-          left: '0',
-          padding: '0 0 10px 10px',
-        }}
-      >
-        <i className="material-icons">
-          favorite_border
-        </i>
-      </div>
-    </Link>
-  );
-};
-
-const Choose = (props) => {
-  const [names, setNames] = React.useState([]);
-
-  React.useEffect(() => {
-    const getExperiments = async () => {
-      const snap = await db.ref('meta').once('value');
-      const expData = snap.val();
-      return Object.keys(expData || {});
-    };
-
-    getExperiments().then((names) => {
-      setNames(names);
-    });
-  }, []);
-
-  return (
-    <div className="choose-exp">
-      <span className="title">Available experiments:</span>
-
-      <br />
-
-      <div className="choose-btns">
-        {names.map((n) => {
-          const saveName = n.replace('?', '');
-
-          return (
-            <ArrowButton
-              key={n}
-              onClick={() => {
-                localStorage.setItem('name', saveName);
-                props.setName(n);
-                window.location.assign(`/exp?n=${saveName}`);
-              }}
-              name={n}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-const listImages = async (searchQuery) => {
-  const queries = qs.parse(searchQuery);
-
-  /**
-   * @type {?string}
-   */
-  const expName = queries.n || queries['?n'];
-
-  if (!expName) { return { a: [], b: [] }; }
-
-  const dirASnap = await db.ref('meta').child(expName).child('a_dir').once('value');
-  const dirBSnap = await db.ref('meta').child(expName).child('b_dir').once('value');
-  const dirA = dirASnap.val();
-  const dirB = dirBSnap.val();
-  const { items: itemsA } = await store.ref(dirA).listAll();
-  const { items: itemsB } = await store.ref(dirB).listAll();
-
-  return { a: [shuffle(itemsA)[0]], b: [shuffle(itemsB)[0]] };
-};
-
-const Spinner = ({ isLoading }) => {
-  if (!isLoading) {
-    return null;
-  }
-
-  return (
-    <div className="spinner">
-      <Loader
-        type="Puff"
-        color="#0EBCF3"
-        height={20}
-        width={20}
-        timeout={3000}
-      />
-    </div>
-  );
-};
-
-const Image = (props) => {
-  const {
-    className,
-    idx,
-    isSelected,
-    onImgKeyPress,
-    onLoad,
-    onSelection,
-    url,
-    urlsA,
-    urlsB,
-    whichImg,
-    wrapperClassName,
-  } = props;
-
-  /**
-   * @param {KeyboardEvent} evt
-   */
-  const handleKeyDown = ({ key, target }) => {
-    if (!isSelected) {
-      target.blur();
-    }
-
-    onImgKeyPress({
-      evtKey: key,
-      urls: { a: urlsA[idx], b: urlsB[idx] },
-      whichImg: whichImg,
-      index: idx,
-    });
-  };
-
-  /**
-   * @param {MouseEvent} evt
-   */
-  const handleClick = ({ target }) => {
-    if (!isSelected) {
-      target.blur();
-    }
-
-    onSelection({
-      urls: { a: urlsA[idx], b: urlsB[idx] },
-      whichImg: whichImg,
-      index: idx,
-    });
-  };
-
-  return (
-    <div
-      className={classNames({
-        'img-bg': true,
-        [wrapperClassName]: !!wrapperClassName,
-      })}
-    >
-      <img
-        tabIndex="0"
-        className={className}
-        src={url}
-        alt={url}
-        onLoad={onLoad}
-        onKeyDown={handleKeyDown}
-        onClick={handleClick}
-      />
-    </div>
-  );
-};
 
 const Main = ({ history, name }) => {
   const user = firebase.auth().currentUser;
@@ -442,7 +172,7 @@ const Main = ({ history, name }) => {
   const handleKeyDown = React.useCallback((evt) => {
     const { key } = evt;
 
-    if (validKeys.includes(key)) {
+    if (validKeyDownKeys.includes(key)) {
       const isA = (key === Keys.ONE && aFirstList[0])
         || (key === Keys.TWO && !aFirstList[0]);
       const isB = (key === Keys.ONE && !aFirstList[0])
@@ -477,14 +207,7 @@ const Main = ({ history, name }) => {
     };
   }, [totals.a, totals.b, totals.none, selected, handleKeyDown]);
 
-  React.useEffect(() => {
-    const { n: expName } = qs.parse(window.location.search);
-    const savedTotals = localStorage.getItem(`totals:${expName}`);
-    if (savedTotals) {
-      const totalsObj = JSON.parse(savedTotals);
-      setTotals(totalsObj);
-    }
-  }, []);
+  useInitTotalsHistory({ setTotals });
 
   React.useEffect(() => {
     const authHandler = makeAuthHandler({
@@ -494,7 +217,7 @@ const Main = ({ history, name }) => {
     });
 
     handle.current = firebase.auth().onAuthStateChanged(authHandler);
-  }, [history, name]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => {
     if (user) {
@@ -525,141 +248,23 @@ const Main = ({ history, name }) => {
         })}
       >
         <div className={classNames({ heading: true, loading: submitting })}>
-          <div className={classNames({ totals: true, show: menuOpen })}>
-            <span
-              className="picks"
-              title="Your historical picks for this experiment"
-            >
-              Picks:
-            </span>
-            <span
-              className="total-a"
-              title={`${totals.a} pink images chosen`}
-            >
-              {totals.a}
-            </span>
-            <span className="bar">{' | '}</span>
-            <span
-              className="total-b"
-              title={`${totals.b} orange images chosen`}
-            >
-              {totals.b}
-            </span>
-            <span className="bar">{' | '}</span>
-            <span
-              className="total-none"
-              title={`${totals.none} rounds skipped`}
-            >
-              ({totals.none})
-            </span>
-          </div>
+          <Totals shouldShow={menuOpen} totals={totals} />
 
-          <div className="legend hide-mobile">
-            <span className="desc">Hotkeys: </span>
-            <span>
-              <span className="key">1</span> <span className="desc">(Left)</span>
-            </span>
-            <span className="bar">{' | '}</span>
-            <span>
-              <span className="key">2</span> <span className="desc">(Right)</span>
-            </span>
-            <span className="bar">{' | '}</span>
-            <span>
-              <span className="key lower">q</span> <span className="desc">(Skip)</span>
-            </span>
-          </div>
+          <LegendHotKeys />
 
-          <div className="title-wrapper">
-            <span className="title">
-              Which is better?
-            </span>
-
-            <button
-              ref={nextBtn}
-              className="btn done"
-              disabled={submitting}
-              type="button"
-              onFocus={(evt) => evt.preventDefault()}
-              onBlur={(evt) => evt.preventDefault()}
-              onClick={() => onSubmit()}
-            >
-              {submitting && (
-                <Spinner isLoading={submitting} />
-              )}
-              {!submitting && selected.length > 0 && 'Save & Next'}
-              {!submitting && selected.length === 0 && 'Neither, skip'}
-            </button>
-          </div>
+          <TaglineAction
+            handleAction={() => onSubmit()}
+            isLoading={submitting}
+            ref={nextBtn}
+            selected={selected}
+          />
         </div>
 
         {!!user && (
-          <React.Fragment>
-            <div className="hide-large mobile-nav-trigger">
-              <button
-                className="show-stats-btn"
-                onClick={() => {
-                  setMenuOpen(true);
-                }}
-                type="button"
-              >
-                <i className="material-icons">
-                  apps
-                </i>
-              </button>
-            </div>
-
-            <div
-              className={classNames({
-                actions: true,
-                'mobile-nav': true,
-                open: menuOpen,
-              })}
-            >
-              <div className="menu">
-                <div className="hide-large mobile-nav-trigger close">
-                  <button
-                    className="show-stats-btn close"
-                    onClick={() => {
-                      setMenuOpen(false);
-                    }}
-                    type="button"
-                  >
-                    <i className="material-icons">
-                      close
-                    </i>
-                  </button>
-                </div>
-              </div>
-
-              <div className="menu-btns">
-                <button
-                  className="btn choose"
-                  type="button"
-                  onClick={() => {
-                    history.push('/exp/choose');
-                  }}
-                >
-                  Choose Another Experiment
-                </button>
-
-                <button
-                  className="btn logout"
-                  type="button"
-                  onClick={async () => {
-                    const expName = localStorage.getItem('name');
-                    localStorage.clear();
-                    await firebase.auth().signOut();
-                    const saveName = typeof expName === 'string'
-                      ? expName.replace('?', '')
-                      : expName;
-                    localStorage.setItem('name', saveName);
-                  }}
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          </React.Fragment>
+          <Nav
+            isOpen={menuOpen}
+            setOpen={setMenuOpen}
+          />
         )}
 
         {(urlsA.length === urlsB.length) && urlsA.map((url, idx) => {
@@ -729,32 +334,17 @@ const Main = ({ history, name }) => {
           );
 
           return (
-            <React.Fragment key={url}>
-              <div className="exp-image-wrap">
-                {aFirst && (
-                  <React.Fragment>
-                    {aImg}
-                    {bImg}
-                  </React.Fragment>
-                )}
-
-                {!aFirst && (
-                  <React.Fragment>
-                    {bImg}
-                    {aImg}
-                  </React.Fragment>
-                )}
-              </div>
-
-              {idx < urlsA.length - 1 && (
-                <hr />
-              )}
-            </React.Fragment>
+            <ABTest
+              imageA={aImg}
+              imageB={bImg}
+              aIsFirst={aFirst}
+              key={url}
+            />
           );
         })}
       </div>
 
-      <EggHunt backUrl={`${loc.pathname}${loc.search}`} />
+      <EggHuntButton backUrl={`${loc.pathname}${loc.search}`} />
     </div>
   );
 };
@@ -780,7 +370,7 @@ const Auth = ({ history, name }) => {
     return () => {
       handle.current();
     };
-  }, [history, name]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (checked && firebase.auth().currentUser) {
     if (name) {
@@ -791,30 +381,17 @@ const Auth = ({ history, name }) => {
   }
 
   return (
-    <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />
+    <StyledFirebaseAuth
+      uiConfig={firebaseUiConfig}
+      firebaseAuth={firebase.auth()}
+    />
   );
 };
 
 const App = () => {
   const [name, setName] = React.useState(null);
 
-  React.useEffect(() => {
-    const prevName = localStorage.getItem('name');
-
-    if (!name) {
-      const { n } = qs.parse(window.location.search);
-
-      if (n) {
-        localStorage.setItem('name', n.replace('?', ''));
-        setName(n);
-      } else if (prevName) {
-        setName(n);
-      } else {
-        localStorage.setItem('name', '');
-        setName('');
-      }
-    }
-  }, [name]);
+  useInitExperimentName({ name, setName });
 
   const handleSetName = (n) => {
     const saveName = n.replace('?', '');

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { BackHeader } from './shared';
+import { BackHeader } from './components';
 
 import modelBattle from './modelbattle.png';
 
