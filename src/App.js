@@ -459,6 +459,7 @@ const Main = (props) => {
         <div className={classNames({ heading: true, loading: submitting })}>
           <div className={classNames({ totals: true, show: menuOpen })}>
             <span
+              className="picks"
               title="Your historical picks for this experiment"
             >
               Picks:
