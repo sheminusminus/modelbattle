@@ -60,6 +60,7 @@ const Main = ({ history, name }) => {
   const [selected, setSelected] = React.useState([]);
   const [submitting, setSubmitting] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [taglineData, setTaglineData] = React.useState(false);
 
   const loc = useLocation();
 
@@ -67,7 +68,7 @@ const Main = ({ history, name }) => {
     const images = await listImages(loc.search);
 
     if (images) {
-      const {a, b} = images;
+      const { a, b, tagline } = images;
       const aUrls = await Promise.all(a.map(async (ref) => {
         return ref.getDownloadURL();
       }));
@@ -78,6 +79,7 @@ const Main = ({ history, name }) => {
 
       setUrlsA(shuffle(aUrls));
       setUrlsB(shuffle(bUrls));
+      setTaglineData(tagline);
       setAFirstList(ordering);
     }
 
@@ -257,6 +259,7 @@ const Main = ({ history, name }) => {
             isLoading={submitting}
             ref={nextBtn}
             selected={selected}
+            taglineText={taglineData}
           />
         </div>
 

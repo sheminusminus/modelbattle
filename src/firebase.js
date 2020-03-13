@@ -84,16 +84,19 @@ export const listImages = async (searchQuery) => {
 
   if (!expName) { return { a: [], b: [] }; }
 
-  const dirASnap = await firebase.database().ref('meta').child(expName).child('a_dir').once('value');
-  const dirBSnap = await firebase.database().ref('meta').child(expName).child('b_dir').once('value');
+  const experimentSnapshot = await firebase.database().ref('meta').child(expName).once('value');
+  const data = experimentSnapshot.val();
 
-  const dirA = dirASnap.val();
-  const dirB = dirBSnap.val();
+  const {
+    a_dir: dirA,
+    b_dir: dirB,
+    tagline,
+  } = data;
 
   const { items: itemsA } = await firebase.storage().ref(dirA).listAll();
   const { items: itemsB } = await firebase.storage().ref(dirB).listAll();
 
-  return { a: [shuffle(itemsA)[0]], b: [shuffle(itemsB)[0]] };
+  return { a: [shuffle(itemsA)[0]], b: [shuffle(itemsB)[0]], tagline };
 };
 
 export default firebase;
