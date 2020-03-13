@@ -42,11 +42,13 @@ required setup example:
 "meta": {
   "example_experiment_name" : {
     "a_dir" : "imageSetA_dirName",
-    "b_dir" : "imageSetB_dirName"
+    "b_dir" : "imageSetB_dirName",
+    "tagline": "Example experiment tagline?"
   },
   "ffhq_512_run00Gs_vs_run03Gs" : {
     "a_dir" : "run00_ffhq_512_Gs_1x1",
-    "b_dir" : "run03_ffhq_512_Gs_1x1"
+    "b_dir" : "run03_ffhq_512_Gs_1x1",
+    "tagline": "Which is better?"
   }
 }
 ```
@@ -60,6 +62,8 @@ the following keys should be nested under your experiment name:
 - `a_dir: [string]` the name of the directory in firebase storage where image set A is found
 
 - `b_dir: [string]` the name of the directory in firebase storage where image set B is found
+
+- `tagline: [string]` the tagline to display at the top of the ui (probably a question you want to ask, e.g. `which looks older?`)
 
 you can add as many experiments as you'd like, as long as each follow this structure.
 
