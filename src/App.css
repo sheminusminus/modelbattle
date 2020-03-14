@@ -511,6 +511,12 @@ button.back:active, button.back:focus {
  animation-name: visual-beep-skip;
 }
 
+.preloaded {
+  height: 0;
+  width: 0;
+  float: left;
+}
+
 @keyframes visual-beep-a {
   0% {
     background-color:  #282c34;

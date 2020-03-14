@@ -17,10 +17,10 @@ import firebase, { listImages, makeAuthHandler } from './firebase';
 import classNames from './classNames';
 import { coinFlip, shuffle } from './util';
 
+import Asset from './Asset';
 import {
   ABTest,
   EggHuntButton,
-  Image,
   LegendHotKeys,
   Nav,
   TaglineAction,
@@ -35,7 +35,7 @@ const Main = ({ history, name }) => {
   const user = firebase.auth().currentUser;
 
   const [checked, setChecked] = React.useState(false);
-  const [aFirstList, setAFirstList] = React.useState([]);
+  const [isAFirst, setIsAFirst] = React.useState(coinFlip());
   const [totals, setTotals] = React.useState({ a: 0, b: 0, none: 0 });
   const [wrapperClasses, setWrapperClasses] = React.useState('');
 
@@ -70,12 +70,11 @@ const Main = ({ history, name }) => {
       const bUrls = await Promise.all(b.map(async (ref) => {
         return ref.getDownloadURL();
       }));
-      const ordering = aUrls.map(() => coinFlip());
 
       setUrlsA(shuffle(aUrls));
       setUrlsB(shuffle(bUrls));
       setTaglineData(tagline);
-      setAFirstList(ordering);
+      setIsAFirst(coinFlip());
     }
 
     setSubmitting(false);
@@ -170,10 +169,10 @@ const Main = ({ history, name }) => {
     const { key } = evt;
 
     if (validKeyDownKeys.includes(key)) {
-      const isA = (key === Keys.ONE && aFirstList[0])
-        || (key === Keys.TWO && !aFirstList[0]);
-      const isB = (key === Keys.ONE && !aFirstList[0])
-        || (key === Keys.TWO && aFirstList[0]);
+      const isA = (key === Keys.ONE && isAFirst)
+        || (key === Keys.TWO && !isAFirst);
+      const isB = (key === Keys.ONE && !isAFirst)
+        || (key === Keys.TWO && isAFirst);
 
       const vote = (isA) ? Vote.A : ((isB) ? Vote.B : Vote.NONE);
       const nextWrapperClasses = (isA) ? 'beep beep-a' : ((isB) ? 'beep beep-b' : 'beep beep-skip');
@@ -194,7 +193,7 @@ const Main = ({ history, name }) => {
 
       onSubmit(selection);
     }
-  }, [aFirstList, onSubmit, urlsA, urlsB]);
+  }, [isAFirst, onSubmit, urlsA, urlsB]);
 
   React.useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -235,6 +234,9 @@ const Main = ({ history, name }) => {
     return <Redirect from="/exp" to="/exp/choose" />
   }
 
+  const isASelected = selected[0] && selected[0].vote === Vote.A;
+  const isBSelected = selected[0] && selected[0].vote === Vote.B;
+
   return (
     <div className={classNames({ App: true })}>
       <div
@@ -265,81 +267,73 @@ const Main = ({ history, name }) => {
           />
         )}
 
-        {(urlsA.length === urlsB.length) && urlsA.map((url, idx) => {
-          const aFirst = aFirstList[idx];
-          const b = urlsB[idx];
-          const isASelected = selected[idx] && selected[idx].vote === Vote.A;
-          const isBSelected = selected[idx] && selected[idx].vote === Vote.B;
-
-          const aImg = (
-            <Image
-              className={classNames({
-                disabled: submitting,
-                'a-img': true,
-                'exp-image': true,
-                'a_selected': isASelected,
-              })}
-              idx={idx}
-              isSelected={isASelected}
-              onImgKeyPress={onImgKeyPress}
-              onSelection={onSelection}
-              onLoad={() => {
-                if (loaded.b) {
-                  setLoaded({ a: true, b: true });
-                  setLoadedTime((new Date()).toUTCString());
-                } else {
-                  setLoaded({ a: true, b: loaded.b });
-                }
+        <ABTest
+          imageA={(
+            <Asset
+              assets={urlsA}
+              data={{
+                className: classNames({
+                  disabled: submitting,
+                  'a-img': true,
+                  'exp-image': true,
+                  'a_selected': isASelected,
+                }),
+                idx: 0,
+                isSelected: isASelected,
+                onImgKeyPress,
+                onSelection,
+                onLoad: () => {
+                  if (loaded.b) {
+                    setLoaded({ a: true, b: true });
+                    setLoadedTime((new Date()).toUTCString());
+                  } else {
+                    setLoaded({ a: true, b: loaded.b });
+                  }
+                },
+                urlsA,
+                urlsB,
+                whichImg: 'a',
+                wrapperClassName: classNames({
+                  'a_selected': isASelected,
+                }),
               }}
-              url={url}
-              urlsA={urlsA}
-              urlsB={urlsB}
-              whichImg="a"
-              wrapperClassName={classNames({
-                'a_selected': isASelected,
-              })}
+              type="image/"
             />
-          );
-
-          const bImg = (
-            <Image
-              className={classNames({
-                disabled: submitting,
-                'b-img': true,
-                'exp-image': true,
-                'b_selected': isBSelected,
-              })}
-              idx={idx}
-              isSelected={isBSelected}
-              onImgKeyPress={onImgKeyPress}
-              onSelection={onSelection}
-              onLoad={() => {
-                if (loaded.a) {
-                  setLoaded({ a: true, b: true });
-                  setLoadedTime((new Date()).toUTCString());
-                } else {
-                  setLoaded({ a: loaded.a, b: true });
-                }
+          )}
+          imageB={(
+            <Asset
+              assets={urlsB}
+              data={{
+                className: classNames({
+                  disabled: submitting,
+                  'b-img': true,
+                  'exp-image': true,
+                  'b_selected': isBSelected,
+                }),
+                idx: 0,
+                isSelected: isBSelected,
+                onImgKeyPress,
+                onSelection,
+                onLoad: () => {
+                  if (loaded.a) {
+                    setLoaded({ a: true, b: true });
+                    setLoadedTime((new Date()).toUTCString());
+                  } else {
+                    setLoaded({ a: loaded.a, b: true });
+                  }
+                },
+                urlsA,
+                urlsB,
+                whichImg: 'b',
+                wrapperClassName: classNames({
+                  'b_selected': isBSelected,
+                }),
               }}
-              url={b}
-              urlsA={urlsA}
-              urlsB={urlsB}
-              whichImg="b"
-              wrapperClassName={classNames({
-                'b_selected': isBSelected,
-              })}
+              type="image/"
             />
-          );
-
-          return (
-            <ABTest
-              imageA={aImg}
-              imageB={bImg}
-              aIsFirst={aFirst}
-              key={url}
-            />
-          );
-        })}
+          )}
+          aIsFirst={isAFirst}
+        />
       </div>
 
       <EggHuntButton backUrl={`${loc.pathname}${loc.search}`} />
