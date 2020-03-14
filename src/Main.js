@@ -10,14 +10,14 @@ import {
   instantSubmitKeys,
   validKeyDownKeys,
   Vote,
-} from './constants';
+} from 'const';
 
-import firebase, { listImages, makeAuthHandler } from './firebase';
+import firebase, { listImages, makeAuthHandler } from 'services/firebase';
 
-import classNames from './classNames';
-import { coinFlip, shuffle } from './util';
+import classNames from 'classNames';
+import { coinFlip, shuffle } from 'helpers';
 
-import Asset from './Asset';
+import Asset from 'Asset';
 import {
   ABTest,
   EggHuntButton,
@@ -25,9 +25,9 @@ import {
   Nav,
   TaglineAction,
   Totals,
-} from './components';
+} from 'components';
 
-import { useInitTotalsHistory } from './hooks';
+import { useInitTotalsHistory } from 'hooks';
 
 const db = firebase.database();
 

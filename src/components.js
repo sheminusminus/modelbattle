@@ -6,8 +6,8 @@ import {
   useLocation,
 } from 'react-router-dom';
 
-import firebase from './firebase';
-import classNames from './classNames';
+import firebase from 'services/firebase';
+import classNames from 'classNames';
 
 export const ArrowButton = ({ onClick, name }) => (
   <button

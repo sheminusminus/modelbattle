@@ -1,8 +1,8 @@
 import React from 'react';
 
-import firebase from './firebase';
+import firebase from 'services/firebase';
 
-import { ArrowButton } from './components';
+import { ArrowButton } from 'components';
 
 const db = firebase.database();
 

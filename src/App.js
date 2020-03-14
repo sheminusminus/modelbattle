@@ -1,10 +1,12 @@
 import React from 'react';
+import { Provider } from 'react-redux';
+import { ConnectedRouter } from 'connected-react-router'
 
-import Routes from './Routes';
+import Routes from 'Routes';
 
-import { useInitExperimentName } from './hooks';
+import { useInitExperimentName } from 'hooks';
 
-const App = () => {
+const App = ({ history, store }) => {
   const [name, setName] = React.useState(null);
 
   useInitExperimentName({ name, setName });
@@ -17,7 +19,11 @@ const App = () => {
   }, []);
 
   return (
-    <Routes handleSetName={handleSetName} name={name} />
+    <Provider store={store}>
+      <ConnectedRouter history={history}>
+        <Routes handleSetName={handleSetName} name={name} />
+      </ConnectedRouter>
+    </Provider>
   );
 };
 

@@ -1,46 +1,22 @@
 import React from 'react';
 import { StyledFirebaseAuth }  from 'react-firebaseui';
-import { Redirect } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { createStructuredSelector } from 'reselect';
 
-import firebase, { firebaseUiConfig, makeAuthHandler } from './firebase';
+import firebase, { firebaseUiConfig } from 'services/firebase';
 
-const Auth = ({ history, name }) => {
-  const [checked, setChecked] = React.useState(false);
+import * as selectors from 'selectors';
 
-  /**
-   *
-   * @type {React.MutableRefObject<firebase.Unsubscribe>}
-   */
-  const handle = React.useRef();
+const Auth = () => (
+  <StyledFirebaseAuth
+    uiConfig={firebaseUiConfig}
+    firebaseAuth={firebase.auth()}
+  />
+);
 
-  React.useEffect(() => {
-    const authHandler = makeAuthHandler({
-      expName: name,
-      history,
-      setChecked,
-    });
+const mapStateToProps = createStructuredSelector({
+  isLoading: selectors.getSessionIsLoading,
+  user: selectors.getSessionUser,
+});
 
-    handle.current = firebase.auth().onAuthStateChanged(authHandler);
-
-    return () => {
-      handle.current();
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (checked && firebase.auth().currentUser) {
-    if (name) {
-      return <Redirect to={`/exp?n=${name}`} />;
-    } else {
-      return <Redirect to={`/exp`} />;
-    }
-  }
-
-  return (
-    <StyledFirebaseAuth
-      uiConfig={firebaseUiConfig}
-      firebaseAuth={firebase.auth()}
-    />
-  );
-};
-
-export default Auth;
+export default connect(mapStateToProps)(Auth);

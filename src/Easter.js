@@ -1,9 +1,8 @@
 import React from 'react';
 
+import modelBattle from 'resources/modelbattle.png';
+
 import { BackHeader } from './components';
-
-import modelBattle from './modelbattle.png';
-
 
 const Easter = () => (
   <div className="header-page">

@@ -4,7 +4,7 @@ import qs from 'query-string';
 
 import firebaseConfig from './firebaseConfig';
 
-import { shuffle } from './util';
+import { shuffle } from 'helpers';
 
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
@@ -37,15 +37,18 @@ export const firebaseUiConfig = {
  * @param {Object} options
  * @param {Object} options.history
  * @param {?string} [options.expName]
- * @param {Function} options.setChecked
+ * @param {Function} [options.setChecked]
  * @return {function(...[*]=)}
  */
 export const makeAuthHandler = (options) => async (user) => {
   const { expName, history, setChecked } = options;
 
-  setChecked(true);
+  if (setChecked) {
+    setChecked(true);
+  }
 
   if (user) {
+    console.log('user found');
     const { displayName, email, photoURL, uid, providerId, isAnonymous } = user;
 
     let userData;
@@ -67,6 +70,8 @@ export const makeAuthHandler = (options) => async (user) => {
     if (expName) {
       history.push(`/exp?n=${expName}`);
     }
+  } else {
+    console.log('NO user found');
   }
 };
 
