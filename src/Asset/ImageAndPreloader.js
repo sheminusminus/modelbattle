@@ -12,6 +12,7 @@ const ImageAndPreloader = (props) => {
       {preloadAssets.map((asset) => (
         <div
           className="preloaded"
+          key={asset}
           style={{
             background: `url(${asset}) no-repeat -9999px -9999px`,
           }}
