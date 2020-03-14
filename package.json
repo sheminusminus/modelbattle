@@ -15,8 +15,10 @@
     "react-firebaseui": "^4.1.0",
     "react-images-queue": "^0.0.6",
     "react-loader-spinner": "^3.1.5",
+    "react-redux": "^7.2.0",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "3.4.0"
+    "react-scripts": "3.4.0",
+    "redux": "^4.0.5"
   },
   "scripts": {
     "deploy": "yarn build && firebase deploy",
