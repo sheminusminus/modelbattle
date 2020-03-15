@@ -1,25 +1,29 @@
 import React from 'react';
+import { connect } from 'react-redux';
+import { createStructuredSelector } from 'reselect';
 
-import firebase from 'services/firebase';
+import { listExperiments, setActiveExperiment } from 'types';
+
+import { getExperimentsIds, getExperimentsActiveId } from 'selectors';
 
 import { ArrowButton } from 'components';
 
-const db = firebase.database();
-
-const Choose = ({ setName }) => {
-  const [names, setNames] = React.useState([]);
+const Choose = (props) => {
+  const {
+    activeId,
+    experimentIds,
+    history,
+    onListExperiments,
+    onSetActiveExperiment,
+  } = props;
 
   React.useEffect(() => {
-    const getExperiments = async () => {
-      const snap = await db.ref('meta').once('value');
-      const expData = snap.val();
-      return Object.keys(expData || {});
-    };
+    onListExperiments();
+  }, [onListExperiments]);
 
-    getExperiments().then((names) => {
-      setNames(names);
-    });
-  }, []);
+  if (activeId) {
+    history.push(`/exp?n=${activeId}`);
+  }
 
   return (
     <div className="choose-exp">
@@ -28,18 +32,14 @@ const Choose = ({ setName }) => {
       <br />
 
       <div className="choose-btns">
-        {names.map((n) => {
-          const saveName = n.replace('?', '');
-
+        {experimentIds.map((id) => {
           return (
             <ArrowButton
-              key={n}
+              key={id}
               onClick={() => {
-                localStorage.setItem('name', saveName);
-                setName(n);
-                window.location.assign(`/exp?n=${saveName}`);
+                onSetActiveExperiment(id);
               }}
-              name={n}
+              name={id}
             />
           );
         })}
@@ -48,4 +48,14 @@ const Choose = ({ setName }) => {
   );
 };
 
-export default Choose;
+const mapStateToProps = createStructuredSelector({
+  activeId: getExperimentsActiveId,
+  experimentIds: getExperimentsIds,
+});
+
+const mapDispatchToProps = {
+  onListExperiments: listExperiments.trigger,
+  onSetActiveExperiment: setActiveExperiment.trigger,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Choose);

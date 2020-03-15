@@ -2,4 +2,8 @@ import { createRoutine } from 'redux-saga-routines';
 
 export const setSession = createRoutine('SET_SESSION');
 
-export const setExperiment = createRoutine('SET_EXPERIMENT');
+export const listExperiments = createRoutine('LIST_EXPERIMENTS');
+
+export const changeActiveExperiment = createRoutine('CHANGE_ACTIVE_EXPERIMENT');
+
+export const setActiveExperiment = createRoutine('SET_ACTIVE_EXPERIMENT');

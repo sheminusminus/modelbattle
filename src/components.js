@@ -214,7 +214,7 @@ export const LegendHotKeys = () => (
   </div>
 );
 
-export const Nav = ({ isOpen, setOpen }) => {
+export const Nav = ({ isOpen, onChooseExperiment, setOpen }) => {
   const history = useHistory();
 
   return (
@@ -261,7 +261,7 @@ export const Nav = ({ isOpen, setOpen }) => {
             className="btn choose"
             type="button"
             onClick={() => {
-              history.push('/exp/choose');
+              onChooseExperiment();
             }}
           >
             Choose Another Experiment

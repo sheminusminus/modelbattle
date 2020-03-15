@@ -1,9 +1,12 @@
 import React from 'react';
 import {
-  BrowserRouter as Router,
   Switch,
   Route,
 } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { createStructuredSelector } from 'reselect';
+
+import { getSessionIsLoading } from 'selectors';
 
 import Auth from './Auth';
 import Choose from './Choose';
@@ -11,24 +14,28 @@ import Easter from './Easter';
 import Main from './Main';
 
 const Routes = (props) => {
-  const { handleSetName, name } = props;
+  const { sessionIsLoading } = props;
+
+  if (sessionIsLoading) {
+    return <div />;
+  }
 
   return (
-    <Router>
-      <Switch>
-        <Route
-          exact
-          path="/exp/choose"
-          render={() => (
-            <Choose setName={handleSetName} />
-          )}
-        />
-        <Route path="/exp" component={Main} name={name} />
-        <Route path="/egg" component={Easter} />
-        <Route path="/" component={Auth} name={name} />
-      </Switch>
-    </Router>
+    <Switch>
+      <Route
+        exact
+        path="/exp/choose"
+        component={Choose}
+      />
+      <Route path="/exp" component={Main} />
+      <Route path="/egg" component={Easter} />
+      <Route path="/" component={Auth} />
+    </Switch>
   );
 };
 
-export default Routes;
+const mapStateToProps = createStructuredSelector({
+  sessionIsLoading: getSessionIsLoading,
+});
+
+export default connect(mapStateToProps)(Routes);

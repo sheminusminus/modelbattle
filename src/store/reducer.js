@@ -3,19 +3,21 @@ import { connectRouter } from 'connected-react-router'
 
 import history from 'createHistory';
 
-import { setSession } from 'types';
+import { setSession, listExperiments, setActiveExperiment, changeActiveExperiment } from 'types';
 
 export const sessionName = 'session';
 export const experimentsName = 'experiments';
 
-const initialState = {
+export const initialState = {
   [sessionName]: {
     isLoading: true,
     user: null,
   },
   [experimentsName]: {
+    activeId: null,
     byId: {},
     ids: [],
+    isFetching: false,
   },
 };
 
@@ -23,6 +25,38 @@ const experiments = (state = initialState[experimentsName], action = {}) => {
   const { payload, type } = action;
 
   switch (type) {
+    case listExperiments.REQUEST:
+      return {
+        ...state,
+        isFetching: true,
+      };
+
+    case listExperiments.SUCCESS:
+      return {
+        ...state,
+        byId: payload.experiments,
+        ids: Object.keys(payload.experiments),
+        isFetching: false,
+      };
+
+    case listExperiments.FAILURE:
+      return {
+        ...state,
+        isFetching: false,
+      };
+
+    case setActiveExperiment.SUCCESS:
+      return {
+        ...state,
+        activeId: payload.id,
+      };
+
+    case changeActiveExperiment.TRIGGER:
+      return {
+        ...state,
+        activeId: null,
+      };
+
     default:
       return state;
   }

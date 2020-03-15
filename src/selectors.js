@@ -11,3 +11,23 @@ export const getSessionUser = createSelector(
   [queries.querySessionState],
   queries.querySessionUser,
 );
+
+export const getExperimentsById = createSelector(
+  [queries.queryExperimentsState],
+  queries.queryExperimentsById,
+);
+
+export const getExperimentsIds = createSelector(
+  [queries.queryExperimentsState],
+  queries.queryExperimentsIds,
+);
+
+export const getExperimentsIsFetching = createSelector(
+  [queries.queryExperimentsState],
+  queries.queryExperimentsIsFetching,
+);
+
+export const getExperimentsActiveId = createSelector(
+  [queries.queryExperimentsState],
+  queries.queryExperimentsActiveId,
+);

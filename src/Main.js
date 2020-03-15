@@ -4,6 +4,8 @@ import {
   Redirect,
   useLocation,
 } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { createStructuredSelector } from 'reselect';
 
 import {
   Keys,
@@ -12,10 +14,12 @@ import {
   Vote,
 } from 'const';
 
-import firebase, { listImages, makeAuthHandler } from 'services/firebase';
+import firebase, { listImages } from 'services/firebase';
 
 import classNames from 'classNames';
 import { coinFlip, shuffle } from 'helpers';
+
+import * as selectors from "selectors";
 
 import Asset from 'Asset';
 import {
@@ -27,22 +31,17 @@ import {
   Totals,
 } from 'components';
 
+import { changeActiveExperiment } from 'types';
+
 import { useInitTotalsHistory } from 'hooks';
 
 const db = firebase.database();
 
-const Main = ({ history, name }) => {
-  const user = firebase.auth().currentUser;
-
-  const [checked, setChecked] = React.useState(false);
+const Main = ({ isLoading, history, onChangeExperiment, user }) => {
   const [isAFirst, setIsAFirst] = React.useState(coinFlip());
   const [totals, setTotals] = React.useState({ a: 0, b: 0, none: 0 });
   const [wrapperClasses, setWrapperClasses] = React.useState('');
 
-  /**
-   * @type {React.MutableRefObject<firebase.Unsubscribe>}
-   */
-  const handle = React.useRef();
   /**
    * @type {React.MutableRefObject<HTMLButtonElement>}
    */
@@ -206,16 +205,6 @@ const Main = ({ history, name }) => {
   useInitTotalsHistory({ setTotals });
 
   React.useEffect(() => {
-    const authHandler = makeAuthHandler({
-      expName: name,
-      history,
-      setChecked,
-    });
-
-    handle.current = firebase.auth().onAuthStateChanged(authHandler);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  React.useEffect(() => {
     if (user) {
       setSubmitting(true);
       loadImages();
@@ -226,16 +215,12 @@ const Main = ({ history, name }) => {
     };
   }, [loadImages, user]);
 
-  if (!user && checked) {
-    return <Redirect to="/" />
-  }
-
-  if (name === null) {
-    return <Redirect from="/exp" to="/exp/choose" />
-  }
-
   const isASelected = selected[0] && selected[0].vote === Vote.A;
   const isBSelected = selected[0] && selected[0].vote === Vote.B;
+
+  if (!isLoading && !user) {
+    return <Redirect to="/" />
+  }
 
   return (
     <div className={classNames({ App: true })}>
@@ -262,6 +247,10 @@ const Main = ({ history, name }) => {
 
         {!!user && (
           <Nav
+            onChooseExperiment={() => {
+              onChangeExperiment();
+              history.push('/exp/choose');
+            }}
             isOpen={menuOpen}
             setOpen={setMenuOpen}
           />
@@ -341,4 +330,13 @@ const Main = ({ history, name }) => {
   );
 };
 
-export default Main;
+const mapStateToProps = createStructuredSelector({
+  isLoading: selectors.getSessionIsLoading,
+  user: selectors.getSessionUser,
+});
+
+const mapDispatchToProps = {
+  onChangeExperiment: changeActiveExperiment.trigger,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Main);

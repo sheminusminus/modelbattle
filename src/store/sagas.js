@@ -1,9 +1,14 @@
 import { eventChannel } from 'redux-saga';
-import { all, call, put, take } from 'redux-saga/effects';
+import { all, call, put, select, spawn, take } from 'redux-saga/effects';
+import { push } from 'connected-react-router'
 
-import { setSession } from 'types';
+import { setSession, listExperiments, setActiveExperiment} from 'types'
+
+import { getExperimentsIsFetching } from 'selectors';
 
 import firebase from 'services/firebase';
+
+import * as api from './api';
 
 let authHandler;
 
@@ -21,11 +26,46 @@ const listenForAuth = () => eventChannel((emitter) => {
   };
 });
 
+export function* listExperimentsTrigger() {
+  try {
+    const isFetching = yield select(getExperimentsIsFetching);
+    if (!isFetching) {
+      yield put(listExperiments.request());
+      const result = yield call(api.getExperiments);
+      yield put(listExperiments.success({ experiments: result }));
+    }
+  } catch(err) {
+    yield put(listExperiments.failure(err));
+  }
+}
+
+export function* setActiveExperimentTrigger(action) {
+  try {
+    const { payload } = action;
+    if (payload) {
+      yield put(setActiveExperiment.success({ id: payload }));
+    }
+  } catch(err) {
+    yield put(setActiveExperiment.failure(err));
+  }
+}
+
 export function* watch() {
   while (true) {
-    const action = yield take([]);
+    const action = yield take([
+      listExperiments.TRIGGER,
+      setActiveExperiment.TRIGGER,
+    ]);
 
     switch (action.type) {
+      case listExperiments.TRIGGER:
+        yield spawn(listExperimentsTrigger);
+        break;
+
+      case setActiveExperiment.TRIGGER:
+        yield spawn(setActiveExperimentTrigger, action);
+        break;
+
       default:
         yield null;
     }
@@ -37,8 +77,20 @@ export function* watchAuth() {
 
   while (true) {
     const action = yield take(channel);
-    console.log(`type: ${action.type}, payload: ${action.payload}`);
     yield put(action);
+
+    switch(action.type) {
+      case setSession.FAILURE:
+        yield put(push('/'));
+        break;
+
+      case setSession.SUCCESS:
+        yield put(push('/exp/choose'));
+        break;
+
+      default:
+        break;
+    }
   }
 }
 

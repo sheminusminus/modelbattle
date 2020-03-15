@@ -1,17 +1,28 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import qs from 'query-string';
 
 import * as serviceWorker from 'serviceWorker';
 
 import configureStore, { history } from 'store';
+import { experimentsName, initialState } from 'store/reducer';
 
 import App from 'App';
 
+import 'index.css';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
-import './App.css';
+import 'App.css';
 
-const store = configureStore();
+const { n } = qs.parse(window.location.search);
+
+const stateHydrator = {
+  experiments: {
+    ...initialState[experimentsName],
+    activeId: n || null,
+  },
+};
+
+const store = configureStore(stateHydrator);
 
 ReactDOM.render(<App history={history} store={store} />, document.getElementById('root'));
 
