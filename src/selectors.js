@@ -31,3 +31,8 @@ export const getExperimentsActiveId = createSelector(
   [queries.queryExperimentsState],
   queries.queryExperimentsActiveId,
 );
+
+export const getExperimentMetaForActiveId = createSelector(
+  [getExperimentsById, getExperimentsActiveId],
+  queries.queryExperimentMetaForActiveId,
+);

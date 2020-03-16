@@ -12,6 +12,7 @@ import {
   instantSubmitKeys,
   validKeyDownKeys,
   Vote,
+  ExperimentMode,
 } from 'const';
 
 import firebase, { listImages } from 'services/firebase';
@@ -22,6 +23,7 @@ import { coinFlip, shuffle } from 'helpers';
 import * as selectors from "selectors";
 
 import Asset from 'Asset';
+import BoundaryExperiment from './BoundaryExperiment';
 import {
   ABTest,
   EggHuntButton,
@@ -37,7 +39,15 @@ import { useInitTotalsHistory } from 'hooks';
 
 const db = firebase.database();
 
-const Main = ({ isLoading, history, onChangeExperiment, user }) => {
+const Main = (props) => {
+  const {
+    activeExperiment,
+    isLoading,
+    history,
+    onChangeExperiment,
+    user,
+  } = props;
+
   const [isAFirst, setIsAFirst] = React.useState(coinFlip());
   const [totals, setTotals] = React.useState({ a: 0, b: 0, none: 0 });
   const [wrapperClasses, setWrapperClasses] = React.useState('');
@@ -222,40 +232,12 @@ const Main = ({ isLoading, history, onChangeExperiment, user }) => {
     return <Redirect to="/" />
   }
 
-  return (
-    <div className={classNames({ App: true })}>
-      <div
-        className={classNames({
-          'App-header': true,
-          images: true,
-          [wrapperClasses]: true,
-        })}
-      >
-        <div className={classNames({ heading: true, loading: submitting })}>
-          <Totals shouldShow={menuOpen} totals={totals} />
+  let contents;
 
-          <LegendHotKeys />
-
-          <TaglineAction
-            handleAction={() => onSubmit()}
-            isLoading={submitting}
-            ref={nextBtn}
-            selected={selected}
-            taglineText={taglineData}
-          />
-        </div>
-
-        {!!user && (
-          <Nav
-            onChooseExperiment={() => {
-              onChangeExperiment();
-              history.push('/exp/choose');
-            }}
-            isOpen={menuOpen}
-            setOpen={setMenuOpen}
-          />
-        )}
-
+  if (activeExperiment) {
+    const { mode } = activeExperiment;
+    if (mode === ExperimentMode.AB) {
+      contents = (
         <ABTest
           imageA={(
             <Asset
@@ -323,6 +305,47 @@ const Main = ({ isLoading, history, onChangeExperiment, user }) => {
           )}
           aIsFirst={isAFirst}
         />
+      );
+    } else if (mode === ExperimentMode.BOUNDARY) {
+      contents = <BoundaryExperiment />;
+    }
+  }
+
+  return (
+    <div className={classNames({ App: true })}>
+      <div
+        className={classNames({
+          'App-header': true,
+          images: true,
+          [wrapperClasses]: true,
+        })}
+      >
+        <div className={classNames({ heading: true, loading: submitting })}>
+          <Totals shouldShow={menuOpen} totals={totals} />
+
+          <LegendHotKeys />
+
+          <TaglineAction
+            handleAction={() => onSubmit()}
+            isLoading={submitting}
+            ref={nextBtn}
+            selected={selected}
+            taglineText={taglineData}
+          />
+        </div>
+
+        {!!user && (
+          <Nav
+            onChooseExperiment={() => {
+              onChangeExperiment();
+              history.push('/exp/choose');
+            }}
+            isOpen={menuOpen}
+            setOpen={setMenuOpen}
+          />
+        )}
+
+        {contents}
       </div>
 
       <EggHuntButton backUrl={`${loc.pathname}${loc.search}`} />
@@ -331,6 +354,7 @@ const Main = ({ isLoading, history, onChangeExperiment, user }) => {
 };
 
 const mapStateToProps = createStructuredSelector({
+  activeExperiment: selectors.getExperimentMetaForActiveId,
   isLoading: selectors.getSessionIsLoading,
   user: selectors.getSessionUser,
 });

@@ -1,6 +1,14 @@
 /**
  * @enum {string}
  */
+export const ExperimentMode = {
+  BOUNDARY: 'boundary',
+  AB: 'ab',
+};
+
+/**
+ * @enum {string}
+ */
 export const Keys = {
   ONE: '1',
   TWO: '2',

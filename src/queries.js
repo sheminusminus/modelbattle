@@ -9,3 +9,4 @@ export const queryExperimentsActiveId = experiments => experiments.activeId;
 export const queryExperimentsById = experiments => experiments.byId;
 export const queryExperimentsIds = experiments => experiments.ids;
 export const queryExperimentsIsFetching = experiments => experiments.isFetching;
+export const queryExperimentMetaForActiveId = (experiments, id) => experiments[id];
