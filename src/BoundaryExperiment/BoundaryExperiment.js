@@ -284,6 +284,7 @@ const BoundaryExperiment = (props) => {
 
   const lastShape = drawnShapes[drawnShapes.length - 1];
   const sortedPoints = lastShape ? sortPoints(lastShape.points) : [];
+  const renderTaggingUi = Boolean(showInput && sortedPoints.length);
 
   return (
     <div
@@ -320,7 +321,7 @@ const BoundaryExperiment = (props) => {
         onTouchMove={isMobile ? handleMove : undefined}
       />
 
-      {showInput && (
+      {renderTaggingUi && (
         <button
           className="close-x"
           onClick={(evt) => {
@@ -338,7 +339,7 @@ const BoundaryExperiment = (props) => {
         </button>
       )}
 
-      {showInput && (
+      {renderTaggingUi && (
         <Input
           autoFocus={true}
           onChange={handleInputChange}
