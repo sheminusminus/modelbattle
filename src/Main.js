@@ -57,7 +57,7 @@ const Main = (props) => {
   const nextBtnRef = React.useRef();
 
   const [boundaryItems, setBoundaryItems] = React.useState([]);
-  const [boundaryPoints, setBoundaryPoints] = React.useState([]);
+  const [boundaryShapes, setBoundaryShapes] = React.useState([]);
   const [urlsA, setUrlsA] = React.useState([]);
   const [urlsB, setUrlsB] = React.useState([]);
   const [loaded, setLoaded] = React.useState({ a: false, b: false });
@@ -149,25 +149,21 @@ const Main = (props) => {
           setLoadedTime((new Date()).toUTCString());
         }
       } else if (expMode === ExperimentMode.BOUNDARY) {
-        if (boundaryPoints.length) {
+        if (boundaryShapes && boundaryShapes.length) {
           const now = new Date();
-          const loadedMillis = (new Date(loadedTime)).valueOf();
-          const submittedMillis = now.valueOf();
-          const data = {
-            url: boundaryItems[0].url,
-            boundary_points: boundaryPoints,
+          const data = boundaryShapes.map((shape) => ({
+            ...shape,
             submitted: now.toUTCString(),
-            duration_ms: submittedMillis - loadedMillis,
-          };
+          }));
           await db.ref('results').child(expName).child(uid).push(data);
         }
 
         const nextBoundaryItems = boundaryItems.slice(1);
         setBoundaryItems(nextBoundaryItems);
-        setBoundaryPoints([]);
+        setBoundaryShapes([]);
       }
     }
-  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryItems, boundaryPoints]);
+  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryShapes, boundaryItems]);
 
   const onSelection = ({ index, whichImg, urls }) => {
     if (selected[index] && selected[index].vote === whichImg) {
@@ -220,12 +216,14 @@ const Main = (props) => {
   }, [isAFirst, onSubmit, urlsA, urlsB]);
 
   React.useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
+    if (activeExperiment && activeExperiment.mode === ExperimentMode.AB) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [totals.a, totals.b, totals.none, selected, handleKeyDown]);
+  }, [totals.a, totals.b, totals.none, selected, handleKeyDown, activeExperiment]);
 
   useInitTotalsHistory({ setTotals, expName: activeExperiment && activeExperiment.id });
 
@@ -329,10 +327,11 @@ const Main = (props) => {
             setLoadedTime((new Date()).toUTCString());
           }}
           onDrawStart={() => {
-            setBoundaryPoints(null);
+            setBoundaryShapes([]);
           }}
-          onDrawEnd={(points) => {
-            setBoundaryPoints(points);
+          onDrawEnd={(shapeData) => {
+            const nextShapes = [...boundaryShapes, shapeData];
+            setBoundaryShapes(nextShapes);
           }}
         />
       );
@@ -358,7 +357,7 @@ const Main = (props) => {
             isLoading={submitting}
             userDidAction={Boolean(
               (activeExperiment && activeExperiment.mode === ExperimentMode.AB && selected && selected.length > 0)
-              || (activeExperiment && activeExperiment.mode === ExperimentMode.BOUNDARY && boundaryPoints && boundaryPoints.length > 0)
+              || (activeExperiment && activeExperiment.mode === ExperimentMode.BOUNDARY && boundaryShapes.length > 0)
             )}
             ref={nextBtnRef}
             taglineText={activeExperiment && activeExperiment.tagline}

@@ -14,6 +14,7 @@ export const Keys = {
   TWO: '2',
   SKIP: 'q',
   NEXT: 'Enter',
+  ESC: 'Escape',
 };
 
 /**

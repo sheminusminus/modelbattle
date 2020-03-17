@@ -2,11 +2,16 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 
+import { Keys } from 'const';
+
 import { sortPoints } from 'helpers';
+
+import { addNewTag } from 'services/firebase';
 
 import * as selectors from 'selectors';
 
 import Asset from 'Asset';
+import { Input } from '../components';
 
 const getBoundingPoints = (locations) => {
   if (locations.length === 2) {
@@ -72,19 +77,29 @@ function draw(ctx, locations, color = 'deepskyblue', text = '') {
 
 const BoundaryExperiment = (props) => {
   const {
+    experimentId,
     items,
-    onDrawStart,
     onDrawEnd,
+    onDrawStart,
     onImageLoad,
     shapes: initShapes,
     tags,
   } = props;
 
+  /**
+   * @type {React.MutableRefObject<HTMLCanvasElement>}
+   */
   const canvasRef = React.useRef(null);
+  /**
+   * @type {React.MutableRefObject<HTMLInputElement>}
+   */
+  const inputRef = React.useRef(null);
   const [locations, setLocations] = React.useState([]);
   const [isDraw, setIsDraw] = React.useState(false);
   const [size, setSize] = React.useState({ width: 0, height: 0 });
   const [shapes, setShapes] = React.useState(initShapes);
+  const [showInput, setShowInput] = React.useState(false);
+  const [inputVal, setInputVal] = React.useState('');
 
   const drawShapes = React.useCallback(() => {
     const canvas = canvasRef.current;
@@ -97,7 +112,6 @@ const BoundaryExperiment = (props) => {
         if (items[0] && url === items[0].url) {
           const itemTag = tags[tag] || {};
           const sortedPoints = sortPoints(points);
-          console.log(sortedPoints);
           draw(ctx, [sortedPoints[0], sortedPoints[2]], itemTag.color, itemTag.text);
         }
       });
@@ -116,16 +130,68 @@ const BoundaryExperiment = (props) => {
     drawShapes();
   }, [drawShapes, isDraw, locations]);
 
+  const handleKeyDown = React.useCallback((evt) => {
+    const { key } = evt;
+    if (key === Keys.ESC) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      const nextShapes = shapes.slice(0, shapes.length - 1);
+      setShapes(nextShapes);
+      setShowInput(false);
+      setLocations([]);
+    }
+  }, [shapes]);
+
+  React.useEffect(() => {
+    if (showInput) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [handleKeyDown, showInput]);
+
   const handleImageLoad = React.useCallback((evt) => {
     const { width, height } = evt.target;
     setSize({ width, height });
+  }, []);
+
+  const handleInputChange = React.useCallback((evt) => {
+    const { value } = evt.target;
+    const formatted = value
+      .toLowerCase()
+      .replace(/\s/g, '_')
+      .replace(/\.|\$|\[|\]|\//g, '');
+    setInputVal(formatted);
   }, []);
 
   if (!items.length) {
     return null;
   }
 
+  const handleInputEnter = async () => {
+    const tagKey = await addNewTag(experimentId, inputVal);
+    console.log(tagKey);
+    const boundaryPoints = getBoundaryPoints(locations);
+    const shapeData = {
+      url: items[0].url,
+      points: boundaryPoints,
+      tag: tagKey,
+    };
+    const nextShapes = [...shapes, shapeData];
+    setShapes(nextShapes);
+    setLocations([]);
+    setShowInput(false);
+    setInputVal('');
+    onDrawEnd(shapeData);
+  };
+
   const handleStart = (evt) => {
+    if (showInput) {
+      return;
+    }
+
     if (!isDraw) {
       const canvas = canvasRef.current;
       const { clientX, clientY } = evt;
@@ -143,9 +209,21 @@ const BoundaryExperiment = (props) => {
     } else {
       setIsDraw(false);
       const boundaryPoints = getBoundaryPoints(locations);
-      onDrawEnd(boundaryPoints);
+      const shapeData = {
+        url: items[0].url,
+        points: boundaryPoints,
+        tag: '',
+      };
+      const nextShapes = [...shapes, shapeData];
+      setShapes(nextShapes);
+      // setLocations([]);
+      setShowInput(true);
+      // onDrawEnd(boundaryPoints);
     }
   };
+
+  const lastShape = shapes[shapes.length - 1];
+  const sortedPoints = lastShape ? sortPoints(lastShape.points) : [];
 
   return (
     <div
@@ -190,6 +268,24 @@ const BoundaryExperiment = (props) => {
           }
         }}
       />
+
+      {showInput && (
+        <Input
+          onChange={handleInputChange}
+          onKeyDown={async (evt) => {
+            const { key } = evt;
+            if (key === Keys.NEXT) {
+              await handleInputEnter();
+            }
+          }}
+          ref={inputRef}
+          value={inputVal}
+          wrapperStyle={{
+            left: sortedPoints[1].x,
+            top: sortedPoints[1].y,
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -200,6 +296,7 @@ BoundaryExperiment.defaultProps = {
 };
 
 const mapStateToProps = createStructuredSelector({
+  experimentId: selectors.getExperimentsActiveId,
   shapes: selectors.getExperimentShapesForActiveId,
   tags: selectors.getExperimentTagsForActiveId,
 });

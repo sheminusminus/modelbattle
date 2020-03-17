@@ -14,3 +14,11 @@
     top: 0;
     left: 0;
 }
+
+.boundary-exp-wrapper .input-wrapper {
+    position: absolute;
+}
+
+.boundary-exp-wrapper .input-wrapper input {
+    height: 24px;
+}

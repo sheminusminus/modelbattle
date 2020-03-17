@@ -164,6 +164,41 @@ export const Image = (props) => {
   );
 };
 
+export const Input = React.forwardRef((props, ref) => {
+  const {
+    autoFocus,
+    className,
+    name,
+    onChange,
+    onKeyDown,
+    placeholder,
+    style = {},
+    value,
+    wrapperStyle = {},
+  } = props;
+
+  return (
+    <div
+      className={classNames({
+        'input-wrapper': true,
+      })}
+      style={wrapperStyle}
+    >
+      <input
+        autoFocus={autoFocus}
+        className={className}
+        name={name}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        placeholder={placeholder}
+        ref={ref}
+        style={style}
+        value={value}
+      />
+    </div>
+  );
+});
+
 export const LegendDesc = ({ children }) => (
   <span className="desc">{children}</span>
 );

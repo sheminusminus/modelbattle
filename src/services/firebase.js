@@ -5,10 +5,12 @@ import firebaseConfig from './firebaseConfig';
 
 import { ExperimentMode } from 'const';
 
-import { shuffle } from 'helpers';
+import { randomColor, shuffle } from 'helpers';
 
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
+
+window.firebase = firebase;
 
 export const firebaseUiConfig = {
   signInFlow: 'popup',
@@ -32,48 +34,6 @@ export const firebaseUiConfig = {
     firebase.auth.GithubAuthProvider.PROVIDER_ID,
     firebaseUi.auth.AnonymousAuthProvider.PROVIDER_ID,
   ],
-};
-
-/**
- * @param {Object} options
- * @param {Object} options.history
- * @param {?string} [options.expName]
- * @param {Function} [options.setChecked]
- * @return {function(...[*]=)}
- */
-export const makeAuthHandler = (options) => async (user) => {
-  const { expName, history, setChecked } = options;
-
-  if (setChecked) {
-    setChecked(true);
-  }
-
-  if (user) {
-    console.log('user found');
-    const { displayName, email, photoURL, uid, providerId, isAnonymous } = user;
-
-    let userData;
-
-    if (isAnonymous) {
-      userData = { anon: isAnonymous, displayName: uid, uid };
-    } else {
-      userData = {
-        displayName: displayName || uid,
-        email,
-        photoUrl: photoURL,
-        providerId,
-        uid,
-      };
-    }
-
-    await firebase.database().ref('users').child(uid).set(userData);
-
-    if (expName) {
-      history.push(`/exp?n=${expName}`);
-    }
-  } else {
-    console.log('NO user found');
-  }
 };
 
 /**
@@ -109,6 +69,41 @@ export const listImages = async (expName) => {
 
     return { items, skipText, tagline };
   }
+};
+
+export const addNewTag = async (experimentId, input) => {
+  const { uid } = firebase.auth().currentUser;
+
+  const newTag = {
+    id: input,
+    color: randomColor(),
+    text: input,
+  };
+
+  const existingTagSnap = await firebase
+    .database()
+    .ref('meta')
+    .child(experimentId)
+    .child('tags')
+    .orderByChild('text')
+    .equalTo(input)
+    .once('value');
+
+  const existingTag = existingTagSnap.val();
+
+  if (existingTag) {
+    return Object.keys(existingTag)[0];
+  }
+
+  const tagEntry = await firebase
+    .database()
+    .ref('user_meta')
+    .child(uid)
+    .child(experimentId)
+    .child('tags')
+    .push(newTag);
+
+  return tagEntry.key;
 };
 
 export default firebase;
