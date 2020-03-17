@@ -65,6 +65,7 @@ const Main = (props) => {
   const [selected, setSelected] = React.useState([]);
   const [submitting, setSubmitting] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [boundaryIndex, setBoundaryIndex] = React.useState(0);
 
   const loc = useLocation();
 
@@ -158,12 +159,11 @@ const Main = (props) => {
           await db.ref('results').child(expName).child(uid).push(data);
         }
 
-        const nextBoundaryItems = boundaryItems.slice(1);
-        setBoundaryItems(nextBoundaryItems);
+        setBoundaryIndex(boundaryIndex + 1);
         setBoundaryShapes([]);
       }
     }
-  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryShapes, boundaryItems]);
+  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryShapes, boundaryIndex]);
 
   const onSelection = ({ index, whichImg, urls }) => {
     if (selected[index] && selected[index].vote === whichImg) {
@@ -322,7 +322,7 @@ const Main = (props) => {
     } else if (mode === ExperimentMode.BOUNDARY) {
       contents = (
         <BoundaryExperiment
-          items={boundaryItems}
+          items={boundaryItems.slice(boundaryIndex)}
           onImageLoad={() => {
             setLoadedTime((new Date()).toUTCString());
           }}

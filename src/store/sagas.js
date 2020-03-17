@@ -96,7 +96,7 @@ export function* refreshExperimentTagsTrigger() {
       }));
     }
   } catch (err) {
-
+    yield put(refreshExperimentTags.failure(err));
   }
 }
 
