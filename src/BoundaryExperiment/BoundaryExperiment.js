@@ -105,6 +105,7 @@ const BoundaryExperiment = (props) => {
     onDrawStart,
     onImageLoad,
     onRefreshTags,
+    onSubmit,
     shapes: initShapes,
     tags,
   } = props;
@@ -161,28 +162,46 @@ const BoundaryExperiment = (props) => {
     setShowInput(false);
   }, [shapes]);
 
+  const handleInputEnter = React.useCallback(async () => {
+    const val = inputVal || lastTag;
+
+    if (val) {
+      const tagKey = await addNewTag(experimentId, val);
+      const shapeData = shapes[shapes.length - 1];
+      shapeData.tag = tagKey;
+      setLastTag(tagKey);
+      const nextShapes = [...shapes, shapeData];
+      setShapes(nextShapes);
+      setLocations([]);
+      setShowInput(false);
+      setInputVal(undefined);
+      onDrawEnd(nextShapes);
+      onRefreshTags();
+    }
+  }, [experimentId, inputVal, lastTag, onDrawEnd, onRefreshTags, shapes]);
+
   const handleKeyDown = React.useCallback((evt) => {
     const { key } = evt;
-    if (key === Keys.ESC) {
+    if (key === Keys.ESC && showInput) {
       evt.preventDefault();
       evt.stopPropagation();
       handleCancelLastBox();
       setInputVal(undefined);
+    } else if (key === Keys.SKIP && !showInput) {
+      onSubmit();
     }
-  }, [handleCancelLastBox]);
+  }, [handleCancelLastBox, onSubmit, showInput]);
 
   React.useEffect(() => {
-    if (showInput) {
-      window.addEventListener('keydown', handleKeyDown);
-      if (document.activeElement !== inputRef.current && inputRef.current) {
-        inputRef.current.select();
-      }
+    window.addEventListener('keydown', handleKeyDown);
+    if (document.activeElement !== inputRef.current && inputRef.current) {
+      inputRef.current.select();
     }
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [handleKeyDown, showInput]);
+  }, [handleKeyDown]);
 
   const handleImageLoad = React.useCallback((evt) => {
     const { width, height } = evt.target;
@@ -219,24 +238,6 @@ const BoundaryExperiment = (props) => {
   if (!items.length) {
     return null;
   }
-
-  const handleInputEnter = async () => {
-    const val = inputVal || lastTag;
-
-    if (val) {
-      const tagKey = await addNewTag(experimentId, val);
-      const shapeData = shapes[shapes.length - 1];
-      shapeData.tag = tagKey;
-      setLastTag(tagKey);
-      const nextShapes = [...shapes, shapeData];
-      setShapes(nextShapes);
-      setLocations([]);
-      setShowInput(false);
-      setInputVal(undefined);
-      onDrawEnd(nextShapes);
-      onRefreshTags();
-    }
-  };
 
   const handleStart = (evt) => {
     if (showInput) {

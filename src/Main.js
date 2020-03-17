@@ -336,6 +336,7 @@ const Main = (props) => {
       contents = (
         <BoundaryExperiment
           items={boundaryItems.slice(boundaryIndex)}
+          onSubmit={() => onSubmit()}
           onImageLoad={() => {
             setLoadedTime((new Date()).toUTCString());
           }}
