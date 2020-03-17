@@ -34,7 +34,13 @@ const experiments = (state = initialState[experimentsName], action = {}) => {
     case listExperiments.SUCCESS:
       return {
         ...state,
-        byId: payload.experiments,
+        byId: Object.keys(payload.experiments).reduce((obj, id) => ({
+          ...obj,
+          [id]: {
+            ...payload.experiments[id],
+            id,
+          },
+        }), {}),
         ids: Object.keys(payload.experiments),
         isFetching: false,
       };

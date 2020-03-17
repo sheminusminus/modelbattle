@@ -29,28 +29,6 @@ export const ArrowButton = ({ onClick, name }) => (
   </button>
 );
 
-export const ABTest = (props) => {
-  const { aIsFirst, imageA, imageB } = props;
-
-  return (
-    <div className="exp-image-wrap">
-      {aIsFirst && (
-        <React.Fragment>
-          {imageA}
-          {imageB}
-        </React.Fragment>
-      )}
-
-      {!aIsFirst && (
-        <React.Fragment>
-          {imageB}
-          {imageA}
-        </React.Fragment>
-      )}
-    </div>
-  );
-};
-
 export const BackButton = () => {
   const loc = useLocation();
 
@@ -139,12 +117,14 @@ export const Image = (props) => {
       target.blur();
     }
 
-    onImgKeyPress({
-      evtKey: key,
-      urls: { a: urlsA[idx], b: urlsB[idx] },
-      whichImg: whichImg,
-      index: idx,
-    });
+    if (onImgKeyPress) {
+      onImgKeyPress({
+        evtKey: key,
+        urls: { a: urlsA[idx], b: urlsB[idx] },
+        whichImg: whichImg,
+        index: idx,
+      });
+    }
   };
 
   /**
@@ -155,11 +135,13 @@ export const Image = (props) => {
       target.blur();
     }
 
-    onSelection({
-      urls: { a: urlsA[idx], b: urlsB[idx] },
-      whichImg: whichImg,
-      index: idx,
-    });
+    if (onSelection) {
+      onSelection({
+        urls: { a: urlsA[idx], b: urlsB[idx] },
+        whichImg: whichImg,
+        index: idx,
+      });
+    }
   };
 
   return (
@@ -313,8 +295,8 @@ export const TaglineAction = React.forwardRef((props, ref) => {
     isLoading,
     nextText,
     skipText,
-    selected,
     taglineText,
+    userDidAction,
   } = props;
 
   return (
@@ -335,8 +317,8 @@ export const TaglineAction = React.forwardRef((props, ref) => {
         {isLoading && (
           <Spinner isLoading={isLoading} />
         )}
-        {!isLoading && selected.length > 0 && nextText}
-        {!isLoading && selected.length === 0 && skipText}
+        {!isLoading && userDidAction && nextText}
+        {!isLoading && !userDidAction && skipText}
       </button>
     </div>
   );

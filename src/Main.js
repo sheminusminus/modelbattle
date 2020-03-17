@@ -1,5 +1,4 @@
 import React from 'react';
-import qs from 'query-string';
 import {
   Redirect,
   useLocation,
@@ -22,10 +21,10 @@ import { coinFlip, shuffle } from 'helpers';
 
 import * as selectors from "selectors";
 
+import ABTestExperiment from 'ABTestExperiment';
 import Asset from 'Asset';
 import BoundaryExperiment from './BoundaryExperiment';
 import {
-  ABTest,
   EggHuntButton,
   LegendHotKeys,
   Nav,
@@ -55,8 +54,10 @@ const Main = (props) => {
   /**
    * @type {React.MutableRefObject<HTMLButtonElement>}
    */
-  const nextBtn = React.useRef();
+  const nextBtnRef = React.useRef();
 
+  const [boundaryItems, setBoundaryItems] = React.useState([]);
+  const [boundaryPoints, setBoundaryPoints] = React.useState([]);
   const [urlsA, setUrlsA] = React.useState([]);
   const [urlsB, setUrlsB] = React.useState([]);
   const [loaded, setLoaded] = React.useState({ a: false, b: false });
@@ -64,95 +65,107 @@ const Main = (props) => {
   const [selected, setSelected] = React.useState([]);
   const [submitting, setSubmitting] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
-  const [taglineData, setTaglineData] = React.useState(false);
 
   const loc = useLocation();
 
   const loadImages = React.useCallback(async () => {
     const images = await listImages(loc.search);
 
-    if (images) {
-      const { a, b, tagline } = images;
-      const aUrls = await Promise.all(a.map(async (ref) => {
-        return ref.getDownloadURL();
-      }));
-      const bUrls = await Promise.all(b.map(async (ref) => {
-        return ref.getDownloadURL();
-      }));
+    if (images && activeExperiment) {
+      if (activeExperiment.mode === ExperimentMode.AB) {
+        const { a, b } = images;
+        const aUrls = await Promise.all(a.map(async (ref) => {
+          return ref.getDownloadURL();
+        }));
+        const bUrls = await Promise.all(b.map(async (ref) => {
+          return ref.getDownloadURL();
+        }));
 
-      setUrlsA(shuffle(aUrls));
-      setUrlsB(shuffle(bUrls));
-      setTaglineData(tagline);
-      setIsAFirst(coinFlip());
+        setUrlsA(shuffle(aUrls));
+        setUrlsB(shuffle(bUrls));
+        setIsAFirst(coinFlip());
+      } else if (activeExperiment.mode === ExperimentMode.BOUNDARY) {
+        const { items } = images;
+        const itemData = await Promise.all(items.map(async (ref) => {
+          const { contentType } = await ref.getMetadata();
+          const url = await ref.getDownloadURL();
+          return { contentType, url };
+        }));
+        setBoundaryItems(itemData);
+      }
+
+      setSubmitting(false);
     }
-
-    setSubmitting(false);
-  }, [loc.search]);
+  }, [activeExperiment, loc.search]);
 
   const onSubmit = React.useCallback(async (overrideSelected) => {
+    const { mode: expMode, id: expName } = activeExperiment;
+    const { uid } = firebase.auth().currentUser;
+
     if (!submitting) {
-      const selection = overrideSelected || selected[0];
+      if (expMode === ExperimentMode.AB) {
+        const selection = overrideSelected || selected[0];
 
-      const queries = qs.parse(window.location.search);
+        if (expName) {
+          setSubmitting(true);
 
-      /**
-       * @type {?string}
-       */
-      const expName = queries.n || queries['?n'];
+          const isASelected = selection && selection.vote === Vote.A;
+          const isBSelected = selection && selection.vote === Vote.B;
+          const isNoneSelected = !selection || selection.vote === Vote.NONE;
 
-      if (expName) {
-        setSubmitting(true);
+          const nextTotals = {
+            a: isASelected ? totals.a + 1 : totals.a,
+            b: isBSelected ? totals.b + 1 : totals.b,
+            none: isNoneSelected ? totals.none + 1 : totals.none,
+          };
 
-        const isASelected = selection && selection.vote === Vote.A;
-        const isBSelected = selection && selection.vote === Vote.B;
-        const isNoneSelected = !selection || selection.vote === Vote.NONE;
+          setTotals(nextTotals);
 
-        const nextTotals = {
-          a: isASelected ? totals.a + 1 : totals.a,
-          b: isBSelected ? totals.b + 1 : totals.b,
-          none: isNoneSelected ? totals.none + 1 : totals.none,
-        };
+          localStorage.setItem(`totals:${expName}`, JSON.stringify(nextTotals));
 
-        setTotals(nextTotals);
+          setSelected([]);
 
-        localStorage.setItem(`totals:${expName}`, JSON.stringify(nextTotals));
+          const data = isNoneSelected ? {
+            a: urlsA[0],
+            b: urlsB[0],
+            vote: Vote.NONE,
+          } : selection;
 
-        setSelected([]);
+          const now = new Date();
+          const loadedMillis = (new Date(loadedTime)).valueOf();
+          const submittedMillis = now.valueOf();
 
-        const { uid } = firebase.auth().currentUser;
-        const data = isNoneSelected ? {
-          a: urlsA[0],
-          b: urlsB[0],
-          vote: Vote.NONE,
-        } : selection;
+          await db.ref('results').child(expName).child(uid).push({
+            ...data,
+            submitted: now.toUTCString(),
+            duration_ms: submittedMillis - loadedMillis,
+          });
 
-        const now = new Date();
-        const loadedMillis = (new Date(loadedTime)).valueOf();
-        const submittedMillis = now.valueOf();
+          await loadImages();
 
-        await db.ref('results').child(expName).child(uid).push({
-          ...data,
-          submitted: now.toUTCString(),
-          duration_ms: submittedMillis - loadedMillis,
-        });
+          setSubmitting(false);
+          setLoadedTime((new Date()).toUTCString());
+        }
+      } else if (expMode === ExperimentMode.BOUNDARY) {
+        if (boundaryPoints.length) {
+          const now = new Date();
+          const loadedMillis = (new Date(loadedTime)).valueOf();
+          const submittedMillis = now.valueOf();
+          const data = {
+            url: boundaryItems[0].url,
+            boundary_points: boundaryPoints,
+            submitted: now.toUTCString(),
+            duration_ms: submittedMillis - loadedMillis,
+          };
+          await db.ref('results').child(expName).child(uid).push(data);
+        }
 
-        await loadImages();
-
-        setSubmitting(false);
-        setLoadedTime((new Date()).toUTCString());
+        const nextBoundaryItems = boundaryItems.slice(1);
+        setBoundaryItems(nextBoundaryItems);
+        setBoundaryPoints([]);
       }
     }
-  }, [
-    loadedTime,
-    loadImages,
-    selected,
-    submitting,
-    totals.a,
-    totals.b,
-    totals.none,
-    urlsA,
-    urlsB,
-  ]);
+  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryItems, boundaryPoints]);
 
   const onSelection = ({ index, whichImg, urls }) => {
     if (selected[index] && selected[index].vote === whichImg) {
@@ -238,7 +251,7 @@ const Main = (props) => {
     const { mode } = activeExperiment;
     if (mode === ExperimentMode.AB) {
       contents = (
-        <ABTest
+        <ABTestExperiment
           imageA={(
             <Asset
               assets={urlsA}
@@ -307,7 +320,20 @@ const Main = (props) => {
         />
       );
     } else if (mode === ExperimentMode.BOUNDARY) {
-      contents = <BoundaryExperiment />;
+      contents = (
+        <BoundaryExperiment
+          items={boundaryItems}
+          onImageLoad={() => {
+            setLoadedTime((new Date()).toUTCString());
+          }}
+          onDrawStart={() => {
+            setBoundaryPoints(null);
+          }}
+          onDrawEnd={(points) => {
+            setBoundaryPoints(points);
+          }}
+        />
+      );
     }
   }
 
@@ -328,9 +354,13 @@ const Main = (props) => {
           <TaglineAction
             handleAction={() => onSubmit()}
             isLoading={submitting}
-            ref={nextBtn}
-            selected={selected}
-            taglineText={taglineData}
+            userDidAction={Boolean(
+              (activeExperiment && activeExperiment.mode === ExperimentMode.AB && selected && selected.length > 0)
+              || (activeExperiment && activeExperiment.mode === ExperimentMode.BOUNDARY && boundaryPoints && boundaryPoints.length > 0)
+            )}
+            ref={nextBtnRef}
+            taglineText={activeExperiment && activeExperiment.tagline}
+            skipText={activeExperiment && activeExperiment.skip_text}
           />
         </div>
 

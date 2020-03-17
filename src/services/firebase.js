@@ -4,6 +4,8 @@ import qs from 'query-string';
 
 import firebaseConfig from './firebaseConfig';
 
+import { ExperimentMode } from 'const';
+
 import { shuffle } from 'helpers';
 
 firebase.initializeApp(firebaseConfig);
@@ -77,7 +79,7 @@ export const makeAuthHandler = (options) => async (user) => {
 
 /**
  * @param {string} searchQuery
- * @return {Promise<{a: [*], b: [*]}|{a: [], b: []}>}
+ * @return {Promise<*>}
  */
 export const listImages = async (searchQuery) => {
   const queries = qs.parse(searchQuery);
@@ -89,19 +91,32 @@ export const listImages = async (searchQuery) => {
 
   if (!expName) { return { a: [], b: [] }; }
 
-  const experimentSnapshot = await firebase.database().ref('meta').child(expName).once('value');
+  const experimentSnapshot = await firebase.database().ref('_meta').child(expName).once('value');
   const data = experimentSnapshot.val();
 
   const {
-    a_dir: dirA,
-    b_dir: dirB,
+    mode,
     tagline,
+    skip_text: skipText,
   } = data;
 
-  const { items: itemsA } = await firebase.storage().ref(dirA).listAll();
-  const { items: itemsB } = await firebase.storage().ref(dirB).listAll();
+  if (mode === ExperimentMode.AB) {
+    const {
+      a_dir: dirA,
+      b_dir: dirB,
+    } = data;
 
-  return { a: [shuffle(itemsA)[0]], b: [shuffle(itemsB)[0]], tagline };
+    const { items: itemsA } = await firebase.storage().ref(dirA).listAll();
+    const { items: itemsB } = await firebase.storage().ref(dirB).listAll();
+
+    return { a: [shuffle(itemsA)[0]], b: [shuffle(itemsB)[0]], skipText, tagline };
+  } else if (mode === ExperimentMode.BOUNDARY) {
+    const { dir } = data;
+
+    const { items } = await firebase.storage().ref(dir).listAll();
+
+    return { items, skipText, tagline };
+  }
 };
 
 export default firebase;
