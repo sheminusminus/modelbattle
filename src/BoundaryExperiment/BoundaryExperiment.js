@@ -124,7 +124,7 @@ const BoundaryExperiment = (props) => {
   const [drawnShapes, setDrawnShapes] = React.useState([]);
   const [showInput, setShowInput] = React.useState(false);
   const [inputVal, setInputVal] = React.useState(undefined);
-  const [lastTag, setLastTag] = React.useState('');
+  const [lastTag, setLastTag] = React.useState(window.lastTag || '');
 
   const drawShapes = React.useCallback(() => {
     const canvas = canvasRef.current;
@@ -164,6 +164,7 @@ const BoundaryExperiment = (props) => {
 
   const handleInputEnter = React.useCallback(async () => {
     const val = inputVal || lastTag;
+    window.lastTag = val;
 
     if (val) {
       const tagKey = await addNewTag(experimentId, val);
