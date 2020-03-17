@@ -44,7 +44,7 @@ const getBoundingPoints = (locations) => {
 
 const getBoundaryPoints = (locations) => {
   const points = getBoundingPoints(locations);
-  return points.slice(0, 4);
+  return points.length ? points.slice(0, 4) : [];
 };
 
 const getClientXY = (evt) => {
@@ -52,8 +52,11 @@ const getClientXY = (evt) => {
   let clientY;
 
   if (isMobile) {
-    clientX = evt.touches[0].clientX;
-    clientY = evt.touches[0].clientY;
+    const touch = evt.touches[0];
+    if (touch) {
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+    }
   } else {
     clientX = evt.clientX;
     clientY = evt.clientY;
@@ -198,13 +201,15 @@ const BoundaryExperiment = (props) => {
 
       const { clientX, clientY } = getClientXY(evt);
 
-      const bbox = canvas.getBoundingClientRect();
-      const { left, top } = bbox;
-      const x = clientX - left;
-      const y = clientY - top;
-      const loc = { x, y: y };
-      const nextLocations = [locations[0], loc];
-      setLocations(nextLocations);
+      if (clientX && clientY) {
+        const bbox = canvas.getBoundingClientRect();
+        const { left, top } = bbox;
+        const x = clientX - left;
+        const y = clientY - top;
+        const loc = { x, y: y };
+        const nextLocations = [locations[0], loc];
+        setLocations(nextLocations);
+      }
     }
   }, [isDraw, locations]);
 
@@ -238,17 +243,19 @@ const BoundaryExperiment = (props) => {
     if (!isDraw) {
       const canvas = canvasRef.current;
       const { clientX, clientY } = getClientXY(evt);
-      const bbox = canvas.getBoundingClientRect();
-      const { left, top } = bbox;
-      const x = clientX - left;
-      const y = clientY - top;
-      const loc = { x, y: y };
-      const nextLocations = [loc];
-      setLocations(nextLocations);
+      if (clientX && clientY) {
+        const bbox = canvas.getBoundingClientRect();
+        const { left, top } = bbox;
+        const x = clientX - left;
+        const y = clientY - top;
+        const loc = { x, y: y };
+        const nextLocations = [loc];
+        setLocations(nextLocations);
 
-      setIsDraw(true);
+        setIsDraw(true);
 
-      onDrawStart();
+        onDrawStart();
+      }
     } else {
       setIsDraw(false);
       const boundaryPoints = getBoundaryPoints(locations);
