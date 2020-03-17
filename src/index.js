@@ -14,7 +14,7 @@ import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import 'App.css';
 import 'BoundaryExperiment.css';
 
-let { n } = qs.parse(window.location.search);
+let { n, u } = qs.parse(window.location.search);
 
 if (n) {
   localStorage.setItem('n', n);
@@ -22,10 +22,17 @@ if (n) {
   n = localStorage.getItem('n');
 }
 
+if (u) {
+  localStorage.setItem('u', u);
+} else {
+  u = localStorage.getItem('u');
+}
+
 const stateHydrator = {
   experiments: {
     ...initialState[experimentsName],
     activeId: n || null,
+    resultsFor: u || null,
   },
 };
 

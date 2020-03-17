@@ -218,21 +218,22 @@ const BoundaryExperiment = (props) => {
   }
 
   const handleInputEnter = async () => {
-    const tagKey = await addNewTag(experimentId, inputVal);
-    const boundaryPoints = getBoundaryPoints(locations);
-    const shapeData = {
-      url: items[0].url,
-      points: boundaryPoints,
-      tag: tagKey,
-    };
-    setLastTag(tagKey);
-    const nextShapes = [...shapes, shapeData];
-    setShapes(nextShapes);
-    setLocations([]);
-    setShowInput(false);
-    setInputVal(undefined);
-    onDrawEnd(nextShapes);
-    onRefreshTags();
+    console.log('enter');
+    const val = inputVal || lastTag;
+
+    if (val) {
+      const tagKey = await addNewTag(experimentId, val);
+      const shapeData = shapes[shapes.length - 1];
+      shapeData.tag = tagKey;
+      setLastTag(tagKey);
+      const nextShapes = [...shapes, shapeData];
+      setShapes(nextShapes);
+      setLocations([]);
+      setShowInput(false);
+      setInputVal(undefined);
+      onDrawEnd(nextShapes);
+      onRefreshTags();
+    }
   };
 
   const handleStart = (evt) => {
@@ -257,11 +258,16 @@ const BoundaryExperiment = (props) => {
         onDrawStart();
       }
     } else {
+      const canvas = canvasRef.current;
       setIsDraw(false);
       const boundaryPoints = getBoundaryPoints(locations);
       const shapeData = {
         url: items[0].url,
         points: boundaryPoints,
+        size: {
+          width: canvas.width,
+          height: canvas.height,
+        },
         tag: '',
       };
       const nextShapes = [...shapes, shapeData];
