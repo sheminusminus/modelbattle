@@ -21,4 +21,19 @@
 
 .boundary-exp-wrapper .input-wrapper input {
     height: 24px;
+    outline: none;
+    width: 100%;
+    border: 0;
+    box-shadow: 0 10px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19) !important;
+}
+
+.boundary-exp-wrapper .close-x {
+    cursor: pointer;
+    position: absolute;
+    color: red;
+    background-color: white;
+    outline: none;
+    border: 0;
+    border-radius: 4px;
+    box-shadow: 0 5px 8px 0 rgba(255,0,0,0.4),0 3px 10px 0 rgba(255,0,0,0.39) !important;
 }

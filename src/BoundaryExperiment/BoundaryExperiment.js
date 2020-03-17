@@ -133,17 +133,21 @@ const BoundaryExperiment = (props) => {
     drawShapes();
   }, [drawShapes, isDraw, locations]);
 
+  const handleCancelLastBox = React.useCallback(() => {
+    const nextShapes = shapes.slice(0, shapes.length - 1);
+    setShapes(nextShapes);
+    setLocations([]);
+    setShowInput(false);
+  }, [shapes]);
+
   const handleKeyDown = React.useCallback((evt) => {
     const { key } = evt;
     if (key === Keys.ESC) {
       evt.preventDefault();
       evt.stopPropagation();
-      const nextShapes = shapes.slice(0, shapes.length - 1);
-      setShapes(nextShapes);
-      setShowInput(false);
-      setLocations([]);
+      handleCancelLastBox();
     }
-  }, [shapes]);
+  }, [handleCancelLastBox]);
 
   React.useEffect(() => {
     if (showInput) {
@@ -273,6 +277,24 @@ const BoundaryExperiment = (props) => {
       />
 
       {showInput && (
+        <button
+          className="close-x"
+          onClick={(evt) => {
+            evt.preventDefault();
+            evt.stopPropagation();
+            handleCancelLastBox();
+          }}
+          style={{
+            left: sortedPoints[0].x - 3,
+            top: sortedPoints[0].y - 20,
+          }}
+          type="button"
+        >
+          x
+        </button>
+      )}
+
+      {showInput && (
         <Input
           onChange={handleInputChange}
           onKeyDown={async (evt) => {
@@ -285,7 +307,8 @@ const BoundaryExperiment = (props) => {
           value={inputVal}
           wrapperStyle={{
             left: sortedPoints[1].x,
-            top: sortedPoints[1].y,
+            width: Math.abs(sortedPoints[1].x - sortedPoints[2].x),
+            top: sortedPoints[1].y - 3,
           }}
         />
       )}
