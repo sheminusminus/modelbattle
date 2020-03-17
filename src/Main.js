@@ -108,12 +108,10 @@ const Main = (props) => {
           }));
           setBoundaryItems(itemData);
         }
-
-        setSubmitting(false);
       }
-    } else {
-      setSubmitting(false);
     }
+
+    setSubmitting(false);
   }, [activeExperiment, boundaryItems.length]);
 
   const onSubmit = React.useCallback(async (overrideSelected) => {
