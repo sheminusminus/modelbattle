@@ -58,3 +58,21 @@ export const getUserExperimentResults = async (experimentId) => {
 
   return undefined;
 };
+
+export const getUserExperimentResultsForUrl = async (experimentId, url) => {
+  const user = firebase.auth().currentUser;
+
+  if (user) {
+    const { uid } = user;
+    const snap = await db
+      .ref('results')
+      .child(experimentId)
+      .child(uid)
+      .orderByChild('0/url')
+      .equalTo(url)
+      .once('value');
+    return snap.val();
+  }
+
+  return undefined;
+};

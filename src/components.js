@@ -318,7 +318,7 @@ export const Spinner = ({ isLoading }) => {
         color="#0EBCF3"
         height={20}
         width={20}
-        timeout={3000}
+        timeout={5000}
       />
     </div>
   );

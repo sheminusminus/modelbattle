@@ -5,7 +5,14 @@ import history from 'createHistory';
 
 import { camelcaseObjectKeys } from 'helpers';
 
-import { setSession, listExperiments, setActiveExperiment, changeActiveExperiment, refreshExperimentTags } from 'types';
+import {
+  setSession,
+  listExperiments,
+  setActiveExperiment,
+  changeActiveExperiment,
+  refreshExperimentTags,
+  getExperimentMeta,
+} from 'types';
 
 export const sessionName = 'session';
 export const experimentsName = 'experiments';
@@ -72,12 +79,47 @@ const experiments = (state = initialState[experimentsName], action = {}) => {
           if (id === payload.id) {
             return {
               ...obj,
-              [id]: payload,
+              [id]: camelcaseObjectKeys(payload),
             };
           }
 
-          return obj;
+          return {
+            ...obj,
+            [id]: state.byId[id],
+          };
         }, {}),
+      };
+
+    case getExperimentMeta.REQUEST:
+      return {
+        ...state,
+        isFetching: true,
+      };
+
+    case getExperimentMeta.SUCCESS:
+      return {
+        ...state,
+        byId: Object.keys(state.byId).reduce((obj, id) => {
+          if (id === payload.id) {
+            return {
+              ...obj,
+              [id]: camelcaseObjectKeys(payload),
+            };
+          }
+
+          return {
+            ...obj,
+            [id]: state.byId[id],
+          };
+        }, {}),
+        isFetching: false,
+      };
+
+    case getExperimentMeta.FULFILL:
+    case getExperimentMeta.FAILURE:
+      return {
+        ...state,
+        isFetching: false,
       };
 
     default:

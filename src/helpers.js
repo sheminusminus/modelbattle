@@ -44,3 +44,5 @@ export const omit = R.omit;
 export const isMobileDevice = () => {
   return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
 };
+
+export const flatten = (arr) => R.flatten(arr);

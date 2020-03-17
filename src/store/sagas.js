@@ -2,11 +2,15 @@ import { eventChannel } from 'redux-saga';
 import { all, call, put, select, spawn, take } from 'redux-saga/effects';
 import { push } from 'connected-react-router'
 
-import { setSession, listExperiments, setActiveExperiment, refreshExperimentTags } from 'types'
+import { ExperimentMode } from 'const';
 
-import { getExperimentsIsFetching, getExperimentsActiveId } from 'selectors';
+import { getExperimentMeta, setSession, listExperiments, setActiveExperiment, refreshExperimentTags } from 'types'
+
+import { getExperimentsIsFetching, getExperimentsActiveId, getExperimentMetaForActiveId } from 'selectors';
 
 import firebase from 'services/firebase';
+
+import { flatten } from 'helpers';
 
 import * as api from './api';
 
@@ -34,7 +38,9 @@ export function* listExperimentsTrigger() {
 
       const result = yield call(api.getExperiments);
       const userMetaResult = yield call(api.getUserMeta);
-
+      // get experiment results
+      // const test = yield call(api.getUserExperimentResultsForUrl, 'default', "https://firebasestorage.googleapis.com/v0/b/experiments-573d7.appspot.com/o/a%2Fdragonflies.jpg?alt=media&token=f8c5b0b6-e670-4b2c-a2ff-c3e0c6e6db62");
+      // console.log(test);
       let experiments = result;
 
       if (result && userMetaResult) {
@@ -67,6 +73,53 @@ export function* listExperimentsTrigger() {
     }
   } catch(err) {
     yield put(listExperiments.failure(err));
+  }
+}
+
+export function* getExperimentMetaTrigger() {
+  try {
+    yield put(getExperimentMeta.request());
+
+    const experimentId = yield select(getExperimentsActiveId);
+    const activeExperiment = yield select(getExperimentMetaForActiveId);
+
+    if (activeExperiment.mode === ExperimentMode.BOUNDARY) {
+      const mainResult = yield call(api.getExperiment, experimentId);
+      const userResults = yield call(api.getUserExperimentResults, experimentId);
+      const userMetaResult = yield call(api.getUserExperimentMeta, experimentId);
+
+      let userTags = {};
+      let userShapes = [];
+
+      if (userResults) {
+        userShapes = Object.keys(userResults).map((key) => userResults[key]);
+        console.log(userShapes);
+      }
+
+      if (userMetaResult && userMetaResult.tags) {
+        userTags = userMetaResult.tags;
+      }
+
+      const experimentData = {
+        ...mainResult,
+        id: experimentId,
+        tags: {
+          ...userTags,
+          ...mainResult.tags,
+        },
+        shapes: [
+          ...flatten(userShapes),
+          ...Object.keys(mainResult.shapes || {}).map((key) => mainResult.shapes[key]),
+        ],
+      };
+
+      yield put(getExperimentMeta.success(experimentData));
+    } else {
+      yield put(getExperimentMeta.fulfill());
+    }
+  } catch (err) {
+    console.log(err);
+    yield put(getExperimentMeta.failure(err));
   }
 }
 
@@ -117,6 +170,7 @@ export function* watch() {
       listExperiments.TRIGGER,
       setActiveExperiment.TRIGGER,
       refreshExperimentTags.TRIGGER,
+      getExperimentMeta.TRIGGER,
     ]);
 
     switch (action.type) {
@@ -130,6 +184,10 @@ export function* watch() {
 
       case refreshExperimentTags.TRIGGER:
         yield spawn(refreshExperimentTagsTrigger);
+        break;
+
+      case getExperimentMeta.TRIGGER:
+        yield spawn(getExperimentMetaTrigger);
         break;
 
       default:

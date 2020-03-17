@@ -32,7 +32,7 @@ import {
   Totals,
 } from 'components';
 
-import { changeActiveExperiment } from 'types';
+import { changeActiveExperiment, getExperimentMeta } from 'types';
 
 import { useInitTotalsHistory } from 'hooks';
 
@@ -41,15 +41,25 @@ const db = firebase.database();
 const Main = (props) => {
   const {
     activeExperiment,
-    isLoading,
     history,
+    isFetchingData,
+    isLoading,
     onChangeExperiment,
+    onGetExperimentMeta,
     user,
   } = props;
 
   const [isAFirst, setIsAFirst] = React.useState(coinFlip());
   const [totals, setTotals] = React.useState({ a: 0, b: 0, none: 0 });
   const [wrapperClasses, setWrapperClasses] = React.useState('');
+  const [loadedExperiment, setLoadedExperiment] = React.useState(false);
+
+  React.useEffect(() => {
+    if (activeExperiment && !loadedExperiment) {
+      setLoadedExperiment(true);
+      onGetExperimentMeta();
+    }
+  }, [activeExperiment, loadedExperiment, onGetExperimentMeta]);
 
   /**
    * @type {React.MutableRefObject<HTMLButtonElement>}
@@ -245,9 +255,9 @@ const Main = (props) => {
     return <Redirect to="/" />
   }
 
-  let contents;
+  let contents = null;
 
-  if (activeExperiment) {
+  if (activeExperiment && !isFetchingData) {
     const { mode } = activeExperiment;
     if (mode === ExperimentMode.AB) {
       contents = (
@@ -387,11 +397,13 @@ const Main = (props) => {
 const mapStateToProps = createStructuredSelector({
   activeExperiment: selectors.getExperimentMetaForActiveId,
   isLoading: selectors.getSessionIsLoading,
+  isFetchingData: selectors.getExperimentsIsFetching,
   user: selectors.getSessionUser,
 });
 
 const mapDispatchToProps = {
   onChangeExperiment: changeActiveExperiment.trigger,
+  onGetExperimentMeta: getExperimentMeta.trigger,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Main);
