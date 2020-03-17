@@ -47,6 +47,21 @@ const getBoundaryPoints = (locations) => {
   return points.slice(0, 4);
 };
 
+const getClientXY = (evt) => {
+  let clientX;
+  let clientY;
+
+  if (isMobile) {
+    clientX = evt.touches[0].clientX;
+    clientY = evt.touches[0].clientY;
+  } else {
+    clientX = evt.clientX;
+    clientY = evt.clientY;
+  }
+
+  return { clientX, clientY };
+};
+
 function draw(ctx, locations, color = 'deepskyblue', text = '') {
   if (locations.length === 2) {
     ctx.lineJoin = 'round';
@@ -104,7 +119,8 @@ const BoundaryExperiment = (props) => {
   const [size, setSize] = React.useState({ width: 0, height: 0 });
   const [shapes, setShapes] = React.useState(initShapes);
   const [showInput, setShowInput] = React.useState(false);
-  const [inputVal, setInputVal] = React.useState('');
+  const [inputVal, setInputVal] = React.useState(undefined);
+  const [lastTag, setLastTag] = React.useState('');
 
   const drawShapes = React.useCallback(() => {
     const canvas = canvasRef.current;
@@ -148,6 +164,7 @@ const BoundaryExperiment = (props) => {
       evt.preventDefault();
       evt.stopPropagation();
       handleCancelLastBox();
+      setInputVal(undefined);
     }
   }, [handleCancelLastBox]);
 
@@ -178,16 +195,8 @@ const BoundaryExperiment = (props) => {
   const handleMove = React.useCallback((evt) => {
     if (isDraw) {
       const canvas = canvasRef.current;
-      let clientX;
-      let clientY;
 
-      if (isMobile) {
-        clientX = evt.touches[0].clientX;
-        clientY = evt.touches[0].clientY;
-      } else {
-        clientX = evt.clientX;
-        clientY = evt.clientY;
-      }
+      const { clientX, clientY } = getClientXY(evt);
 
       const bbox = canvas.getBoundingClientRect();
       const { left, top } = bbox;
@@ -211,11 +220,12 @@ const BoundaryExperiment = (props) => {
       points: boundaryPoints,
       tag: tagKey,
     };
+    setLastTag(tagKey);
     const nextShapes = [...shapes, shapeData];
     setShapes(nextShapes);
     setLocations([]);
     setShowInput(false);
-    setInputVal('');
+    setInputVal(undefined);
     onDrawEnd(nextShapes);
     onRefreshTags();
   };
@@ -227,7 +237,7 @@ const BoundaryExperiment = (props) => {
 
     if (!isDraw) {
       const canvas = canvasRef.current;
-      const { clientX, clientY } = evt;
+      const { clientX, clientY } = getClientXY(evt);
       const bbox = canvas.getBoundingClientRect();
       const { left, top } = bbox;
       const x = clientX - left;
@@ -313,15 +323,19 @@ const BoundaryExperiment = (props) => {
 
       {showInput && (
         <Input
+          autoFocus={true}
           onChange={handleInputChange}
           onKeyDown={async (evt) => {
+            console.log(evt.key);
             const { key } = evt;
             if (key === Keys.NEXT) {
               await handleInputEnter();
+            } else if (key === Keys.BACK && inputVal === undefined) {
+              setInputVal('');
             }
           }}
           ref={inputRef}
-          value={inputVal}
+          value={inputVal !== undefined ? inputVal : lastTag}
           wrapperStyle={{
             left: sortedPoints[1].x,
             width: Math.abs(sortedPoints[1].x - sortedPoints[2].x),

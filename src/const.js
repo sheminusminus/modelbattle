@@ -15,6 +15,7 @@ export const Keys = {
   SKIP: 'q',
   NEXT: 'Enter',
   ESC: 'Escape',
+  BACK: 'Backspace',
 };
 
 /**
