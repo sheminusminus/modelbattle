@@ -3,13 +3,13 @@ import React from 'react';
 import { Image } from '../components';
 
 const ImageAndPreloader = (props) => {
-  const { assets, ...rest } = props;
+  const { assets, shouldPreload, ...rest } = props;
 
   const [activeAsset, ...preloadAssets] = assets;
 
   return (
     <React.Fragment>
-      {preloadAssets.map((asset) => (
+      {shouldPreload === true && preloadAssets.map((asset) => (
         <div
           className="preloaded"
           key={asset}

@@ -4,7 +4,7 @@ import { createStructuredSelector } from 'reselect';
 
 import { Keys } from 'const';
 
-import { sortPoints } from 'helpers';
+import { isMobileDevice, sortPoints } from 'helpers';
 
 import { addNewTag } from 'services/firebase';
 
@@ -14,6 +14,8 @@ import { refreshExperimentTags } from 'types';
 
 import Asset from 'Asset';
 import { Input } from '../components';
+
+const isMobile = isMobileDevice();
 
 const getBoundingPoints = (locations) => {
   if (locations.length === 2) {
@@ -173,6 +175,30 @@ const BoundaryExperiment = (props) => {
     setInputVal(formatted);
   }, []);
 
+  const handleMove = React.useCallback((evt) => {
+    if (isDraw) {
+      const canvas = canvasRef.current;
+      let clientX;
+      let clientY;
+
+      if (isMobile) {
+        clientX = evt.touches[0].clientX;
+        clientY = evt.touches[0].clientY;
+      } else {
+        clientX = evt.clientX;
+        clientY = evt.clientY;
+      }
+
+      const bbox = canvas.getBoundingClientRect();
+      const { left, top } = bbox;
+      const x = clientX - left;
+      const y = clientY - top;
+      const loc = { x, y: y };
+      const nextLocations = [locations[0], loc];
+      setLocations(nextLocations);
+    }
+  }, [isDraw, locations]);
+
   if (!items.length) {
     return null;
   }
@@ -251,6 +277,7 @@ const BoundaryExperiment = (props) => {
             }
           },
         }}
+        shouldPreload={false}
         type="image/"
       />
       <canvas
@@ -260,20 +287,10 @@ const BoundaryExperiment = (props) => {
         }}
         width={size.width}
         height={size.height}
-        onMouseDown={handleStart}
-        onMouseMove={(evt) => {
-          if (isDraw) {
-            const canvas = canvasRef.current;
-            const { clientX, clientY } = evt;
-            const bbox = canvas.getBoundingClientRect();
-            const { left, top } = bbox;
-            const x = clientX - left;
-            const y = clientY - top;
-            const loc = { x, y: y };
-            const nextLocations = [locations[0], loc];
-            setLocations(nextLocations);
-          }
-        }}
+        onMouseDown={isMobile ? undefined : handleStart}
+        onMouseMove={isMobile ? undefined : handleMove}
+        onTouchStart={isMobile ? handleStart : undefined}
+        onTouchMove={isMobile ? handleMove : undefined}
       />
 
       {showInput && (
