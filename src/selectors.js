@@ -36,3 +36,13 @@ export const getExperimentMetaForActiveId = createSelector(
   [getExperimentsById, getExperimentsActiveId],
   queries.queryExperimentMetaForActiveId,
 );
+
+export const getExperimentTagsForActiveId = createSelector(
+  [getExperimentMetaForActiveId],
+  queries.queryExperimentTagsForActiveId,
+);
+
+export const getExperimentShapesForActiveId = createSelector(
+  [getExperimentMetaForActiveId],
+  queries.queryExperimentShapesForActiveId,
+);

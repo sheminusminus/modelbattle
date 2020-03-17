@@ -3,6 +3,8 @@ import { connectRouter } from 'connected-react-router'
 
 import history from 'createHistory';
 
+import { camelcaseObjectKeys } from 'helpers';
+
 import { setSession, listExperiments, setActiveExperiment, changeActiveExperiment } from 'types';
 
 export const sessionName = 'session';
@@ -37,7 +39,7 @@ const experiments = (state = initialState[experimentsName], action = {}) => {
         byId: Object.keys(payload.experiments).reduce((obj, id) => ({
           ...obj,
           [id]: {
-            ...payload.experiments[id],
+            ...camelcaseObjectKeys(payload.experiments[id]),
             id,
           },
         }), {}),

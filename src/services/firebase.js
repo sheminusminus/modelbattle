@@ -97,7 +97,7 @@ export const listImages = async (searchQuery) => {
   const {
     mode,
     tagline,
-    skip_text: skipText,
+    skipText,
   } = data;
 
   if (mode === ExperimentMode.AB) {

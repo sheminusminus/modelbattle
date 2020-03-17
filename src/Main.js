@@ -360,7 +360,7 @@ const Main = (props) => {
             )}
             ref={nextBtnRef}
             taglineText={activeExperiment && activeExperiment.tagline}
-            skipText={activeExperiment && activeExperiment.skip_text}
+            skipText={activeExperiment && activeExperiment.skipText}
           />
         </div>
 
