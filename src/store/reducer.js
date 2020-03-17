@@ -90,6 +90,12 @@ const experiments = (state = initialState[experimentsName], action = {}) => {
         }, {}),
       };
 
+    case refreshExperimentTags.FULFILL:
+      return {
+        ...state,
+        isFetching: false,
+      };
+
     case getExperimentMeta.REQUEST:
       return {
         ...state,

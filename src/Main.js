@@ -80,7 +80,10 @@ const Main = (props) => {
   const loc = useLocation();
 
   const loadImages = React.useCallback(async () => {
-    if (activeExperiment) {
+    const isBoundary = activeExperiment && activeExperiment.mode === ExperimentMode.BOUNDARY;
+    const isAB = activeExperiment && activeExperiment.mode === ExperimentMode.AB;
+
+    if (activeExperiment && (isAB || (isBoundary && boundaryItems.length === 0))) {
       const images = await listImages(activeExperiment.id);
 
       if (images && activeExperiment) {
@@ -108,8 +111,10 @@ const Main = (props) => {
 
         setSubmitting(false);
       }
+    } else {
+      setSubmitting(false);
     }
-  }, [activeExperiment]);
+  }, [activeExperiment, boundaryItems.length]);
 
   const onSubmit = React.useCallback(async (overrideSelected) => {
     const { mode: expMode, id: expName } = activeExperiment;

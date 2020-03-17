@@ -174,6 +174,9 @@ const BoundaryExperiment = (props) => {
   React.useEffect(() => {
     if (showInput) {
       window.addEventListener('keydown', handleKeyDown);
+      if (document.activeElement !== inputRef.current && inputRef.current) {
+        inputRef.current.select();
+      }
     }
 
     return () => {
@@ -218,7 +221,6 @@ const BoundaryExperiment = (props) => {
   }
 
   const handleInputEnter = async () => {
-    console.log('enter');
     const val = inputVal || lastTag;
 
     if (val) {
@@ -238,6 +240,7 @@ const BoundaryExperiment = (props) => {
 
   const handleStart = (evt) => {
     if (showInput) {
+      handleInputEnter();
       return;
     }
 

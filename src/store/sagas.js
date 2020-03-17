@@ -126,6 +126,7 @@ export function* getExperimentMetaTrigger() {
 export function* refreshExperimentTagsTrigger() {
   try {
     const experimentId = yield select(getExperimentsActiveId);
+    const activeExperiment = yield select(getExperimentMetaForActiveId);
 
     const mainResult = yield call(api.getExperiment, experimentId);
     const userResult = yield call(api.getUserExperimentMeta, experimentId);
@@ -133,6 +134,7 @@ export function* refreshExperimentTagsTrigger() {
     if (userResult && userResult.tags) {
       const experiment = {
         ...mainResult,
+        ...activeExperiment,
         tags: {
           ...userResult.tags,
           ...mainResult.tags || {},
@@ -143,10 +145,7 @@ export function* refreshExperimentTagsTrigger() {
         id: experimentId,
       }));
     } else {
-      yield put(refreshExperimentTags.success({
-        ...mainResult,
-        id: experimentId,
-      }));
+      yield put(refreshExperimentTags.fulfill());
     }
   } catch (err) {
     yield put(refreshExperimentTags.failure(err));
