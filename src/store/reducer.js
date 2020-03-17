@@ -5,7 +5,7 @@ import history from 'createHistory';
 
 import { camelcaseObjectKeys } from 'helpers';
 
-import { setSession, listExperiments, setActiveExperiment, changeActiveExperiment } from 'types';
+import { setSession, listExperiments, setActiveExperiment, changeActiveExperiment, refreshExperimentTags } from 'types';
 
 export const sessionName = 'session';
 export const experimentsName = 'experiments';
@@ -63,6 +63,21 @@ const experiments = (state = initialState[experimentsName], action = {}) => {
       return {
         ...state,
         activeId: null,
+      };
+
+    case refreshExperimentTags.SUCCESS:
+      return {
+        ...state,
+        byId: Object.keys(state.byId).reduce((obj, id) => {
+          if (id === payload.id) {
+            return {
+              ...obj,
+              [id]: payload,
+            };
+          }
+
+          return obj;
+        }, {}),
       };
 
     default:

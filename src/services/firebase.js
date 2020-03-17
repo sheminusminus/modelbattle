@@ -85,25 +85,40 @@ export const addNewTag = async (experimentId, input) => {
     .ref('meta')
     .child(experimentId)
     .child('tags')
-    .orderByChild('text')
-    .equalTo(input)
+    .child(input)
     .once('value');
 
   const existingTag = existingTagSnap.val();
 
   if (existingTag) {
-    return Object.keys(existingTag)[0];
+    return existingTag.id;
   }
 
-  const tagEntry = await firebase
+  const existingUserTagSnap = await firebase
     .database()
     .ref('user_meta')
     .child(uid)
     .child(experimentId)
     .child('tags')
-    .push(newTag);
+    .child(input)
+    .once('value');
 
-  return tagEntry.key;
+  const existingUserTag = existingUserTagSnap.val();
+
+  if (existingUserTag) {
+    return existingUserTag.id;
+  }
+
+  await firebase
+    .database()
+    .ref('user_meta')
+    .child(uid)
+    .child(experimentId)
+    .child('tags')
+    .child(input)
+    .set(newTag);
+
+  return input;
 };
 
 export default firebase;

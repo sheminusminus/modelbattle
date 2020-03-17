@@ -8,7 +8,9 @@ import { sortPoints } from 'helpers';
 
 import { addNewTag } from 'services/firebase';
 
-import * as selectors from 'selectors';
+import * as selectors from 'selectors'
+
+import { refreshExperimentTags } from 'types';
 
 import Asset from 'Asset';
 import { Input } from '../components';
@@ -82,6 +84,7 @@ const BoundaryExperiment = (props) => {
     onDrawEnd,
     onDrawStart,
     onImageLoad,
+    onRefreshTags,
     shapes: initShapes,
     tags,
   } = props;
@@ -172,7 +175,6 @@ const BoundaryExperiment = (props) => {
 
   const handleInputEnter = async () => {
     const tagKey = await addNewTag(experimentId, inputVal);
-    console.log(tagKey);
     const boundaryPoints = getBoundaryPoints(locations);
     const shapeData = {
       url: items[0].url,
@@ -184,7 +186,8 @@ const BoundaryExperiment = (props) => {
     setLocations([]);
     setShowInput(false);
     setInputVal('');
-    onDrawEnd(shapeData);
+    onDrawEnd(nextShapes);
+    onRefreshTags();
   };
 
   const handleStart = (evt) => {
@@ -301,4 +304,8 @@ const mapStateToProps = createStructuredSelector({
   tags: selectors.getExperimentTagsForActiveId,
 });
 
-export default connect(mapStateToProps)(BoundaryExperiment);
+const mapDispatchToProps = {
+  onRefreshTags: refreshExperimentTags.trigger,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(BoundaryExperiment);

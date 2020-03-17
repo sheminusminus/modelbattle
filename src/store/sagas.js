@@ -2,9 +2,9 @@ import { eventChannel } from 'redux-saga';
 import { all, call, put, select, spawn, take } from 'redux-saga/effects';
 import { push } from 'connected-react-router'
 
-import { setSession, listExperiments, setActiveExperiment} from 'types'
+import { setSession, listExperiments, setActiveExperiment, refreshExperimentTags } from 'types'
 
-import { getExperimentsIsFetching } from 'selectors';
+import { getExperimentsIsFetching, getExperimentsActiveId } from 'selectors';
 
 import firebase from 'services/firebase';
 
@@ -31,11 +31,72 @@ export function* listExperimentsTrigger() {
     const isFetching = yield select(getExperimentsIsFetching);
     if (!isFetching) {
       yield put(listExperiments.request());
+
       const result = yield call(api.getExperiments);
-      yield put(listExperiments.success({ experiments: result }));
+      const userMetaResult = yield call(api.getUserMeta);
+
+      let experiments = result;
+
+      if (result && userMetaResult) {
+        const experimentIds = Object.keys(result);
+        experiments = experimentIds.reduce((obj, id) => {
+          const mainData = result[id];
+          const userData = userMetaResult[id];
+
+          if (userData && userData.tags) {
+            return {
+              ...obj,
+              [id]: {
+                ...mainData,
+                tags: {
+                  ...userData.tags,
+                  ...mainData.tags,
+                },
+              }
+            };
+          }
+
+          return {
+            ...obj,
+            [id]: mainData,
+          };
+        }, {});
+      }
+
+      yield put(listExperiments.success({ experiments }));
     }
   } catch(err) {
     yield put(listExperiments.failure(err));
+  }
+}
+
+export function* refreshExperimentTagsTrigger() {
+  try {
+    const experimentId = yield select(getExperimentsActiveId);
+
+    const mainResult = yield call(api.getExperiment, experimentId);
+    const userResult = yield call(api.getUserExperimentMeta, experimentId);
+
+    if (userResult && userResult.tags) {
+      const experiment = {
+        ...mainResult,
+        tags: {
+          ...userResult.tags,
+          ...mainResult.tags || {},
+        }
+      };
+      yield put(refreshExperimentTags.success({
+        ...experiment,
+        id: experimentId,
+      }));
+    } else {
+      yield put(refreshExperimentTags.success({
+        ...mainResult,
+        id: experimentId,
+      }));
+    }
+  } catch (err) {
+
   }
 }
 
@@ -55,6 +116,7 @@ export function* watch() {
     const action = yield take([
       listExperiments.TRIGGER,
       setActiveExperiment.TRIGGER,
+      refreshExperimentTags.TRIGGER,
     ]);
 
     switch (action.type) {
@@ -64,6 +126,10 @@ export function* watch() {
 
       case setActiveExperiment.TRIGGER:
         yield spawn(setActiveExperimentTrigger, action);
+        break;
+
+      case refreshExperimentTags.TRIGGER:
+        yield spawn(refreshExperimentTagsTrigger);
         break;
 
       default:
