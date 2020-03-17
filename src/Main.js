@@ -49,6 +49,7 @@ const Main = (props) => {
     user,
   } = props;
 
+  const boundaryRef = React.useRef(null);
   const [isAFirst, setIsAFirst] = React.useState(coinFlip());
   const [totals, setTotals] = React.useState({ a: 0, b: 0, none: 0 });
   const [wrapperClasses, setWrapperClasses] = React.useState('');
@@ -174,6 +175,10 @@ const Main = (props) => {
 
         setBoundaryIndex(boundaryIndex + 1);
         setBoundaryShapes([]);
+
+        if (boundaryRef.current) {
+          boundaryRef.current.resetShapes();
+        }
       }
     }
   }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryShapes, boundaryIndex]);
@@ -335,6 +340,7 @@ const Main = (props) => {
     } else if (mode === ExperimentMode.BOUNDARY) {
       contents = (
         <BoundaryExperiment
+          key={`boundaryExp-${boundaryIndex}`}
           items={boundaryItems.slice(boundaryIndex)}
           onSubmit={() => onSubmit()}
           onImageLoad={() => {
