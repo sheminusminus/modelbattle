@@ -69,34 +69,36 @@ const Main = (props) => {
   const loc = useLocation();
 
   const loadImages = React.useCallback(async () => {
-    const images = await listImages(loc.search);
+    if (activeExperiment) {
+      const images = await listImages(activeExperiment.id);
 
-    if (images && activeExperiment) {
-      if (activeExperiment.mode === ExperimentMode.AB) {
-        const { a, b } = images;
-        const aUrls = await Promise.all(a.map(async (ref) => {
-          return ref.getDownloadURL();
-        }));
-        const bUrls = await Promise.all(b.map(async (ref) => {
-          return ref.getDownloadURL();
-        }));
+      if (images && activeExperiment) {
+        if (activeExperiment.mode === ExperimentMode.AB) {
+          const { a, b } = images;
+          const aUrls = await Promise.all(a.map(async (ref) => {
+            return ref.getDownloadURL();
+          }));
+          const bUrls = await Promise.all(b.map(async (ref) => {
+            return ref.getDownloadURL();
+          }));
 
-        setUrlsA(shuffle(aUrls));
-        setUrlsB(shuffle(bUrls));
-        setIsAFirst(coinFlip());
-      } else if (activeExperiment.mode === ExperimentMode.BOUNDARY) {
-        const { items } = images;
-        const itemData = await Promise.all(items.map(async (ref) => {
-          const { contentType } = await ref.getMetadata();
-          const url = await ref.getDownloadURL();
-          return { contentType, url };
-        }));
-        setBoundaryItems(itemData);
+          setUrlsA(shuffle(aUrls));
+          setUrlsB(shuffle(bUrls));
+          setIsAFirst(coinFlip());
+        } else if (activeExperiment.mode === ExperimentMode.BOUNDARY) {
+          const { items } = images;
+          const itemData = await Promise.all(items.map(async (ref) => {
+            const { contentType } = await ref.getMetadata();
+            const url = await ref.getDownloadURL();
+            return { contentType, url };
+          }));
+          setBoundaryItems(itemData);
+        }
+
+        setSubmitting(false);
       }
-
-      setSubmitting(false);
     }
-  }, [activeExperiment, loc.search]);
+  }, [activeExperiment]);
 
   const onSubmit = React.useCallback(async (overrideSelected) => {
     const { mode: expMode, id: expName } = activeExperiment;
@@ -225,7 +227,7 @@ const Main = (props) => {
     };
   }, [totals.a, totals.b, totals.none, selected, handleKeyDown]);
 
-  useInitTotalsHistory({ setTotals });
+  useInitTotalsHistory({ setTotals, expName: activeExperiment && activeExperiment.id });
 
   React.useEffect(() => {
     if (user) {

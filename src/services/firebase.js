@@ -1,6 +1,5 @@
 import firebase from 'firebase';
 import * as firebaseUi from 'firebaseui';
-import qs from 'query-string';
 
 import firebaseConfig from './firebaseConfig';
 
@@ -78,20 +77,13 @@ export const makeAuthHandler = (options) => async (user) => {
 };
 
 /**
- * @param {string} searchQuery
+ * @param {string} expName
  * @return {Promise<*>}
  */
-export const listImages = async (searchQuery) => {
-  const queries = qs.parse(searchQuery);
-
-  /**
-   * @type {?string}
-   */
-  const expName = queries.n || queries['?n'];
-
+export const listImages = async (expName) => {
   if (!expName) { return { a: [], b: [] }; }
 
-  const experimentSnapshot = await firebase.database().ref('_meta').child(expName).once('value');
+  const experimentSnapshot = await firebase.database().ref('meta').child(expName).once('value');
   const data = experimentSnapshot.val();
 
   const {
