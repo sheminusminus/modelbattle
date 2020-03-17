@@ -88,24 +88,13 @@ const Main = (props) => {
 
       if (images && activeExperiment) {
         if (activeExperiment.mode === ExperimentMode.AB) {
-          const { a, b } = images;
-          const aUrls = await Promise.all(a.map(async (ref) => {
-            return ref.getDownloadURL();
-          }));
-          const bUrls = await Promise.all(b.map(async (ref) => {
-            return ref.getDownloadURL();
-          }));
+          const { a: aUrls, b: bUrls } = images;
 
           setUrlsA(shuffle(aUrls));
           setUrlsB(shuffle(bUrls));
           setIsAFirst(coinFlip());
         } else if (activeExperiment.mode === ExperimentMode.BOUNDARY) {
-          const { items } = images;
-          const itemData = await Promise.all(items.map(async (ref) => {
-            const { contentType } = await ref.getMetadata();
-            const url = await ref.getDownloadURL();
-            return { contentType, url };
-          }));
+          const { items: itemData } = images;
           setBoundaryItems(itemData);
         }
       }

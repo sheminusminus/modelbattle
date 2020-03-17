@@ -49,10 +49,28 @@ export const getFile = async (url) => {
 export const getList = async (path) => {
   if (path.endsWith(".txt")) {
     const result = await getFile(path);
-    const items = getLines(result);
-    return { items };
+    const urls = getLines(result);
+    const itemData = [];
+    for (const url of urls) {
+      if (url.toLowerCase().endsWith('.jpg')) {
+        itemData.push({ url, contentType: 'image/jpg' })
+      } else if (url.toLowerCase().endsWith('.png')) {
+        itemData.push({ url, contentType: 'image/png' })
+      } else if (url.toLowerCase().endsWith('.gif')) {
+        itemData.push({ url, contentType: 'image/gif' })
+      } else {
+        console.log(`Ignoring unknown url: ${url}`);
+      }
+    }
+    return itemData;
   } else {
-    return await firebase.storage().ref(path).listAll();
+    const { items } = await firebase.storage().ref(path).listAll();
+    const itemData = await Promise.all(items.map(async (ref) => {
+      const { contentType } = await ref.getMetadata();
+      const url = await ref.getDownloadURL();
+      return { contentType, url };
+    }));
+    return itemData
   }
 };
 
@@ -78,14 +96,14 @@ export const listImages = async (expName) => {
       b_dir: dirB,
     } = data;
 
-    const { items: itemsA } = await getList(dirA);
-    const { items: itemsB } = await getList(dirB);
+    const itemsA = await getList(dirA);
+    const itemsB = await getList(dirB);
 
-    return { a: [shuffle(itemsA)[0]], b: [shuffle(itemsB)[0]], skipText, tagline };
+    return { a: [shuffle(itemsA)[0].url], b: [shuffle(itemsB)[0].url], skipText, tagline };
   } else if (mode === ExperimentMode.BOUNDARY) {
     const { dir } = data;
 
-    const { items } = await getList(dir);
+    const items = await getList(dir);
 
     return { items, skipText, tagline };
   }
