@@ -36,6 +36,26 @@ export const firebaseUiConfig = {
   ],
 };
 
+export const getLines = (text) => {
+  return text.split('\n').map(x => x.replace(/#.*/g, '').trim()).filter(x => x.length > 0)
+};
+
+export const getFile = async (url) => {
+  const response = await fetch(url);
+  const text = await response.text();
+  return text
+};
+
+export const getList = async (path) => {
+  if (path.endsWith(".txt")) {
+    const result = await getFile(path);
+    const items = getLines(result);
+    return { items };
+  } else {
+    return await firebase.storage().ref(path).listAll();
+  }
+};
+
 /**
  * @param {string} expName
  * @return {Promise<*>}
@@ -58,14 +78,14 @@ export const listImages = async (expName) => {
       b_dir: dirB,
     } = data;
 
-    const { items: itemsA } = await firebase.storage().ref(dirA).listAll();
-    const { items: itemsB } = await firebase.storage().ref(dirB).listAll();
+    const { items: itemsA } = await getList(dirA);
+    const { items: itemsB } = await getList(dirB);
 
     return { a: [shuffle(itemsA)[0]], b: [shuffle(itemsB)[0]], skipText, tagline };
   } else if (mode === ExperimentMode.BOUNDARY) {
     const { dir } = data;
 
-    const { items } = await firebase.storage().ref(dir).listAll();
+    const { items } = await getList(dir);
 
     return { items, skipText, tagline };
   }
