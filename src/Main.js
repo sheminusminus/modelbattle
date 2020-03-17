@@ -344,8 +344,7 @@ const Main = (props) => {
             setBoundaryShapes([]);
           }}
           onDrawEnd={(shapeData) => {
-            const nextShapes = [...boundaryShapes, ...shapeData];
-            setBoundaryShapes(nextShapes);
+            setBoundaryShapes(shapeData);
           }}
         />
       );

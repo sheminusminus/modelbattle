@@ -106,7 +106,7 @@ const BoundaryExperiment = (props) => {
     onImageLoad,
     onRefreshTags,
     onSubmit,
-    shapes: initShapes,
+    shapes = [],
     tags,
   } = props;
 
@@ -121,7 +121,7 @@ const BoundaryExperiment = (props) => {
   const [locations, setLocations] = React.useState([]);
   const [isDraw, setIsDraw] = React.useState(false);
   const [size, setSize] = React.useState({ width: 0, height: 0 });
-  const [shapes, setShapes] = React.useState(initShapes);
+  const [drawnShapes, setDrawnShapes] = React.useState([]);
   const [showInput, setShowInput] = React.useState(false);
   const [inputVal, setInputVal] = React.useState(undefined);
   const [lastTag, setLastTag] = React.useState('');
@@ -131,7 +131,7 @@ const BoundaryExperiment = (props) => {
 
     if (shapes && canvas) {
       const ctx = canvas.getContext('2d');
-      shapes.forEach((shape) => {
+      [...shapes, ...drawnShapes].forEach((shape) => {
         const { points, tag, url } = shape;
 
         if (items[0] && url === items[0].url) {
@@ -141,7 +141,7 @@ const BoundaryExperiment = (props) => {
         }
       });
     }
-  }, [items, shapes, tags]);
+  }, [drawnShapes, items, shapes, tags]);
 
   React.useEffect(() => {
     const canvas = canvasRef.current;
@@ -156,29 +156,30 @@ const BoundaryExperiment = (props) => {
   }, [drawShapes, isDraw, locations]);
 
   const handleCancelLastBox = React.useCallback(() => {
-    const nextShapes = shapes.slice(0, shapes.length - 1);
-    setShapes(nextShapes);
+    const nextShapes = drawnShapes.slice(0, drawnShapes.length - 1);
+    setDrawnShapes(nextShapes);
     setLocations([]);
     setShowInput(false);
-  }, [shapes]);
+  }, [drawnShapes]);
 
   const handleInputEnter = React.useCallback(async () => {
     const val = inputVal || lastTag;
 
     if (val) {
       const tagKey = await addNewTag(experimentId, val);
-      const shapeData = shapes[shapes.length - 1];
+      const lastIdx = drawnShapes.length - 1;
+      const shapeData = drawnShapes[lastIdx];
       shapeData.tag = tagKey;
       setLastTag(tagKey);
-      const nextShapes = [...shapes, shapeData];
-      setShapes(nextShapes);
+      const nextShapes = [...drawnShapes.slice(0, lastIdx), shapeData];
+      setDrawnShapes(nextShapes);
       setLocations([]);
       setShowInput(false);
       setInputVal(undefined);
       onDrawEnd(nextShapes);
       onRefreshTags();
     }
-  }, [experimentId, inputVal, lastTag, onDrawEnd, onRefreshTags, shapes]);
+  }, [drawnShapes, experimentId, inputVal, lastTag, onDrawEnd, onRefreshTags]);
 
   const handleKeyDown = React.useCallback((evt) => {
     const { key } = evt;
@@ -274,15 +275,13 @@ const BoundaryExperiment = (props) => {
         },
         tag: '',
       };
-      const nextShapes = [...shapes, shapeData];
-      setShapes(nextShapes);
-      // setLocations([]);
+      const nextShapes = [...drawnShapes, shapeData];
+      setDrawnShapes(nextShapes);
       setShowInput(true);
-      // onDrawEnd(boundaryPoints);
     }
   };
 
-  const lastShape = shapes[shapes.length - 1];
+  const lastShape = drawnShapes[drawnShapes.length - 1];
   const sortedPoints = lastShape ? sortPoints(lastShape.points) : [];
 
   return (
