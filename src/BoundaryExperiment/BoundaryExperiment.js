@@ -101,6 +101,7 @@ const BoundaryExperiment = (props) => {
   const {
     experimentId,
     items,
+    onAdvanceByValue,
     onDrawEnd,
     onDrawStart,
     onImageLoad,
@@ -301,6 +302,53 @@ const BoundaryExperiment = (props) => {
           >
             <i className="material-icons">
               undo
+            </i>
+          </button>
+        )}
+
+        {items.length > 0 && (
+          <button
+            className="undo-bound"
+            type="button"
+            onClick={() => {
+              onAdvanceByValue(10);
+            }}
+            title="Advance by 10"
+          >
+            <i className="material-icons">
+              skip_next
+            </i>
+          </button>
+        )}
+
+        {items.length > 0 && (
+          <button
+            className="undo-bound"
+            type="button"
+            onClick={() => {
+              onAdvanceByValue(50);
+            }}
+            title="Advance by 50"
+          >
+            <i className="material-icons">
+              fast_forward
+            </i>
+          </button>
+        )}
+
+        {items.length > 0 && (
+          <button
+            className="undo-bound"
+            type="button"
+            onClick={() => {
+              const random = Math.floor(Math.random() * items.length);
+              onAdvanceByValue(random);
+            }}
+            title="Advance by random, be surprised!"
+
+          >
+            <i className="material-icons">
+              help_outline
             </i>
           </button>
         )}

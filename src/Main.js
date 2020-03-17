@@ -80,6 +80,11 @@ const Main = (props) => {
 
   const loc = useLocation();
 
+  const boundaryAdvanceBy = (value) => {
+    const nextIndex = Math.min(boundaryItems.length - 1, boundaryIndex + value);
+    setBoundaryIndex(nextIndex);
+  };
+
   const loadImages = React.useCallback(async () => {
     const isBoundary = activeExperiment && activeExperiment.mode === ExperimentMode.BOUNDARY;
     const isAB = activeExperiment && activeExperiment.mode === ExperimentMode.AB;
@@ -162,7 +167,11 @@ const Main = (props) => {
           await db.ref('results').child(expName).child(uid).push(data);
         }
 
-        setBoundaryIndex(boundaryIndex + 1);
+        const nextIndex = boundaryIndex === boundaryItems.length - 1
+          ? 0
+          : boundaryIndex + 1;
+
+        setBoundaryIndex(nextIndex);
         setBoundaryShapes([]);
 
         if (boundaryRef.current) {
@@ -170,7 +179,7 @@ const Main = (props) => {
         }
       }
     }
-  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryShapes, boundaryIndex]);
+  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryShapes, boundaryIndex, boundaryItems.length]);
 
   const onSelection = ({ index, whichImg, urls }) => {
     if (selected[index] && selected[index].vote === whichImg) {
@@ -331,6 +340,7 @@ const Main = (props) => {
         <BoundaryExperiment
           key={`boundaryExp-${boundaryIndex}`}
           items={boundaryItems.slice(boundaryIndex)}
+          onAdvanceByValue={boundaryAdvanceBy}
           onSubmit={() => onSubmit()}
           onImageLoad={() => {
             setLoadedTime((new Date()).toUTCString());
