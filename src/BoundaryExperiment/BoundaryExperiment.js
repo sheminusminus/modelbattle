@@ -290,14 +290,17 @@ const BoundaryExperiment = (props) => {
   return (
     <React.Fragment>
       <div className="test-actions">
-        {drawnShapes.length > 0 && (
+        {items.length > 0 && (
           <button
+            disabled={drawnShapes.length === 0}
             className="undo-bound"
             type="button"
             onClick={() => {
               const nextShapes = [...drawnShapes];
               nextShapes.pop();
               setDrawnShapes(nextShapes);
+              setShowInput(false);
+              setLocations([]);
             }}
           >
             <i className="material-icons">

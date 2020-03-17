@@ -62,9 +62,20 @@ button.undo-bound {
     max-height: 49px;
 }
 
+button.undo-bound:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
 button.undo-bound:hover, button.undo-bound:focus, button.undo-bound:active {
     opacity: 1;
     outline: none;
     border: 1px solid white;
     background-color: rgba(255, 255, 255, 0.08);
+}
+
+button.undo-bound:disabled:hover {
+    opacity: 0.3;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    background-color: transparent;
 }
