@@ -179,7 +179,7 @@ export function* exportBoundaryExperimentTrigger(action) {
         const lineStr = JSON.stringify(obj);
         return `${str}${lineStr}\n`;
       }, '');
-      createDownloadFile(`${payload}.txt`, resultStr);
+      createDownloadFile(`${payload}.jsonl`, resultStr);
     }
     yield put(exportBoundaryExperiment.success());
   } catch(err) {
