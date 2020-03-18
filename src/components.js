@@ -146,7 +146,44 @@ export const Image = (props) => {
     }
   };
 
-  return (
+  return (url.endsWith('mp4') || url.endsWith('.webm') || url.endsWith('.mpg') || url.endsWith('.mpeg') || url.endsWith('.wmv')) ? (
+    <div
+      className={classNames({
+        'img-bg': true,
+        [wrapperClassName]: !!wrapperClassName,
+      })}
+    >
+      <video
+        tabIndex="0"
+        className={className}
+        src={url}
+        onLoad={onLoad}
+        onError={onError}
+        onKeyDown={handleKeyDown}
+        onClick={handleClick}
+        autoPlay={"autoplay"}
+        controls
+        loop
+      />
+    </div>
+  ) : (url.endsWith('mp3') || url.endsWith('.wav')) ? (
+    <div
+      className={classNames({
+        'img-bg': true,
+        [wrapperClassName]: !!wrapperClassName,
+      })}
+    >
+      <audio
+        tabIndex="0"
+        className={className}
+        src={url}
+        onLoad={onLoad}
+        onError={onError}
+        onKeyDown={handleKeyDown}
+        onClick={handleClick}
+      />
+    </div>
+  ) : (
     <div
       className={classNames({
         'img-bg': true,
