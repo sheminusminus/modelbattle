@@ -163,9 +163,8 @@ export const addNewTag = async (experimentId, input) => {
 };
 
 export const getBoundaryExperimentExport = async (experimentId) => {
-  const fn = firebase.functions().httpsCallable('exportBoundaryExperiments');
-  const response = await fn({ experimentId });
-  console.log(response);
+  const fn = func.httpsCallable('exportBoundaryExperiments');
+  return fn({ experimentId });
 };
 
 export default firebase;

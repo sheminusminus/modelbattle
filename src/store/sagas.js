@@ -4,13 +4,20 @@ import { push } from 'connected-react-router'
 
 import { ExperimentMode } from 'const';
 
-import { getExperimentMeta, setSession, listExperiments, setActiveExperiment, refreshExperimentTags } from 'types'
+import {
+  getExperimentMeta,
+  setSession,
+  listExperiments,
+  setActiveExperiment,
+  refreshExperimentTags,
+  exportBoundaryExperiment,
+} from 'types'
 
 import { getExperimentsIsFetching, getExperimentsActiveId, getExperimentMetaForActiveId } from 'selectors';
 
 import firebase from 'services/firebase';
 
-import { flatten } from 'helpers';
+import { flatten, createDownloadFile } from 'helpers';
 
 import * as api from './api';
 
@@ -163,6 +170,23 @@ export function* setActiveExperimentTrigger(action) {
   }
 }
 
+export function* exportBoundaryExperimentTrigger(action) {
+  try {
+    const { payload } = action;
+    const response = yield call(api.exportBoundaryExperiment, payload);
+    if (response && response.result) {
+      const resultStr = response.result.reduce((str, obj) => {
+        const lineStr = JSON.stringify(obj);
+        return `${str}${lineStr}\n`;
+      }, '');
+      createDownloadFile(`${payload}.txt`, resultStr);
+    }
+    yield put(exportBoundaryExperiment.success());
+  } catch(err) {
+    yield put(exportBoundaryExperiment.failure(err));
+  }
+}
+
 export function* watch() {
   while (true) {
     const action = yield take([
@@ -170,6 +194,7 @@ export function* watch() {
       setActiveExperiment.TRIGGER,
       refreshExperimentTags.TRIGGER,
       getExperimentMeta.TRIGGER,
+      exportBoundaryExperiment.TRIGGER,
     ]);
 
     switch (action.type) {
@@ -187,6 +212,10 @@ export function* watch() {
 
       case getExperimentMeta.TRIGGER:
         yield spawn(getExperimentMetaTrigger);
+        break;
+
+      case exportBoundaryExperiment.TRIGGER:
+        yield spawn(exportBoundaryExperimentTrigger, action);
         break;
 
       default:

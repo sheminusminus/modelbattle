@@ -1,4 +1,4 @@
-import firebase from 'services/firebase';
+import firebase, { getBoundaryExperimentExport } from 'services/firebase';
 
 const db = firebase.database();
 
@@ -75,4 +75,9 @@ export const getUserExperimentResultsForUrl = async (experimentId, url) => {
   }
 
   return undefined;
+};
+
+export const exportBoundaryExperiment = async (experimentId) => {
+  const result = await getBoundaryExperimentExport(experimentId);
+  return result ? result.data : result;
 };

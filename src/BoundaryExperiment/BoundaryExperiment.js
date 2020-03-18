@@ -10,7 +10,7 @@ import { addNewTag } from 'services/firebase';
 
 import * as selectors from 'selectors'
 
-import { refreshExperimentTags } from 'types';
+import { refreshExperimentTags, exportBoundaryExperiment } from 'types';
 
 import Asset from 'Asset';
 import { Input } from '../components';
@@ -104,6 +104,7 @@ const BoundaryExperiment = (props) => {
     onAdvanceByValue,
     onDrawEnd,
     onDrawStart,
+    onExportBoundaryExperiment,
     onImageLoad,
     onRefreshTags,
     onSubmit,
@@ -353,7 +354,7 @@ const BoundaryExperiment = (props) => {
               className="undo-bound"
               type="button"
               onClick={() => {
-                console.log('get export!');
+                onExportBoundaryExperiment(experimentId);
               }}
               title="Export this experiment's data"
             >
@@ -457,6 +458,7 @@ const mapStateToProps = createStructuredSelector({
 
 const mapDispatchToProps = {
   onRefreshTags: refreshExperimentTags.trigger,
+  onExportBoundaryExperiment: exportBoundaryExperiment.trigger,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(BoundaryExperiment);
