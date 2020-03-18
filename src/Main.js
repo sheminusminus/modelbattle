@@ -109,7 +109,7 @@ const Main = (props) => {
     setSubmitting(false);
   }, [activeExperiment, boundaryItems.length]);
 
-  const onSubmit = React.useCallback(async (overrideSelected) => {
+  const onSubmit = React.useCallback(async ({ overrideSelected, advanceBy = 1 } = {}) => {
     const { mode: expMode, id: expName } = activeExperiment;
     const { uid } = firebase.auth().currentUser;
 
@@ -167,9 +167,13 @@ const Main = (props) => {
           await db.ref('results').child(expName).child(uid).push(data);
         }
 
-        const nextIndex = boundaryIndex === boundaryItems.length - 1
-          ? 0
-          : boundaryIndex + 1;
+        let nextIndex = boundaryIndex + advanceBy;
+        while ( nextIndex < 0 ) {
+          nextIndex += boundaryItems.length;
+        }
+        while ( nextIndex > boundaryItems.length ) {
+          nextIndex -= boundaryItems.length;
+        }
 
         setBoundaryIndex(nextIndex);
         setBoundaryShapes([]);
@@ -227,7 +231,7 @@ const Main = (props) => {
         vote,
       };
 
-      onSubmit(selection);
+      onSubmit({ overrideSelected: selection });
     }
   }, [isAFirst, onSubmit, urlsA, urlsB]);
 
@@ -341,7 +345,7 @@ const Main = (props) => {
           key={`boundaryExp-${boundaryIndex}`}
           items={boundaryItems.slice(boundaryIndex)}
           onAdvanceByValue={boundaryAdvanceBy}
-          onSubmit={() => onSubmit()}
+          onSubmit={onSubmit}
           onImageLoad={() => {
             setLoadedTime((new Date()).toUTCString());
           }}

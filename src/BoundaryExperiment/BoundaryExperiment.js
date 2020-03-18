@@ -192,7 +192,14 @@ const BoundaryExperiment = (props) => {
       handleCancelLastBox();
       setInputVal(undefined);
     } else if (key === Keys.SKIP && !showInput) {
+      window.advanceBy = 1;
       onSubmit();
+    } else if (key === Keys.ADV && !showInput) {
+      window.advanceBy = 1;
+      onSubmit();
+    } else if (key === Keys.PRV && !showInput) {
+      window.advanceBy = -1;
+      onSubmit({ advanceBy: -1 });
     }
   }, [handleCancelLastBox, onSubmit, showInput]);
 
@@ -386,7 +393,7 @@ const BoundaryExperiment = (props) => {
             onError: () => {
               setTimeout(() => {
                 console.log('404, advancing...');
-                onSubmit();
+                onSubmit({ advanceBy: window.advanceBy || 1 });
               }, 10);
             },
           }}
