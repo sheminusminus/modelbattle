@@ -132,7 +132,7 @@ module.exports = functions.https.onCall(async (data, context) => {
       return {
         ...res,
         box_center_x: midX,
-        box_center_Y: midY,
+        box_center_y: midY,
         box_width: xDim,
         box_height: yDim,
       };
