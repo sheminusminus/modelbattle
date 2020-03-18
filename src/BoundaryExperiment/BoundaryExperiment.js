@@ -383,6 +383,12 @@ const BoundaryExperiment = (props) => {
                 onImageLoad(evt);
               }
             },
+            onError: () => {
+              setTimeout(() => {
+                console.log('404, advancing...');
+                onSubmit();
+              }, 100);
+            },
           }}
           shouldPreload={false}
           type="image/"

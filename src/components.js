@@ -102,6 +102,7 @@ export const Image = (props) => {
     isSelected,
     onImgKeyPress,
     onLoad,
+    onError,
     onSelection,
     url,
     urlsA,
@@ -158,6 +159,7 @@ export const Image = (props) => {
         src={url}
         alt={url}
         onLoad={onLoad}
+        onError={onError}
         onKeyDown={handleKeyDown}
         onClick={handleClick}
       />
