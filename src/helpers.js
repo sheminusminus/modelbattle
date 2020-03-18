@@ -46,3 +46,10 @@ export const isMobileDevice = () => {
 };
 
 export const flatten = (arr) => R.flatten(arr);
+
+export const groupByPublic = (arr) => {
+  const byPublic = R.groupBy(function(experiment) {
+    return experiment.public ? 'pub' : 'priv';
+  });
+  return byPublic(arr);
+};

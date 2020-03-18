@@ -9,11 +9,12 @@ import {
 import firebase from 'services/firebase';
 import classNames from 'classNames';
 
-export const ArrowButton = ({ onClick, name }) => (
+export const ArrowButton = ({ onClick, name, style }) => (
   <button
     className="arrow-btn"
     onClick={onClick}
     type="button"
+    style={style}
   >
     <a
       className="cta-btn"

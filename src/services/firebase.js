@@ -1,4 +1,5 @@
 import firebase from 'firebase';
+import 'firebase/functions';
 import * as firebaseUi from 'firebaseui';
 
 import firebaseConfig from './firebaseConfig';
@@ -11,6 +12,8 @@ firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
 window.firebase = firebase;
+
+const func = firebase.functions();
 
 export const firebaseUiConfig = {
   signInFlow: 'popup',
@@ -157,6 +160,12 @@ export const addNewTag = async (experimentId, input) => {
     .set(newTag);
 
   return input;
+};
+
+export const getBoundaryExperimentExport = async (experimentId) => {
+  const fn = firebase.functions().httpsCallable('exportBoundaryExperiments');
+  const response = await fn({ experimentId });
+  console.log(response);
 };
 
 export default firebase;

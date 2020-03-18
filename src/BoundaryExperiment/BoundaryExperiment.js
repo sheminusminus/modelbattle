@@ -291,69 +291,77 @@ const BoundaryExperiment = (props) => {
     <React.Fragment>
       <div className="test-actions">
         {items.length > 0 && (
-          <button
-            disabled={drawnShapes.length === 0}
-            className="undo-bound"
-            type="button"
-            onClick={() => {
-              const nextShapes = [...drawnShapes];
-              nextShapes.pop();
-              setDrawnShapes(nextShapes);
-              setShowInput(false);
-              setLocations([]);
-            }}
-          >
-            <i className="material-icons">
-              undo
-            </i>
-          </button>
-        )}
+          <div style={{ display: 'flex' }}>
+            <button
+              disabled={drawnShapes.length === 0}
+              className="undo-bound"
+              type="button"
+              onClick={() => {
+                const nextShapes = [...drawnShapes];
+                nextShapes.pop();
+                setDrawnShapes(nextShapes);
+                setShowInput(false);
+                setLocations([]);
+              }}
+            >
+              <i className="material-icons">
+                undo
+              </i>
+            </button>
 
-        {items.length > 0 && (
-          <button
-            className="undo-bound"
-            type="button"
-            onClick={() => {
-              onAdvanceByValue(10);
-            }}
-            title="Advance by 10"
-          >
-            <i className="material-icons">
-              skip_next
-            </i>
-          </button>
-        )}
+            <button
+              className="undo-bound"
+              type="button"
+              onClick={() => {
+                onAdvanceByValue(10);
+              }}
+              title="Advance by 10"
+            >
+              <i className="material-icons">
+                skip_next
+              </i>
+            </button>
 
-        {items.length > 0 && (
-          <button
-            className="undo-bound"
-            type="button"
-            onClick={() => {
-              onAdvanceByValue(50);
-            }}
-            title="Advance by 50"
-          >
-            <i className="material-icons">
-              fast_forward
-            </i>
-          </button>
-        )}
+            <button
+              className="undo-bound"
+              type="button"
+              onClick={() => {
+                onAdvanceByValue(50);
+              }}
+              title="Advance by 50"
+            >
+              <i className="material-icons">
+                fast_forward
+              </i>
+            </button>
 
-        {items.length > 0 && (
-          <button
-            className="undo-bound"
-            type="button"
-            onClick={() => {
-              const random = Math.floor(Math.random() * items.length);
-              onAdvanceByValue(random);
-            }}
-            title="Advance by random, be surprised!"
+            <button
+              className="undo-bound"
+              type="button"
+              onClick={() => {
+                const random = Math.floor(Math.random() * items.length);
+                onAdvanceByValue(random);
+              }}
+              title="Advance by random, be surprised!"
+            >
+              <i className="material-icons">
+                help_outline
+              </i>
+            </button>
 
-          >
-            <i className="material-icons">
-              help_outline
-            </i>
-          </button>
+            <button
+              className="undo-bound"
+              type="button"
+              onClick={() => {
+                console.log('get export!');
+              }}
+              title="Export this experiment's data"
+            >
+              <i className="material-icons">
+                cloud_download
+              </i>
+            </button>
+          </div>
         )}
       </div>
 

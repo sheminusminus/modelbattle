@@ -60,6 +60,11 @@ button.undo-bound {
     align-items: center;
     justify-content: center;
     max-height: 49px;
+    margin-right: 10px;
+}
+
+button.undo-bound:last-child {
+    margin-right: 0;
 }
 
 button.undo-bound:disabled {
