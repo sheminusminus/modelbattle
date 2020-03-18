@@ -174,6 +174,10 @@ const Main = (props) => {
         while ( nextIndex > boundaryItems.length ) {
           nextIndex -= boundaryItems.length;
         }
+        if (advanceBy < 0) {
+          console.log('Fetching...')
+          onGetExperimentMeta();
+        }
 
         setBoundaryIndex(nextIndex);
         setBoundaryShapes([]);
