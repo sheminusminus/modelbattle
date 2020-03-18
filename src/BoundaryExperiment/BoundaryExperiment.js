@@ -321,7 +321,7 @@ const BoundaryExperiment = (props) => {
               className="undo-bound"
               type="button"
               onClick={() => {
-                onAdvanceByValue(10);
+                onSubmit({ advanceBy: 10 });
               }}
               title="Advance by 10"
             >
@@ -334,7 +334,7 @@ const BoundaryExperiment = (props) => {
               className="undo-bound"
               type="button"
               onClick={() => {
-                onAdvanceByValue(50);
+                onSubmit({ advanceBy: 50 });
               }}
               title="Advance by 50"
             >
@@ -348,7 +348,7 @@ const BoundaryExperiment = (props) => {
               type="button"
               onClick={() => {
                 const random = Math.floor(Math.random() * items.length);
-                onAdvanceByValue(random);
+                onSubmit({ advanceBy: random });
               }}
               title="Advance by random, be surprised!"
             >
