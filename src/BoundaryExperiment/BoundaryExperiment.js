@@ -387,7 +387,7 @@ const BoundaryExperiment = (props) => {
               setTimeout(() => {
                 console.log('404, advancing...');
                 onSubmit();
-              }, 100);
+              }, 10);
             },
           }}
           shouldPreload={false}
