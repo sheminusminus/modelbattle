@@ -57,10 +57,34 @@ export const getList = async (path) => {
     for (const url of urls) {
       if (url.toLowerCase().endsWith('.jpg')) {
         itemData.push({ url, contentType: 'image/jpg' })
+      } else if (url.toLowerCase().endsWith('.jpeg')) {
+        itemData.push({ url, contentType: 'image/jpg' })
+      } else if (url.toLowerCase().endsWith('.bmp')) {
+        itemData.push({ url, contentType: 'image/bmp' })
       } else if (url.toLowerCase().endsWith('.png')) {
         itemData.push({ url, contentType: 'image/png' })
       } else if (url.toLowerCase().endsWith('.gif')) {
         itemData.push({ url, contentType: 'image/gif' })
+      } else if (url.toLowerCase().endsWith('.mp4')) {
+        itemData.push({ url, contentType: 'video/mp4' })
+      } else if (url.toLowerCase().endsWith('.mpg')) {
+        itemData.push({ url, contentType: 'video/mpg' })
+      } else if (url.toLowerCase().endsWith('.wmv')) {
+        itemData.push({ url, contentType: 'video/wmv' })
+      } else if (url.toLowerCase().endsWith('.mpeg')) {
+        itemData.push({ url, contentType: 'video/mpeg' })
+      } else if (url.toLowerCase().endsWith('.webm')) {
+        itemData.push({ url, contentType: 'video/webm' })
+      } else if (url.toLowerCase().endsWith('.wav')) {
+        itemData.push({ url, contentType: 'audio/wav' })
+      } else if (url.toLowerCase().endsWith('.mp3')) {
+        itemData.push({ url, contentType: 'audio/mp3' })
+      } else if (url.toLowerCase().endsWith('.zip')) {
+        // ignore
+      } else if (url.toLowerCase().endsWith('.swf')) {
+        // ignore
+      } else if (url.toLowerCase().endsWith('.rar')) {
+        // ignore
       } else {
         console.log(`Ignoring unknown url: ${url}`);
       }

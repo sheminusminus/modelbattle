@@ -13,6 +13,8 @@ export const Keys = {
   ONE: '1',
   TWO: '2',
   SKIP: 'q',
+  PRV: 'a',
+  ADV: 'd',
   NEXT: 'Enter',
   ESC: 'Escape',
   BACK: 'Backspace',

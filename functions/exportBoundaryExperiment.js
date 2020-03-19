@@ -72,6 +72,7 @@ module.exports = functions.https.onCall(async (data, context) => {
 
           return {
             ...shape,
+            user: userId,
             color: tag.color,
           };
         }).filter(shape => Boolean(shape));
@@ -102,6 +103,7 @@ module.exports = functions.https.onCall(async (data, context) => {
             if (tag) {
               allResults.push({
                 ...submission,
+                user: userId,
                 color: tag.color,
               });
             }
