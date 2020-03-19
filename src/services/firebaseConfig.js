@@ -1,10 +1,19 @@
+const fbApiKey = process.env.REACT_APP_FB_API;
+const fbAuth = process.env.REACT_APP_FB_AUTH;
+const fbDb = process.env.REACT_APP_FB_DB;
+const fbProj = process.env.REACT_APP_FB_PROJ;
+const fbBucket = process.env.REACT_APP_FB_BUCKET;
+const fbMsg = process.env.REACT_APP_FB_MSG;
+const fbApp = process.env.REACT_APP_FB_APP;
+const fbMeasure = process.env.REACT_APP_FB_MEASURE;
+
 export default {
-  apiKey: 'AIzaSyDc8kZCL0_ai9tCds8bwXYiJiy8xgEv3uU',
-  authDomain: 'experiments-573d7.firebaseapp.com',
-  databaseURL: 'https://experiments-573d7.firebaseio.com',
-  projectId: 'experiments-573d7',
-  storageBucket: 'experiments-573d7.appspot.com',
-  messagingSenderId: '450691706719',
-  appId: '1:450691706719:web:e60b4879afd17d34cbd0ea',
-  measurementId: 'G-CHD125KKCH',
+  apiKey: fbApiKey,
+  authDomain: fbAuth,
+  databaseURL: fbDb,
+  projectId: fbProj,
+  storageBucket: fbBucket,
+  messagingSenderId: fbMsg,
+  appId: fbApp,
+  measurementId: fbMeasure,
 };
