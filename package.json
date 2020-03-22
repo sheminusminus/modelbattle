@@ -10,6 +10,7 @@
     "connected-react-router": "^6.7.0",
     "firebase": "^7.10.0",
     "firebaseui": "^4.4.0",
+    "interactjs": "^1.9.7",
     "prop-types": "^15.7.2",
     "query-string": "^6.11.1",
     "ramda": "^0.27.0",

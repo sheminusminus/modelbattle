@@ -13,7 +13,10 @@ import * as selectors from 'selectors'
 import { refreshExperimentTags, exportBoundaryExperiment } from 'types';
 
 import Asset from 'Asset';
-import { Input } from '../components';
+
+import { Input } from 'components';
+
+import { Polygon } from './components';
 
 const isMobile = isMobileDevice();
 
