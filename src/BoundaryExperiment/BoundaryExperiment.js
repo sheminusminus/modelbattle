@@ -101,6 +101,7 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
 
   const handleAddNewRect = React.useCallback((event) => {
     event.preventDefault();
+    setDrawnShapes((prev) => prev + 1);
     setCurrentShapes((prev) => {
       const lastShape = prev[prev.length - 1];
       if (lastShape && !lastShape.tag) {
