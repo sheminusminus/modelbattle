@@ -386,7 +386,7 @@ BoundaryExperiment.defaultProps = {
 
 const mapStateToProps = createStructuredSelector({
   experimentId: selectors.getExperimentsActiveId,
-  shapes: selectors.getExperimentShapesForActiveId,
+  shapes: selectors.getExperimentShapesForActiveIdWithSortedPoints,
   tags: selectors.getExperimentTagsForActiveId,
 });
 

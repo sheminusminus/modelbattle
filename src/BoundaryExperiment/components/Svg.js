@@ -1,7 +1,6 @@
 import React from 'react';
 import PT from 'prop-types';
 
-import { sortPoints } from 'helpers';
 import { withInteract } from 'hoc';
 
 import Point from './Point';
@@ -22,7 +21,7 @@ const Svg = (props) => {
     }
   }, [drawShapes.length, shapes]);
 
-  const onSinglePointMoved = (event, shapeIndex, ptIndex) => {
+  const onSinglePointMoved = React.useCallback((event, shapeIndex, ptIndex) => {
     const { dx, dy } = event;
     setDrawShapes((prev) => {
       const nextDrawShapes = [...prev];
@@ -33,49 +32,41 @@ const Svg = (props) => {
       };
       return nextDrawShapes;
     });
-  };
+  }, []);
 
-  const onRectScaled = (event, shapeIndex, ptIndex) => {
+  const onRectScaled = React.useCallback((event, shapeIndex, ptIndex) => {
     const { dx, dy } = event;
 
     setDrawShapes((prev) => {
       const nextDrawShapes = [...prev];
       const points = prev[shapeIndex].points;
-      const sortedPoints = sortPoints(points);
       nextDrawShapes[shapeIndex].points = [
-        sortedPoints[0],
+        points[0],
         {
-          ...sortedPoints[1],
-          y: sortedPoints[1].y + dy,
+          ...points[1],
+          y: points[1].y + dy,
         },
         {
-          ...sortedPoints[2],
-          x: sortedPoints[2].x + dx,
-          y: sortedPoints[2].y + dy,
+          ...points[2],
+          x: points[2].x + dx,
+          y: points[2].y + dy,
         },
         {
-          ...sortedPoints[3],
-          x: sortedPoints[3].x + dx,
+          ...points[3],
+          x: points[3].x + dx,
         },
       ];
       return nextDrawShapes;
     });
-  };
+  }, []);
 
-  // const onPointHeld = React.useCallback((event, shapeIndex, ptIndex) => {
-  //   if (activePoint.point) {
-  //     setActivePoint({ shape: null, point: null });
-  //   } else {
-  //     setActivePoint({ shape: shapeIndex, point: ptIndex });
-  //   }
-  // }, [activePoint.point]);
-  const onPointHeld = (event, shapeIndex, ptIndex, isActive) => {
+  const onPointHeld = React.useCallback((event, shapeIndex, ptIndex, isActive) => {
     if (isActive) {
       setActivePoint({ shape: null, point: null });
     } else {
       setActivePoint({ shape: shapeIndex, point: ptIndex });
     }
-  };
+  }, []);
 
   return (
     <svg

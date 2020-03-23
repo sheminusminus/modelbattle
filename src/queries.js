@@ -1,5 +1,7 @@
 import { sessionName, experimentsName } from 'store/reducer';
 
+import { sortPoints } from 'helpers';
+
 export const querySessionState = (state) => state[sessionName];
 export const querySessionUser = session => session.user;
 export const querySessionLoading = session => session.isLoading;
@@ -12,3 +14,12 @@ export const queryExperimentsIsFetching = experiments => experiments.isFetching;
 export const queryExperimentMetaForActiveId = (experiments, id) => experiments[id];
 export const queryExperimentTagsForActiveId = (experiment) => experiment.tags;
 export const queryExperimentShapesForActiveId = (experiment) => experiment.shapes;
+export const queryExperimentShapesForActiveIdWithSortedPoints = (shapes = []) => {
+  return shapes.map((shape) => {
+    const sortedPoints = sortPoints(shape.points || []);
+    return {
+      ...shape,
+      points: sortedPoints,
+    };
+  });
+};

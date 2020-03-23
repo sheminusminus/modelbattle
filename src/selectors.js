@@ -46,3 +46,8 @@ export const getExperimentShapesForActiveId = createSelector(
   [getExperimentMetaForActiveId],
   queries.queryExperimentShapesForActiveId,
 );
+
+export const getExperimentShapesForActiveIdWithSortedPoints = createSelector(
+  [getExperimentShapesForActiveId],
+  queries.queryExperimentShapesForActiveIdWithSortedPoints,
+);
