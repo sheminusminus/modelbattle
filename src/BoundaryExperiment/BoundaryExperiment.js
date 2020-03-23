@@ -36,9 +36,6 @@ const getBoundingPoints = (locations) => {
     }, {
       x: x1,
       y: y0,
-    }, {
-      x: x0,
-      y: y0,
     }];
   }
 
@@ -47,7 +44,7 @@ const getBoundingPoints = (locations) => {
 
 const getBoundaryPoints = (locations) => {
   const points = getBoundingPoints(locations);
-  return points.length ? points.slice(0, 4) : [];
+  return points.length ? points : [];
 };
 
 const getClientXY = (evt) => {
@@ -190,10 +187,6 @@ const BoundaryExperiment = (props) => {
     const { width, height } = evt.target;
     setSize({ width, height });
   }, []);
-
-  // const lastShape = drawnShapes[drawnShapes.length - 1];
-  // const sortedPoints = lastShape ? sortPoints(lastShape.points) : [];
-  // const renderTaggingUi = Boolean(showInput && sortedPoints.length);
 
   const handleAddNewRect = React.useCallback((event) => {
     event.preventDefault();

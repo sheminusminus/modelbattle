@@ -99,7 +99,6 @@ export function* getExperimentMetaTrigger() {
 
       if (userResults) {
         userShapes = Object.keys(userResults).map((key) => userResults[key]);
-        console.log(userShapes);
       }
 
       if (userMetaResult && userMetaResult.tags) {

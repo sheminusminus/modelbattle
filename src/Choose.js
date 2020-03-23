@@ -31,7 +31,6 @@ const Choose = (props) => {
 
   const { pub, priv } = groupByPublic(Object.values(experiments));
 
-  console.log(experiments, pub, priv);
   return (
     <div className="choose-exp">
       <span className="title">Available experiments:</span>

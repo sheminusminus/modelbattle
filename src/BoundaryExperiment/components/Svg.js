@@ -7,6 +7,37 @@ import Point from './Point';
 import Rect from './Rect';
 import Text from './Text';
 
+const mapPointsOnScale = ({
+  points,
+  stablePtIndex,
+  stablePoint,
+  dx,
+  dy,
+}) => points.map((pt, idx) => {
+  if (idx === stablePtIndex) {
+    return pt;
+  }
+
+  if (pt.x === stablePoint.x) {
+    return {
+      x: pt.x,
+      y: pt.y + dy,
+    };
+  }
+
+  if (pt.y === stablePoint.y) {
+    return {
+      x: pt.x + dx,
+      y: pt.y,
+    };
+  }
+
+  return {
+    x: pt.x + dx,
+    y: pt.y + dy,
+  };
+});
+
 const Svg = (props) => {
   const { getRef, tags, shapes, width, height } = props;
 
@@ -39,23 +70,25 @@ const Svg = (props) => {
 
     setDrawShapes((prev) => {
       const nextDrawShapes = [...prev];
+
       const points = prev[shapeIndex].points;
-      nextDrawShapes[shapeIndex].points = [
-        points[0],
-        {
-          ...points[1],
-          y: points[1].y + dy,
-        },
-        {
-          ...points[2],
-          x: points[2].x + dx,
-          y: points[2].y + dy,
-        },
-        {
-          ...points[3],
-          x: points[3].x + dx,
-        },
-      ];
+      const halfPointsCount = points.length / 2;
+
+      let stablePtIndex = ptIndex - halfPointsCount;
+      if (stablePtIndex < 0) {
+        stablePtIndex = points.length + stablePtIndex;
+      }
+
+      const stablePoint = points[stablePtIndex];
+
+      nextDrawShapes[shapeIndex].points = mapPointsOnScale({
+        points,
+        stablePoint,
+        stablePtIndex,
+        dx,
+        dy,
+      });
+
       return nextDrawShapes;
     });
   }, []);
