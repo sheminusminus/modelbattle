@@ -136,12 +136,12 @@ export const listImages = async (expName) => {
   }
 };
 
-export const addNewTag = async (experimentId, input) => {
+export const addNewTag = async (experimentId, input, tagColor) => {
   const { uid } = firebase.auth().currentUser;
 
   const newTag = {
     id: input,
-    color: randomColor(),
+    color: tagColor,
     text: input,
   };
 

@@ -4,6 +4,7 @@ import PT from 'prop-types';
 import { Keys } from 'const';
 import { withInteract } from 'hoc';
 import { usePrevious } from 'hooks';
+import { randomColor } from 'helpers';
 
 import Point from './Point';
 import Rect from './Rect';
@@ -54,11 +55,12 @@ const BaseSvg = (props) => {
   const [inputVal, setInputVal] = React.useState(undefined);
   const [drawShapes, setDrawShapes] = React.useState(shapes);
   const [activePoint, setActivePoint] = React.useState({ shape: null, point: null });
+  const [nextTagColor, setNextTagColor] = React.useState(randomColor());
 
   const previousShapes = usePrevious(shapes, []);
 
   React.useEffect(() => {
-    if (!previousShapes.length && shapes.length) {
+    if (previousShapes.length !== shapes.length) {
       setDrawShapes(shapes);
     }
 
@@ -161,7 +163,7 @@ const BaseSvg = (props) => {
     ? lastShape.points[3].x - lastShape.points[0].x
     : 0;
   const closeBtnX = lastShape
-    ? lastShape.points[3].x - (lastShapeWidth / 2) - 10
+    ? lastShape.points[3].x - (lastShapeWidth / 2) - 25
     : 0;
   const inputWidth = lastShape
     ? Math.max(Math.abs(lastShape.points[1].x - lastShape.points[2].x), 140)
@@ -171,24 +173,35 @@ const BaseSvg = (props) => {
     : 0;
   const renderTaggingUi = Boolean(lastShape && lastShape.points.length && !lastShape.tag);
 
-  const handleEscape = React.useCallback((event) => {
+  const handleKeyDown = React.useCallback(async (event) => {
     if (event.key === Keys.ESC) {
       if (activePoint.point !== null) {
         deactivatePoint();
       } else if (renderTaggingUi) {
         handleCancelLastBox();
       }
+    } else if (event.key === Keys.NEXT) {
+      await handleInputEnter(event, nextTagColor);
+      setNextTagColor(randomColor());
     }
-  }, [activePoint.point, renderTaggingUi, deactivatePoint, handleCancelLastBox]);
+  }, [
+    activePoint.point,
+    renderTaggingUi,
+    deactivatePoint,
+    handleCancelLastBox,
+    handleInputEnter,
+    nextTagColor,
+  ]);
 
   React.useEffect(() => {
-    window.addEventListener('keydown', handleEscape);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleEscape]);
+  }, [handleKeyDown]);
 
+  console.log(drawShapes);
   return (
     <React.Fragment>
       <svg
@@ -209,14 +222,15 @@ const BaseSvg = (props) => {
           const shapePoints = shape.points;
           const reducer = makeShapePointsStrAccum(shapePoints.length);
           const points = shapePoints.reduce(reducer, '');
+          const color = tag.color || nextTagColor;
 
           return (
             <React.Fragment key={getChildKey(shapeIndex)}>
-              <Rect points={points} color={tag.color} />
+              <Rect points={points} color={color} />
 
               {shapePoints.map((pt, ptIndex) => (
                 <Point
-                  color={tag.color}
+                  color={color}
                   drawnShapesCount={drawnShapesCount}
                   key={getChildKey(shapeIndex, ptIndex)}
                   onPointMoved={pointMoveHandler}
@@ -234,7 +248,7 @@ const BaseSvg = (props) => {
                 <Text
                   x={shapePoints[1].x}
                   y={shapePoints[1].y + 20}
-                  color={tag.color}
+                  color={color}
                 >
                   {tag.text}
                 </Text>
@@ -255,19 +269,20 @@ const BaseSvg = (props) => {
       </svg>
 
       {renderTaggingUi && (
-        <button
-          className="close-x"
-          onClick={(evt) => {
-            evt.preventDefault();
-            evt.stopPropagation();
-            handleCancelLastBox();
-          }}
-          style={{
-            left: closeBtnX,
-            top: lastShape.points[0].y - 30,
-          }}
-          type="button"
-        >
+        <React.Fragment>
+          <button
+            className="tagging-btn close-x"
+            onClick={(evt) => {
+              evt.preventDefault();
+              evt.stopPropagation();
+              handleCancelLastBox();
+            }}
+            style={{
+              left: closeBtnX,
+              top: lastShape.points[0].y - 30,
+            }}
+            type="button"
+          >
           <span
             className="material-icons"
             style={{
@@ -277,30 +292,51 @@ const BaseSvg = (props) => {
           >
             highlight_off
           </span>
-        </button>
-      )}
+          </button>
 
-      {renderTaggingUi && (
-        <Input
-          autoFocus={true}
-          onChange={handleInputChange}
-          onKeyDown={async (evt) => {
-            console.log(evt.key);
-            const { key } = evt;
-            if (key === Keys.NEXT) {
-              await handleInputEnter(evt);
-            } else if (key === Keys.BACK && inputVal === undefined) {
-              setInputVal('');
-            }
-          }}
-          ref={inputRef}
-          value={inputVal !== undefined ? inputVal : lastTag}
-          wrapperStyle={{
-            left: `${inputLeft}px`,
-            width: `${inputWidth}px`,
-            top: lastShape.points[1].y + 5,
-          }}
-        />
+          <button
+            className="tagging-btn gen-color"
+            onClick={(evt) => {
+              console.log('redo random color');
+            }}
+            style={{
+              left: closeBtnX + 30,
+              top: lastShape.points[0].y - 30,
+            }}
+            type="button"
+          >
+          <span
+            className="material-icons"
+            style={{
+              fontSize: '20px',
+              verticalAlign: 'middle',
+            }}
+          >
+            invert_colors
+          </span>
+          </button>
+
+          <Input
+            autoFocus={true}
+            onChange={handleInputChange}
+            onKeyDown={async (evt) => {
+              const { key } = evt;
+              if (key === Keys.NEXT) {
+                await handleInputEnter(evt, nextTagColor);
+                setNextTagColor(randomColor());
+              } else if (key === Keys.BACK && inputVal === undefined) {
+                setInputVal('');
+              }
+            }}
+            ref={inputRef}
+            value={inputVal !== undefined ? inputVal : lastTag}
+            wrapperStyle={{
+              left: `${inputLeft}px`,
+              width: `${inputWidth}px`,
+              top: lastShape.points[1].y + 5,
+            }}
+          />
+        </React.Fragment>
       )}
     </React.Fragment>
   );

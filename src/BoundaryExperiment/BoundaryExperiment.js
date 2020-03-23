@@ -75,12 +75,12 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
     setCurrentShapes(nextShapes);
   }, [currentShapes, drawnShapes]);
 
-  const handleInputEnter = React.useCallback(async (event, allShapes) => {
+  const handleInputEnter = React.useCallback(async (event, tagColor) => {
     const val = event.target.value || lastTag;
     window.lastTag = val;
 
     if (val) {
-      const tagKey = await addNewTag(experimentId, val);
+      const tagKey = await addNewTag(experimentId, val, tagColor);
       const saveShapes = [...currentShapes];
       const lastIdx = saveShapes.length - 1;
       const shapeData = saveShapes[lastIdx];
@@ -89,7 +89,7 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
       saveShapes[lastIdx] = shapeData;
       const nextShapes = [...shapes, ...saveShapes];
       setCurrentShapes(nextShapes);
-      onDrawEnd(saveShapes);
+      onDrawEnd(shapeData);
       onRefreshTags();
     }
   }, [currentShapes, experimentId, lastTag, onDrawEnd, onRefreshTags, shapes]);
@@ -103,8 +103,11 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
     event.preventDefault();
     setDrawnShapes((prev) => prev + 1);
     setCurrentShapes((prev) => {
+      console.log(prev);
       const lastShape = prev[prev.length - 1];
+      console.log(lastShape);
       if (lastShape && !lastShape.tag) {
+        console.log('not making new one');
         return prev;
       }
       const { clientX, clientY } = event;
@@ -115,6 +118,7 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
       return [...prev, {
         points: boxPoints,
         size,
+        url: lastShape ? lastShape.url : undefined,
       }];
     });
   }, [size]);

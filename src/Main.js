@@ -379,7 +379,7 @@ const Main = (props) => {
             setBoundaryShapes([]);
           }}
           onDrawEnd={(shapeData) => {
-            setBoundaryShapes(shapeData);
+            setBoundaryShapes([...boundaryShapes, shapeData]);
           }}
           onImageLoad={() => {
             setLoadedTime((new Date()).toUTCString());

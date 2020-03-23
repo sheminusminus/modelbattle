@@ -34,10 +34,9 @@
     opacity: 1;
 }
 
-.boundary-exp-wrapper .close-x {
+.boundary-exp-wrapper .tagging-btn {
     cursor: pointer;
     position: absolute;
-    color: red;
     background-color: transparent;
     outline: none;
     border: 0;
@@ -47,8 +46,17 @@
     border-radius: 50%;
 }
 
-.boundary-exp-wrapper .close-x:hover {
+.boundary-exp-wrapper .tagging-btn:hover {
     opacity: 1;
+}
+
+.boundary-exp-wrapper .close-x {
+    color: red;
+}
+
+.boundary-exp-wrapper .gen-color {
+    color: #0EBCF3;
+    opacity: 0.7;
 }
 
 .test-actions {
