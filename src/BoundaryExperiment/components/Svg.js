@@ -201,7 +201,6 @@ const BaseSvg = (props) => {
     };
   }, [handleKeyDown]);
 
-  console.log(drawShapes);
   return (
     <React.Fragment>
       <svg

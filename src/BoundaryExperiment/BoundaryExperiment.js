@@ -103,11 +103,8 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
     event.preventDefault();
     setDrawnShapes((prev) => prev + 1);
     setCurrentShapes((prev) => {
-      console.log(prev);
       const lastShape = prev[prev.length - 1];
-      console.log(lastShape);
       if (lastShape && !lastShape.tag) {
-        console.log('not making new one');
         return prev;
       }
       const { clientX, clientY } = event;
