@@ -11,6 +11,7 @@ const Svg = (props) => {
   const { getRef, tags, shapes, width, height } = props;
 
   const [drawShapes, setDrawShapes] = React.useState(shapes);
+  const [activePoint, setActivePoint] = React.useState({ shape: null, point: null });
 
   React.useEffect(() => {
     if (shapes.length > drawShapes.length) {
@@ -20,7 +21,7 @@ const Svg = (props) => {
     }
   }, [drawShapes.length, shapes]);
 
-  const onPointMoved = (event, shapeIndex, ptIndex) => {
+  const onPointMoved = React.useCallback((event, shapeIndex, ptIndex) => {
     const { dx, dy } = event;
     setDrawShapes((prev) => {
       const nextDrawShapes = [...prev];
@@ -31,7 +32,11 @@ const Svg = (props) => {
       };
       return nextDrawShapes;
     });
-  };
+  }, []);
+
+  const onPointHeld = React.useCallback((event, shapeIndex, ptIndex) => {
+    setActivePoint({ shape: shapeIndex, point: ptIndex });
+  }, []);
 
   return (
     <svg
@@ -62,18 +67,25 @@ const Svg = (props) => {
                 onPointMoved={(event) => {
                   onPointMoved(event, shapeIndex, ptIndex);
                 }}
+                onPointHeld={(event) => {
+                  onPointHeld(event, shapeIndex, ptIndex);
+                }}
                 x={pt.x}
                 y={pt.y}
                 dataIndex={ptIndex}
+                isActive={shapeIndex === activePoint.shape && ptIndex === activePoint.point}
               />
             ))}
-            <Text
-              x={shapePoints[1].x}
-              y={shapePoints[1].y + 15}
-              color={tag.color}
-            >
-              {shape.tag}
-            </Text>
+
+            {!!tag.text && (
+              <Text
+                x={shapePoints[1].x}
+                y={shapePoints[1].y + 20}
+                color={tag.color}
+              >
+                {tag.text}
+              </Text>
+            )}
           </React.Fragment>
         )
       })}

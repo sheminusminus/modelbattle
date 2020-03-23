@@ -195,7 +195,7 @@ const BoundaryExperiment = (props) => {
   // const sortedPoints = lastShape ? sortPoints(lastShape.points) : [];
   // const renderTaggingUi = Boolean(showInput && sortedPoints.length);
 
-  const handleAddNewRect = (event) => {
+  const handleAddNewRect = React.useCallback((event) => {
     event.preventDefault();
     const { clientX, clientY } = event;
     const bbox = svgWrapRef.current.getBoundingClientRect();
@@ -209,7 +209,7 @@ const BoundaryExperiment = (props) => {
         url: shapes[0].url,
       }];
     });
-  };
+  }, [shapes, size]);
 
   return (
     <React.Fragment>

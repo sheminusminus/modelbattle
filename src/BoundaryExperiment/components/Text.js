@@ -8,11 +8,12 @@ const Text = (props) => {
       x={x}
       y={y}
       style={{
-        fill: '#fff',
+        fill: color,
         stroke: color,
         strokeWidth: '1px',
         fontSize: '16px',
         userSelect: 'none',
+        letterSpacing: '1px',
       }}
     >
       {children}
