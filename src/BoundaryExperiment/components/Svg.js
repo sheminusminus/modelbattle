@@ -1,6 +1,7 @@
 import React from 'react';
 import PT from 'prop-types';
 
+import { sortPoints } from 'helpers';
 import { withInteract } from 'hoc';
 
 import Point from './Point';
@@ -21,7 +22,7 @@ const Svg = (props) => {
     }
   }, [drawShapes.length, shapes]);
 
-  const onPointMoved = React.useCallback((event, shapeIndex, ptIndex) => {
+  const onSinglePointMoved = (event, shapeIndex, ptIndex) => {
     const { dx, dy } = event;
     setDrawShapes((prev) => {
       const nextDrawShapes = [...prev];
@@ -32,11 +33,49 @@ const Svg = (props) => {
       };
       return nextDrawShapes;
     });
-  }, []);
+  };
 
-  const onPointHeld = React.useCallback((event, shapeIndex, ptIndex) => {
-    setActivePoint({ shape: shapeIndex, point: ptIndex });
-  }, []);
+  const onRectScaled = (event, shapeIndex, ptIndex) => {
+    const { dx, dy } = event;
+
+    setDrawShapes((prev) => {
+      const nextDrawShapes = [...prev];
+      const points = prev[shapeIndex].points;
+      const sortedPoints = sortPoints(points);
+      nextDrawShapes[shapeIndex].points = [
+        sortedPoints[0],
+        {
+          ...sortedPoints[1],
+          y: sortedPoints[1].y + dy,
+        },
+        {
+          ...sortedPoints[2],
+          x: sortedPoints[2].x + dx,
+          y: sortedPoints[2].y + dy,
+        },
+        {
+          ...sortedPoints[3],
+          x: sortedPoints[3].x + dx,
+        },
+      ];
+      return nextDrawShapes;
+    });
+  };
+
+  // const onPointHeld = React.useCallback((event, shapeIndex, ptIndex) => {
+  //   if (activePoint.point) {
+  //     setActivePoint({ shape: null, point: null });
+  //   } else {
+  //     setActivePoint({ shape: shapeIndex, point: ptIndex });
+  //   }
+  // }, [activePoint.point]);
+  const onPointHeld = (event, shapeIndex, ptIndex, isActive) => {
+    if (isActive) {
+      setActivePoint({ shape: null, point: null });
+    } else {
+      setActivePoint({ shape: shapeIndex, point: ptIndex });
+    }
+  };
 
   return (
     <svg
@@ -65,14 +104,27 @@ const Svg = (props) => {
                 color={tag.color}
                 key={`shape-${shapeIndex}-pt-${ptIndex}`}
                 onPointMoved={(event) => {
-                  onPointMoved(event, shapeIndex, ptIndex);
+                  const { target } = event;
+                  const dataActive = target.getAttribute('data-active');
+                  const dataPoint = parseInt(target.getAttribute('data-point'), 10);
+                  const dataShape = parseInt(target.getAttribute('data-shape'), 10);
+                  if (dataActive === 'true') {
+                    onSinglePointMoved(event, dataShape, dataPoint);
+                  } else {
+                    onRectScaled(event, dataShape, dataPoint);
+                  }
                 }}
                 onPointHeld={(event) => {
-                  onPointHeld(event, shapeIndex, ptIndex);
+                  const { target } = event;
+                  const dataActive = target.getAttribute('data-active');
+                  const dataPoint = parseInt(target.getAttribute('data-point'), 10);
+                  const dataShape = parseInt(target.getAttribute('data-shape'), 10);
+                  onPointHeld(event, dataShape, dataPoint, dataActive === 'true');
                 }}
                 x={pt.x}
                 y={pt.y}
-                dataIndex={ptIndex}
+                pointIndex={ptIndex}
+                shapeIndex={shapeIndex}
                 isActive={shapeIndex === activePoint.shape && ptIndex === activePoint.point}
               />
             ))}

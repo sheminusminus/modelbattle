@@ -1,18 +1,23 @@
 import React from 'react';
+import PT from 'prop-types';
 
 import { withInteract } from 'hoc';
 
 const Point = (props) => {
-  const { color, isActive, getRef, x, y, dataIndex, width } = props;
+  const { color, isActive, getRef, x, y, pointIndex, shapeIndex, width } = props;
 
   return (
     <g
-      data-index={dataIndex}
+      data-active={String(isActive)}
+      data-point={pointIndex}
+      data-shape={shapeIndex}
       transform={`translate(${x},${y})`}
       ref={getRef}
     >
       <circle
-        data-point={dataIndex}
+        data-active={String(isActive)}
+        data-point={pointIndex}
+        data-shape={shapeIndex}
         r={width / 2}
         x="0"
         y="0"
@@ -35,11 +40,14 @@ Point.defaultProps = {
 
 const InteractablePoint = withInteract(Point);
 
-const DraggablePoint = ({ color, isActive, dataIndex, x, y, onPointMoved, onPointHeld }) => {
+const DraggablePoint = (props) => {
+  const { color, isActive, pointIndex, shapeIndex, x, y, onPointMoved, onPointHeld } = props;
+
   return (
     <InteractablePoint
       color={color}
-      dataIndex={dataIndex}
+      pointIndex={pointIndex}
+      shapeIndex={shapeIndex}
       isActive={isActive}
       draggable
       onDragMove={onPointMoved}
@@ -48,6 +56,17 @@ const DraggablePoint = ({ color, isActive, dataIndex, x, y, onPointMoved, onPoin
       y={y}
     />
   )
+};
+
+DraggablePoint.propTypes = {
+  color: PT.string,
+  isActive: PT.bool,
+  pointIndex: PT.number.isRequired,
+  shapeIndex: PT.number.isRequired,
+  x: PT.number.isRequired,
+  y: PT.number.isRequired,
+  onPointMoved: PT.func.isRequired,
+  onPointHeld: PT.func.isRequired,
 };
 
 export default DraggablePoint;
