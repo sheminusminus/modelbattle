@@ -16,27 +16,22 @@ import {
   isPtActive,
 } from './svgHelpers';
 
+/**
+ * @param {Object} props
+ * @param {Object} props.getRef
+ * @param {number} props.height
+ * @param {Shape[]} props.shapes
+ * @param {Object} props.tags
+ * @param {number} props.number
+ * @return {*}
+ * @constructor
+ */
 const BaseSvg = (props) => {
   const {
-    /**
-     * @type {Object}
-     */
     getRef,
-    /**
-     * @type {number}
-     */
     height,
-    /**
-     * @type {Shape[]}
-     */
     shapes,
-    /**
-     * @type {Object}
-     */
     tags,
-    /**
-     * @type {number}
-     */
     width,
   } = props;
 
@@ -159,7 +154,7 @@ const BaseSvg = (props) => {
 };
 
 BaseSvg.propTypes = {
-  getRef: PT.shape().isRequired,
+  getRef: PT.shape({}).isRequired,
   height: PT.number,
   initialPoints: PT.arrayOf(PT.shape({
     x: PT.number,
@@ -172,7 +167,7 @@ BaseSvg.propTypes = {
     })),
     tag: PT.string,
   })),
-  tags: PT.shape(),
+  tags: PT.shape({}),
   width: PT.number,
 };
 
@@ -220,7 +215,7 @@ TappableSvg.propTypes = {
     })),
     tag: PT.string,
   })),
-  tags: PT.shape(),
+  tags: PT.shape({}),
 };
 
 TappableSvg.defaultProps = {

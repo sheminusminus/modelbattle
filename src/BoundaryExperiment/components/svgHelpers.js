@@ -141,7 +141,7 @@ export const getDataAttributesFromTarget = (target) => {
 /**
  * @param {number} shapeIndex
  * @param {number} ptIndex
- * @param {{ shape: number, point: number }} activePoint
+ * @param {{ shape: ?number, point: ?number }} activePoint
  * @return {boolean}
  */
 export const isPtActive = (shapeIndex, ptIndex, activePoint) => (
