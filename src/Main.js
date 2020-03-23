@@ -46,6 +46,7 @@ const Main = (props) => {
     isLoading,
     onChangeExperiment,
     onGetExperimentMeta,
+    shapes,
     user,
   } = props;
 
@@ -346,19 +347,23 @@ const Main = (props) => {
     } else if (mode === ExperimentMode.BOUNDARY) {
       contents = (
         <BoundaryExperiment
-          key={`boundaryExp-${boundaryIndex}`}
           items={boundaryItems.slice(boundaryIndex)}
+          key={`boundaryExp-${boundaryIndex}`}
           onAdvanceByValue={boundaryAdvanceBy}
-          onSubmit={onSubmit}
-          onImageLoad={() => {
-            setLoadedTime((new Date()).toUTCString());
-          }}
           onDrawStart={() => {
             setBoundaryShapes([]);
           }}
           onDrawEnd={(shapeData) => {
             setBoundaryShapes(shapeData);
           }}
+          onImageLoad={() => {
+            setLoadedTime((new Date()).toUTCString());
+          }}
+          onSubmit={onSubmit}
+          shapes={shapes.filter((shape) => {
+            const item = boundaryItems[boundaryIndex];
+            return item && item.url === shape.url;
+          })}
         />
       );
     }
@@ -412,8 +417,9 @@ const Main = (props) => {
 
 const mapStateToProps = createStructuredSelector({
   activeExperiment: selectors.getExperimentMetaForActiveId,
-  isLoading: selectors.getSessionIsLoading,
   isFetchingData: selectors.getExperimentsIsFetching,
+  isLoading: selectors.getSessionIsLoading,
+  shapes: selectors.getExperimentShapesForActiveIdWithSortedPoints,
   user: selectors.getSessionUser,
 });
 

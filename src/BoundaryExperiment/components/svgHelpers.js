@@ -125,14 +125,16 @@ export const makeShapePointsStrAccum = (length) => (str, pt, idx) => {
 
 /**
  * @param {HTMLElement} target
- * @return {{ dataActive: boolean, dataPoint: number, dataShape: number }}
+ * @return {{ dataActive: boolean, dataDrawn: number, dataPoint: number, dataShape: number }}
  */
 export const getDataAttributesFromTarget = (target) => {
   const dataActive = strToBool(target.getAttribute('data-active'));
+  const dataDrawn = parseInt(target.getAttribute('data-drawn'), 10);
   const dataPoint = parseInt(target.getAttribute('data-point'), 10);
   const dataShape = parseInt(target.getAttribute('data-shape'), 10);
   return {
     dataActive,
+    dataDrawn,
     dataPoint,
     dataShape,
   };

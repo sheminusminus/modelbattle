@@ -26,17 +26,29 @@
     min-width: 140px;
     border: 0;
     box-shadow: 0 10px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19) !important;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.boundary-exp-wrapper .input-wrapper input:focus {
+    opacity: 1;
 }
 
 .boundary-exp-wrapper .close-x {
     cursor: pointer;
     position: absolute;
     color: red;
-    background-color: white;
+    background-color: transparent;
     outline: none;
     border: 0;
-    border-radius: 4px;
-    box-shadow: 0 5px 8px 0 rgba(255,0,0,0.4),0 3px 10px 0 rgba(255,0,0,0.39) !important;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.boundary-exp-wrapper .close-x:hover {
+    opacity: 1;
 }
 
 .test-actions {

@@ -13,7 +13,9 @@ export const queryExperimentsIds = experiments => experiments.ids;
 export const queryExperimentsIsFetching = experiments => experiments.isFetching;
 export const queryExperimentMetaForActiveId = (experiments, id) => experiments[id];
 export const queryExperimentTagsForActiveId = (experiment) => experiment.tags;
-export const queryExperimentShapesForActiveId = (experiment) => experiment.shapes;
+export const queryExperimentShapesForActiveId = (experiment) => (
+  experiment ? experiment.shapes : []
+);
 export const queryExperimentShapesForActiveIdWithSortedPoints = (shapes = []) => {
   return shapes.map((shape) => {
     const sortedPoints = sortPoints(shape.points || []);

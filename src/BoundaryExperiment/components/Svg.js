@@ -8,6 +8,8 @@ import Point from './Point';
 import Rect from './Rect';
 import Text from './Text';
 
+import { Input } from 'components';
+
 import {
   makeShapePointsStrAccum,
   getChildKey,
@@ -20,7 +22,10 @@ import {
 /**
  * @param {Object} props
  * @param {Object} props.getRef
+ * @param {Function} props.handleCancelLastBox
+ * @param {Function} props.handleInputEnter
  * @param {number} props.height
+ * @param {?string} props.lastTag
  * @param {Shape[]} props.shapes
  * @param {Object} props.tags
  * @param {number} props.number
@@ -29,23 +34,48 @@ import {
  */
 const BaseSvg = (props) => {
   const {
+    drawnShapesCount,
     getRef,
+    handleCancelLastBox,
+    handleInputEnter,
     height,
+    lastTag,
     shapes,
     tags,
     width,
   } = props;
 
+  /**
+   * @type {React.MutableRefObject<HTMLInputElement>}
+   */
+  const inputRef = React.useRef();
+  const savedShapesCount = React.useRef(shapes.length);
+  const [inputVal, setInputVal] = React.useState(undefined);
   const [drawShapes, setDrawShapes] = React.useState(shapes);
   const [activePoint, setActivePoint] = React.useState({ shape: null, point: null });
 
   React.useEffect(() => {
-    if (shapes.length > drawShapes.length) {
+    if (shapes.length === drawShapes.length - 1) {
+      setDrawShapes((prev) => {
+        const nextShapes = [...prev];
+        nextShapes.pop();
+        return nextShapes;
+      });
+    } else if (shapes.length === drawShapes.length + 1) {
       setDrawShapes((prev) => {
         return [...prev, shapes[shapes.length - 1]];
       });
     }
   }, [drawShapes.length, shapes]);
+
+  const handleInputChange = React.useCallback((evt) => {
+    const { value } = evt.target;
+    const formatted = value
+      .toLowerCase()
+      .replace(/\s/g, '_')
+      .replace(/\.|\$|\[|\]|\//g, '');
+    setInputVal(formatted);
+  }, []);
 
   const onSinglePointMoved = React.useCallback((event, shapeIndex, ptIndex) => {
     const { dx, dy } = event;
@@ -81,6 +111,11 @@ const BaseSvg = (props) => {
       dataPoint,
       dataShape,
     } = getDataAttributesFromTarget(event.target);
+
+    if (dataShape <= savedShapesCount.current - 1) {
+      return;
+    }
+
     if (dataActive) {
       onSinglePointMoved(event, dataShape, dataPoint);
     } else {
@@ -113,72 +148,174 @@ const BaseSvg = (props) => {
       dataShape,
     } = getDataAttributesFromTarget(event.target);
 
+    if (dataShape <= savedShapesCount.current - 1) {
+      return;
+    }
+
     onPointHeld(event, dataShape, dataPoint, dataActive);
   }, [onPointHeld]);
 
+  const lastShape = drawShapes[drawShapes.length - 1];
+  const lastShapeWidth = lastShape
+    ? lastShape.points[3].x - lastShape.points[0].x
+    : 0;
+  const closeBtnX = lastShape
+    ? lastShape.points[3].x - (lastShapeWidth / 2) - 10
+    : 0;
+  const inputWidth = lastShape
+    ? Math.max(Math.abs(lastShape.points[1].x - lastShape.points[2].x), 140)
+    : 0;
+  const inputLeft = lastShape
+    ? lastShape.points[3].x - (lastShapeWidth / 2) - (inputWidth / 2)
+    : 0;
+  const renderTaggingUi = Boolean(lastShape && lastShape.points.length && !lastShape.tag);
+
+  const handleEscape = React.useCallback((event) => {
+    if (event.key === Keys.ESC) {
+      if (activePoint.point !== null) {
+        deactivatePoint();
+      } else if (renderTaggingUi) {
+        handleCancelLastBox();
+      }
+    }
+  }, [activePoint.point, renderTaggingUi, deactivatePoint, handleCancelLastBox]);
+
   React.useEffect(() => {
-    window.addEventListener('keydown', deactivatePointOnEsc);
+    window.addEventListener('keydown', handleEscape);
 
     return () => {
-      window.removeEventListener('keydown', deactivatePointOnEsc);
+      window.removeEventListener('keydown', handleEscape);
     };
-  }, [deactivatePointOnEsc]);
+  }, [handleEscape]);
 
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      xmlnsXlink="http://www.w3.org/1999/xlink"
-      viewBox={`0 0 ${width} ${height}`}
-      style={{ width, height }}
-      ref={getRef}
-    >
-      {drawShapes.map((shape, shapeIndex) => {
-        const tag = tags[shape.tag] || {};
-        const shapePoints = shape.points;
-        const reducer = makeShapePointsStrAccum(shapePoints.length);
-        const points = shapePoints.reduce(reducer, '');
+    <React.Fragment>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+        viewBox={`0 0 ${width} ${height}`}
+        style={{ width, height }}
+        ref={getRef}
+        onDoubleClick={(event) => {
+          if (renderTaggingUi) {
+            event.stopPropagation();
+            event.preventDefault();
+          }
+        }}
+      >
+        {drawShapes.map((shape, shapeIndex) => {
+          const tag = tags[shape.tag] || {};
+          const shapePoints = shape.points;
+          const reducer = makeShapePointsStrAccum(shapePoints.length);
+          const points = shapePoints.reduce(reducer, '');
 
-        return (
-          <React.Fragment key={getChildKey(shapeIndex)}>
-            <Rect points={points} color={tag.color} />
+          return (
+            <React.Fragment key={getChildKey(shapeIndex)}>
+              <Rect points={points} color={tag.color} />
 
-            {shapePoints.map((pt, ptIndex) => (
-              <Point
-                color={tag.color}
-                key={getChildKey(shapeIndex, ptIndex)}
-                onPointMoved={pointMoveHandler}
-                onPointHeld={pointHeldHandler}
-                x={pt.x}
-                y={pt.y}
-                pointIndex={ptIndex}
-                shapeIndex={shapeIndex}
-                isActive={isPtActive(shapeIndex, ptIndex, activePoint)}
-              />
-            ))}
+              {shapePoints.map((pt, ptIndex) => (
+                <Point
+                  color={tag.color}
+                  drawnShapesCount={drawnShapesCount}
+                  key={getChildKey(shapeIndex, ptIndex)}
+                  onPointMoved={pointMoveHandler}
+                  onPointHeld={pointHeldHandler}
+                  x={pt.x}
+                  y={pt.y}
+                  pointIndex={ptIndex}
+                  savedShapesCount={savedShapesCount.current}
+                  shapeIndex={shapeIndex}
+                  isActive={isPtActive(shapeIndex, ptIndex, activePoint)}
+                />
+              ))}
 
-            {!!tag.text && (
-              <Text
-                x={shapePoints[1].x}
-                y={shapePoints[1].y + 20}
-                color={tag.color}
-              >
-                {tag.text}
-              </Text>
-            )}
-          </React.Fragment>
-        )
-      })}
-    </svg>
+              {!!tag.text && (
+                <Text
+                  x={shapePoints[1].x}
+                  y={shapePoints[1].y + 20}
+                  color={tag.color}
+                >
+                  {tag.text}
+                </Text>
+              )}
+
+              {!tag.text && (
+                <Text
+                  x={shapePoints[1].x}
+                  y={shapePoints[1].y + 20}
+                  color={tag.color}
+                >
+                  {tag.text}
+                </Text>
+              )}
+            </React.Fragment>
+          )
+        })}
+      </svg>
+
+      {renderTaggingUi && (
+        <button
+          className="close-x"
+          onClick={(evt) => {
+            evt.preventDefault();
+            evt.stopPropagation();
+            handleCancelLastBox();
+          }}
+          style={{
+            left: closeBtnX,
+            top: lastShape.points[0].y - 30,
+          }}
+          type="button"
+        >
+          <span
+            className="material-icons"
+            style={{
+              fontSize: '20px',
+              verticalAlign: 'middle',
+            }}
+          >
+            highlight_off
+          </span>
+        </button>
+      )}
+
+      {renderTaggingUi && (
+        <Input
+          autoFocus={true}
+          onChange={handleInputChange}
+          onKeyDown={async (evt) => {
+            console.log(evt.key);
+            const { key } = evt;
+            if (key === Keys.NEXT) {
+              await handleInputEnter(evt);
+            } else if (key === Keys.BACK && inputVal === undefined) {
+              setInputVal('');
+            }
+          }}
+          ref={inputRef}
+          value={inputVal !== undefined ? inputVal : lastTag}
+          wrapperStyle={{
+            left: `${inputLeft}px`,
+            width: `${inputWidth}px`,
+            top: lastShape.points[1].y + 5,
+          }}
+        />
+      )}
+    </React.Fragment>
   );
 };
 
 BaseSvg.propTypes = {
+  drawnShapesCount: PT.number.isRequired,
   getRef: PT.shape({}).isRequired,
+  handleCancelLastBox: PT.func.isRequired,
+  handleInputEnter: PT.func.isRequired,
   height: PT.number,
   initialPoints: PT.arrayOf(PT.shape({
     x: PT.number,
     y: PT.number,
   })),
+  lastTag: PT.string,
   shapes: PT.arrayOf(PT.shape({
     points: PT.arrayOf(PT.shape({
       x: PT.number,
@@ -202,31 +339,43 @@ const InteractableSvg = withInteract(BaseSvg);
 
 const TappableSvg = (props) => {
   const {
-    onDoubleTap,
-    initialPoints,
-    width,
+    drawnShapesCount,
+    handleCancelLastBox,
+    handleInputEnter,
     height,
+    initialPoints,
+    lastTag,
+    onDoubleTap,
     shapes,
     tags,
+    width,
   } = props;
 
   return (
     <InteractableSvg
+      drawnShapesCount={drawnShapesCount}
       gesturable
-      onDoubleTap={onDoubleTap}
-      width={width}
+      handleCancelLastBox={handleCancelLastBox}
+      handleInputEnter={handleInputEnter}
       height={height}
       initialPoints={initialPoints}
+      lastTag={lastTag}
+      onDoubleTap={onDoubleTap}
       shapes={shapes}
       tags={tags}
+      width={width}
     />
   );
 };
 
 TappableSvg.propTypes = {
+  drawnShapesCount: PT.number.isRequired,
+  handleCancelLastBox: PT.func.isRequired,
+  handleInputEnter: PT.func.isRequired,
+  height: PT.number,
+  lastTag: PT.string,
   onDoubleTap: PT.func.isRequired,
   width: PT.number,
-  height: PT.number,
   shapes: PT.arrayOf(PT.shape({
     points: PT.arrayOf(PT.shape({
       x: PT.number,
@@ -241,6 +390,7 @@ TappableSvg.defaultProps = {
   width: 0,
   height: 0,
   shapes: [],
+  renderTaggingUi: false,
   tags: {},
 };
 
