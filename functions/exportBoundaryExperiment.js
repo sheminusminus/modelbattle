@@ -117,7 +117,7 @@ module.exports = functions.https.onCall(async (data, context) => {
     const allResultsWithBoxData = allResults.map((res) => {
       const { width, height } = res.size;
       const xVals = res.points.map(pt => pt.x);
-      const yVals = res.points.map(pt => pt.x);
+      const yVals = res.points.map(pt => pt.y);
 
       const lowestX = Math.min(...xVals);
       const highestX = Math.max(...xVals);
