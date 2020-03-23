@@ -47,7 +47,7 @@ const withInteract = (BaseComponent) => {
     interactable;
     node = React.createRef();
 
-  // componentDidMount of parent is called after all its children is mounted
+    // componentDidMount of parent is called after all its children is mounted
     componentDidMount() {
       if (!this.node.current) {
         console.error(' you should apply getRef props in the dom element');

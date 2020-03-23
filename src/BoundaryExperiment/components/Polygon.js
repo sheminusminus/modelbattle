@@ -1,38 +1,173 @@
 import React from 'react';
 
-const Polygon = () => {
+import { withInteract } from 'hoc';
+
+const Point = (props) => {
+  const { getRef, x, y, dataIndex, width } = props;
+
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      xmlnsXlink="http://www.w3.org/1999/xlink"
-      id="star-demo"
-      viewBox="0 0 400 400"
+    <g
+      data-index={dataIndex}
+      transform={`translate(${x},${y})`}
+      ref={getRef}
     >
-      <script type="text/javascript" xlinkHref="/js/star.js" />
-      <defs>
-        <circle
-          id="point-handle"
-          r="10"
-          fill="#fff"
-          fillOpacity="0.4"
-          stroke="#fff"
-          strokeWidth="4"
-        />
-      </defs>
-      <path
-        id="star"
-        fill="none"
-        stroke="#29e"
-        strokeLinejoin="round"
-        strokeWidth="20"
-        d="M260.86761704288983 219.77708763999664L297.80746598146754 334.62042786399127 200 264 102.19253401853247 334.62042786399127 139.13238295711017 219.77708763999664 41.74419568848646 148.57957213600872 162.38174385328173 148.22291236000336 200.00000000000003 33.599999999999994 237.6182561467183 148.22291236000336 358.25580431151354 148.57957213600875z"
+      <circle
+        r={width / 2}
+        x="0"
+        y="0"
+        strokeWidth="2"
+        fill="#29e"
+        stroke="#fff"
       />
-    </svg>
+    </g>
   );
 };
 
-Polygon.propTypes = {};
+Point.defaultProps = {
+  x: 0,
+  y: 0,
+  width: 8,
+  height: 8,
+  angle: 0,
+};
 
-Polygon.defaultProps = {};
+const ReactablePoint = withInteract(Point);
 
-export default Polygon;
+const DraggablePoint = ({ dataIndex, x, y, onPointMoved }) => {
+  const [coordinate, setCoordinate] = React.useState({ x, y });
+
+  return (
+    <ReactablePoint
+      dataIndex={dataIndex}
+      draggable
+      onDragMove={(event) => {
+        const { dx, dy } = event;
+        setCoordinate(prev => ({
+          x: prev.x + dx,
+          y: prev.y + dy
+        }));
+        onPointMoved(event);
+      }}
+      x={coordinate.x}
+      y={coordinate.y}
+    />
+  )
+};
+
+const Polygon = (props) => {
+  const { width, height, initialPoints } = props;
+
+  /**
+   *
+   * @type {React.MutableRefObject<SVGPolygonElement>}
+   */
+  const starRef = React.useRef(null);
+  /**
+   *
+   * @type {React.MutableRefObject<SVGElement>}
+   */
+  const rootRef = React.useRef(null);
+  const [rectPoints, setRectPoints] = React.useState([]);
+  const [points, setPoints] = React.useState([]);
+
+  React.useEffect(() => {
+    const star = starRef.current;
+
+    if (star) {
+      const nextPoints = [];
+      for (let i = 0, len = star.points.numberOfItems; i < len; i++) {
+        const point = star.points.getItem(i);
+        const circle = {
+          x: point.x,
+          y: point.y,
+          dataIndex: i,
+        };
+        nextPoints.push(circle);
+      }
+      setPoints(nextPoints);
+      setRectPoints([...nextPoints]);
+    }
+  }, []);
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        left: '8px',
+        top: '8px',
+        border: "1px solid black",
+        boxSizing: "border-box",
+        height: `${height}px`,
+        width: `${width}px`,
+      }}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+        id="star-demo"
+        viewBox={`0 0 ${width} ${height}`}
+        ref={rootRef}
+        style={{ width, height }}
+      >
+        <polygon
+          ref={starRef}
+          id="star"
+          stroke="#29e"
+          strokeWidth="6"
+          strokeLinejoin="round"
+          fill="none"
+          points={
+            rectPoints.length
+              ? rectPoints.reduce((str, pt, idx) => {
+                  return `${str}${pt.x},${pt.y}${idx < rectPoints.length - 1 ? ' ' : ''}`;
+                }, '')
+              : initialPoints
+          }
+        />
+        {points.map((pt, idx) => (
+          <DraggablePoint
+            dataIndex={pt.dataIndex}
+            dataX={pt.x}
+            dataY={pt.y}
+            key={`point-${pt.dataIndex}`}
+            x={pt.x}
+            y={pt.y}
+            onPointMoved={(event) => {
+              const { target } = event;
+              const index = parseInt(target.getAttribute('data-index'), 10);
+              const xform = target.transform.animVal[0].matrix;
+              const x = xform.e;
+              const y = xform.f;
+              const nextPoints = [...rectPoints];
+              nextPoints[index] = { x, y, dataIndex: pt.dataIndex };
+              setRectPoints((prev) => {
+                const nextPoints = [...prev];
+                nextPoints[index] = { x, y, dataIndex: pt.dataIndex };
+                return nextPoints;
+              });
+            }}
+          />
+        ))}
+      </svg>
+    </div>
+  );
+};
+
+Polygon.defaultProps = {
+  x: 0,
+  y: 0,
+  width: 150,
+  height: 150,
+  angle: 0,
+  initialPoints: '10,10 10,130 130,130 130,10',
+};
+
+const Draggable = () => {
+  const [coordinate, setCoordinate] = React.useState({ x: 0, y: 0 });
+
+  return (
+    <Polygon />
+  )
+};
+
+export default Draggable;

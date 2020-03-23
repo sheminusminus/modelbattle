@@ -16,7 +16,7 @@ import Asset from 'Asset';
 
 import { Input } from 'components';
 
-import { Polygon } from './components';
+import { Polygon, Svg } from './components';
 
 const isMobile = isMobileDevice();
 
@@ -403,59 +403,65 @@ const BoundaryExperiment = (props) => {
           shouldPreload={false}
           type="image/"
         />
-        <canvas
-          ref={(el) => {
-            canvasRef.current = el;
-            drawShapes();
-          }}
-          width={size.width}
+        <Svg
           height={size.height}
-          onMouseDown={isMobile ? undefined : handleStart}
-          onMouseMove={isMobile ? undefined : handleMove}
-          onTouchStart={isMobile ? handleStart : undefined}
-          onTouchMove={isMobile ? handleMove : undefined}
+          width={size.width}
+          shapes={shapes}
+          tags={tags}
         />
+        {/*<canvas*/}
+        {/*  ref={(el) => {*/}
+        {/*    canvasRef.current = el;*/}
+        {/*    drawShapes();*/}
+        {/*  }}*/}
+        {/*  width={size.width}*/}
+        {/*  height={size.height}*/}
+        {/*  onMouseDown={isMobile ? undefined : handleStart}*/}
+        {/*  onMouseMove={isMobile ? undefined : handleMove}*/}
+        {/*  onTouchStart={isMobile ? handleStart : undefined}*/}
+        {/*  onTouchMove={isMobile ? handleMove : undefined}*/}
+        {/*/>*/}
 
-        {renderTaggingUi && (
-          <button
-            className="close-x"
-            onClick={(evt) => {
-              evt.preventDefault();
-              evt.stopPropagation();
-              handleCancelLastBox();
-            }}
-            style={{
-              left: sortedPoints[0].x - 3,
-              top: sortedPoints[0].y - 20,
-            }}
-            type="button"
-          >
-            x
-          </button>
-        )}
+        {/*{renderTaggingUi && (*/}
+        {/*  <button*/}
+        {/*    className="close-x"*/}
+        {/*    onClick={(evt) => {*/}
+        {/*      evt.preventDefault();*/}
+        {/*      evt.stopPropagation();*/}
+        {/*      handleCancelLastBox();*/}
+        {/*    }}*/}
+        {/*    style={{*/}
+        {/*      left: sortedPoints[0].x - 3,*/}
+        {/*      top: sortedPoints[0].y - 20,*/}
+        {/*    }}*/}
+        {/*    type="button"*/}
+        {/*  >*/}
+        {/*    x*/}
+        {/*  </button>*/}
+        {/*)}*/}
 
-        {renderTaggingUi && (
-          <Input
-            autoFocus={true}
-            onChange={handleInputChange}
-            onKeyDown={async (evt) => {
-              console.log(evt.key);
-              const { key } = evt;
-              if (key === Keys.NEXT) {
-                await handleInputEnter();
-              } else if (key === Keys.BACK && inputVal === undefined) {
-                setInputVal('');
-              }
-            }}
-            ref={inputRef}
-            value={inputVal !== undefined ? inputVal : lastTag}
-            wrapperStyle={{
-              left: sortedPoints[1].x,
-              width: Math.abs(sortedPoints[1].x - sortedPoints[2].x),
-              top: sortedPoints[1].y - 3,
-            }}
-          />
-        )}
+        {/*{renderTaggingUi && (*/}
+        {/*  <Input*/}
+        {/*    autoFocus={true}*/}
+        {/*    onChange={handleInputChange}*/}
+        {/*    onKeyDown={async (evt) => {*/}
+        {/*      console.log(evt.key);*/}
+        {/*      const { key } = evt;*/}
+        {/*      if (key === Keys.NEXT) {*/}
+        {/*        await handleInputEnter();*/}
+        {/*      } else if (key === Keys.BACK && inputVal === undefined) {*/}
+        {/*        setInputVal('');*/}
+        {/*      }*/}
+        {/*    }}*/}
+        {/*    ref={inputRef}*/}
+        {/*    value={inputVal !== undefined ? inputVal : lastTag}*/}
+        {/*    wrapperStyle={{*/}
+        {/*      left: sortedPoints[1].x,*/}
+        {/*      width: Math.abs(sortedPoints[1].x - sortedPoints[2].x),*/}
+        {/*      top: sortedPoints[1].y - 3,*/}
+        {/*    }}*/}
+        {/*  />*/}
+        {/*)}*/}
       </div>
     </React.Fragment>
   );
