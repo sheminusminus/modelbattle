@@ -55,6 +55,7 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
   const [size, setSize] = React.useState({ width: 0, height: 0 });
   const [drawnShapes, setDrawnShapes] = React.useState(0);
   const [lastTag, setLastTag] = React.useState(window.lastTag || '');
+  const [inputVal, setInputVal] = React.useState(undefined);
 
   const [currentShapes, setCurrentShapes] = React.useState([]);
 
@@ -76,7 +77,7 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
   }, [currentShapes, drawnShapes]);
 
   const handleInputEnter = React.useCallback(async (event, tagColor) => {
-    const val = event.target.value || lastTag;
+    const val = inputVal || lastTag;
     window.lastTag = val;
 
     if (val) {
@@ -92,7 +93,7 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
       onDrawEnd(shapeData);
       onRefreshTags();
     }
-  }, [currentShapes, experimentId, lastTag, onDrawEnd, onRefreshTags, shapes]);
+  }, [currentShapes, experimentId, inputVal, lastTag, onDrawEnd, onRefreshTags, shapes]);
 
   const handleImageLoad = React.useCallback((evt) => {
     const { width, height } = evt.target;
@@ -241,6 +242,8 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
             handleCancelLastBox={handleCancelLastBox}
             handleInputEnter={handleInputEnter}
             height={size.height}
+            inputVal={inputVal}
+            setInputVal={setInputVal}
             lastTag={lastTag}
             onDoubleTap={handleAddNewRect}
             shapes={[...shapes, ...currentShapes]}

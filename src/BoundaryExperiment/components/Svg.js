@@ -41,7 +41,9 @@ const BaseSvg = (props) => {
     handleCancelLastBox,
     handleInputEnter,
     height,
+    inputVal,
     lastTag,
+    setInputVal,
     shapes,
     tags,
     width,
@@ -52,7 +54,6 @@ const BaseSvg = (props) => {
    */
   const inputRef = React.useRef();
   const savedShapesCount = React.useRef(shapes.length);
-  const [inputVal, setInputVal] = React.useState(undefined);
   const [drawShapes, setDrawShapes] = React.useState(shapes);
   const [activePoint, setActivePoint] = React.useState({ shape: null, point: null });
   const [nextTagColor, setNextTagColor] = React.useState(randomColor());
@@ -296,7 +297,7 @@ const BaseSvg = (props) => {
           <button
             className="tagging-btn gen-color"
             onClick={(evt) => {
-              console.log('redo random color');
+              setNextTagColor(randomColor());
             }}
             style={{
               left: closeBtnX + 30,
@@ -380,8 +381,10 @@ const TappableSvg = (props) => {
     handleInputEnter,
     height,
     initialPoints,
+    inputVal,
     lastTag,
     onDoubleTap,
+    setInputVal,
     shapes,
     tags,
     width,
@@ -395,8 +398,10 @@ const TappableSvg = (props) => {
       handleInputEnter={handleInputEnter}
       height={height}
       initialPoints={initialPoints}
+      inputVal={inputVal}
       lastTag={lastTag}
       onDoubleTap={onDoubleTap}
+      setInputVal={setInputVal}
       shapes={shapes}
       tags={tags}
       width={width}
