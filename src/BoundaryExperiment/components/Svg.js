@@ -3,6 +3,7 @@ import PT from 'prop-types';
 
 import { Keys } from 'const';
 import { withInteract } from 'hoc';
+import { usePrevious } from 'hooks';
 
 import Point from './Point';
 import Rect from './Rect';
@@ -54,7 +55,13 @@ const BaseSvg = (props) => {
   const [drawShapes, setDrawShapes] = React.useState(shapes);
   const [activePoint, setActivePoint] = React.useState({ shape: null, point: null });
 
+  const previousShapes = usePrevious(shapes, []);
+
   React.useEffect(() => {
+    if (!previousShapes.length && shapes.length) {
+      setDrawShapes(shapes);
+    }
+
     if (shapes.length === drawShapes.length - 1) {
       setDrawShapes((prev) => {
         const nextShapes = [...prev];
@@ -66,7 +73,7 @@ const BaseSvg = (props) => {
         return [...prev, shapes[shapes.length - 1]];
       });
     }
-  }, [drawShapes.length, shapes]);
+  }, [drawShapes.length, previousShapes.length, shapes]);
 
   const handleInputChange = React.useCallback((evt) => {
     const { value } = evt.target;
@@ -126,12 +133,6 @@ const BaseSvg = (props) => {
   const deactivatePoint = React.useCallback(() => {
     setActivePoint({ shape: null, point: null });
   }, []);
-
-  const deactivatePointOnEsc = React.useCallback((event) => {
-    if (event.key === Keys.ESC) {
-      deactivatePoint();
-    }
-  }, [deactivatePoint]);
 
   const onPointHeld = React.useCallback((event, shapeIndex, ptIndex, isActive) => {
     if (isActive) {
@@ -194,7 +195,7 @@ const BaseSvg = (props) => {
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         viewBox={`0 0 ${width} ${height}`}
-        style={{ width, height }}
+        style={{ width, height, overflow: 'visible' }}
         ref={getRef}
         onDoubleClick={(event) => {
           if (renderTaggingUi) {

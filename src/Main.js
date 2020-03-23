@@ -50,6 +50,9 @@ const Main = (props) => {
     user,
   } = props;
 
+  /**
+   * @type {React.MutableRefObject<null|{ resetShapes: Function }>}
+   */
   const boundaryRef = React.useRef(null);
   const [isAFirst, setIsAFirst] = React.useState(coinFlip());
   const [totals, setTotals] = React.useState({ a: 0, b: 0, none: 0 });
@@ -110,85 +113,106 @@ const Main = (props) => {
     setSubmitting(false);
   }, [activeExperiment, boundaryItems.length]);
 
-  const onSubmit = React.useCallback(async ({ overrideSelected, advanceBy = 1 } = {}) => {
-    const { mode: expMode, id: expName } = activeExperiment;
+  const onSubmit = React.useCallback(async ({ overrideSelected } = {}) => {
+    const { id: expName } = activeExperiment;
     const { uid } = firebase.auth().currentUser;
 
     if (!submitting) {
-      if (expMode === ExperimentMode.AB) {
-        const selection = overrideSelected || selected[0];
+      const selection = overrideSelected || selected[0];
 
-        if (expName) {
-          setSubmitting(true);
+      if (expName) {
+        setSubmitting(true);
 
-          const isASelected = selection && selection.vote === Vote.A;
-          const isBSelected = selection && selection.vote === Vote.B;
-          const isNoneSelected = !selection || selection.vote === Vote.NONE;
+        const isASelected = selection && selection.vote === Vote.A;
+        const isBSelected = selection && selection.vote === Vote.B;
+        const isNoneSelected = !selection || selection.vote === Vote.NONE;
 
-          const nextTotals = {
-            a: isASelected ? totals.a + 1 : totals.a,
-            b: isBSelected ? totals.b + 1 : totals.b,
-            none: isNoneSelected ? totals.none + 1 : totals.none,
-          };
+        const nextTotals = {
+          a: isASelected ? totals.a + 1 : totals.a,
+          b: isBSelected ? totals.b + 1 : totals.b,
+          none: isNoneSelected ? totals.none + 1 : totals.none,
+        };
 
-          setTotals(nextTotals);
+        setTotals(nextTotals);
 
-          localStorage.setItem(`totals:${expName}`, JSON.stringify(nextTotals));
+        localStorage.setItem(`totals:${expName}`, JSON.stringify(nextTotals));
 
-          setSelected([]);
+        setSelected([]);
 
-          const data = isNoneSelected ? {
-            a: urlsA[0],
-            b: urlsB[0],
-            vote: Vote.NONE,
-          } : selection;
+        const data = isNoneSelected ? {
+          a: urlsA[0],
+          b: urlsB[0],
+          vote: Vote.NONE,
+        } : selection;
 
-          const now = new Date();
-          const loadedMillis = (new Date(loadedTime)).valueOf();
-          const submittedMillis = now.valueOf();
+        const now = new Date();
+        const loadedMillis = (new Date(loadedTime)).valueOf();
+        const submittedMillis = now.valueOf();
 
-          await db.ref('results').child(expName).child(uid).push({
-            ...data,
-            submitted: now.toUTCString(),
-            duration_ms: submittedMillis - loadedMillis,
-          });
+        await db.ref('results').child(expName).child(uid).push({
+          ...data,
+          submitted: now.toUTCString(),
+          duration_ms: submittedMillis - loadedMillis,
+        });
 
-          await loadImages();
+        await loadImages();
 
-          setSubmitting(false);
-          setLoadedTime((new Date()).toUTCString());
-        }
-      } else if (expMode === ExperimentMode.BOUNDARY) {
-        if (boundaryShapes && boundaryShapes.length) {
-          const now = new Date();
-          const data = boundaryShapes.map((shape) => ({
-            ...shape,
-            submitted: now.toUTCString(),
-          }));
-          await db.ref('results').child(expName).child(uid).push(data);
-        }
-
-        let nextIndex = boundaryIndex + advanceBy;
-        while ( nextIndex < 0 ) {
-          nextIndex += boundaryItems.length;
-        }
-        while ( nextIndex > boundaryItems.length ) {
-          nextIndex -= boundaryItems.length;
-        }
-        if (advanceBy < 0) {
-          console.log('Fetching...')
-          onGetExperimentMeta();
-        }
-
-        setBoundaryIndex(nextIndex);
-        setBoundaryShapes([]);
-
-        if (boundaryRef.current) {
-          boundaryRef.current.resetShapes();
-        }
+        setSubmitting(false);
+        setLoadedTime((new Date()).toUTCString());
       }
     }
-  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryShapes, boundaryIndex, boundaryItems.length]);
+  }, [
+    activeExperiment,
+    submitting,
+    selected,
+    totals,
+    urlsA,
+    urlsB,
+    loadedTime,
+    loadImages,
+  ]);
+
+  const onSubmitBoundary = React.useCallback(async ({ advanceBy = 1 } = {}) => {
+    const { id: expName } = activeExperiment;
+    const { uid } = firebase.auth().currentUser;
+
+    if (!submitting) {
+      if (boundaryShapes && boundaryShapes.length) {
+        const now = new Date();
+        const data = boundaryShapes.map((shape) => ({
+          ...shape,
+          url: boundaryItems[boundaryIndex].url,
+          submitted: now.toUTCString(),
+        }));
+        await db.ref('results').child(expName).child(uid).push(data);
+      }
+
+      let nextIndex = boundaryIndex + advanceBy;
+      while ( nextIndex < 0 ) {
+        nextIndex += boundaryItems.length;
+      }
+      while ( nextIndex > boundaryItems.length ) {
+        nextIndex -= boundaryItems.length;
+      }
+      if (advanceBy < 0) {
+        console.log('Fetching...');
+        onGetExperimentMeta();
+      }
+
+      setBoundaryIndex(nextIndex);
+      setBoundaryShapes([]);
+      if (boundaryRef && boundaryRef.current) {
+        boundaryRef.current.resetShapes(boundaryItems[nextIndex]);
+      }
+    }
+  }, [
+    activeExperiment,
+    submitting,
+    boundaryShapes,
+    boundaryIndex,
+    boundaryItems,
+    onGetExperimentMeta,
+  ]);
 
   const onSelection = ({ index, whichImg, urls }) => {
     if (selected[index] && selected[index].vote === whichImg) {
@@ -347,6 +371,7 @@ const Main = (props) => {
     } else if (mode === ExperimentMode.BOUNDARY) {
       contents = (
         <BoundaryExperiment
+          ref={boundaryRef}
           items={boundaryItems.slice(boundaryIndex)}
           key={`boundaryExp-${boundaryIndex}`}
           onAdvanceByValue={boundaryAdvanceBy}
@@ -359,7 +384,7 @@ const Main = (props) => {
           onImageLoad={() => {
             setLoadedTime((new Date()).toUTCString());
           }}
-          onSubmit={onSubmit}
+          onSubmit={onSubmitBoundary}
           shapes={shapes.filter((shape) => {
             const item = boundaryItems[boundaryIndex];
             return item && item.url === shape.url;
@@ -384,7 +409,13 @@ const Main = (props) => {
           <LegendHotKeys />
 
           <TaglineAction
-            handleAction={() => onSubmit()}
+            handleAction={() => {
+              if (activeExperiment.mode === ExperimentMode.BOUNDARY) {
+                onSubmitBoundary();
+              } else {
+                onSubmit();
+              }
+            }}
             isLoading={submitting}
             userDidAction={Boolean(
               (activeExperiment && activeExperiment.mode === ExperimentMode.AB && selected && selected.length > 0)

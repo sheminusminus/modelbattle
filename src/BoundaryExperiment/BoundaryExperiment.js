@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 
 import { addNewTag } from 'services/firebase';
-
 import * as selectors from 'selectors'
 
 import { refreshExperimentTags, exportBoundaryExperiment } from 'types';
@@ -34,7 +33,7 @@ const getBoundingPoints = (locations) => {
   return [];
 };
 
-const BoundaryExperiment = (props) => {
+const BoundaryExperiment = React.forwardRef((props, ref) => {
   const {
     experimentId,
     items,
@@ -57,7 +56,17 @@ const BoundaryExperiment = (props) => {
   const [drawnShapes, setDrawnShapes] = React.useState(0);
   const [lastTag, setLastTag] = React.useState(window.lastTag || '');
 
-  const [currentShapes, setCurrentShapes] = React.useState(shapes);
+  const [currentShapes, setCurrentShapes] = React.useState([]);
+
+  React.useImperativeHandle(ref, () => ({
+    resetShapes: (nextItem) => {
+      setDrawnShapes(0);
+      const nextShapes = nextItem
+        ? shapes.filter(shape => shape.url === nextItem.url)
+        : [];
+      setCurrentShapes(nextShapes);
+    },
+  }));
 
   const handleCancelLastBox = React.useCallback(() => {
     const nextShapes = [...currentShapes];
@@ -72,7 +81,7 @@ const BoundaryExperiment = (props) => {
 
     if (val) {
       const tagKey = await addNewTag(experimentId, val);
-      const saveShapes = [...currentShapes.slice(shapes.length)];
+      const saveShapes = [...currentShapes];
       const lastIdx = saveShapes.length - 1;
       const shapeData = saveShapes[lastIdx];
       shapeData.tag = tagKey;
@@ -94,7 +103,7 @@ const BoundaryExperiment = (props) => {
     event.preventDefault();
     setCurrentShapes((prev) => {
       const lastShape = prev[prev.length - 1];
-      if (!lastShape.tag) {
+      if (lastShape && !lastShape.tag) {
         return prev;
       }
       const { clientX, clientY } = event;
@@ -105,10 +114,9 @@ const BoundaryExperiment = (props) => {
       return [...prev, {
         points: boxPoints,
         size,
-        url: shapes[0].url,
       }];
     });
-  }, [shapes, size]);
+  }, [size]);
 
   return (
     <React.Fragment>
@@ -233,7 +241,7 @@ const BoundaryExperiment = (props) => {
             height={size.height}
             lastTag={lastTag}
             onDoubleTap={handleAddNewRect}
-            shapes={currentShapes}
+            shapes={[...shapes, ...currentShapes]}
             tags={tags}
             width={size.width}
           />
@@ -241,7 +249,7 @@ const BoundaryExperiment = (props) => {
       </div>
     </React.Fragment>
   );
-};
+});
 
 BoundaryExperiment.defaultProps = {
   shapes: [],
@@ -250,7 +258,6 @@ BoundaryExperiment.defaultProps = {
 
 const mapStateToProps = createStructuredSelector({
   experimentId: selectors.getExperimentsActiveId,
-  shapes: selectors.getExperimentShapesForActiveIdWithSortedPoints,
   tags: selectors.getExperimentTagsForActiveId,
 });
 
@@ -259,4 +266,9 @@ const mapDispatchToProps = {
   onExportBoundaryExperiment: exportBoundaryExperiment.trigger,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(BoundaryExperiment);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  null,
+  { forwardRef: true },
+)(BoundaryExperiment);
