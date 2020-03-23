@@ -1,6 +1,7 @@
 import React from 'react';
 import PT from 'prop-types';
 
+import { Keys } from 'const';
 import { withInteract } from 'hoc';
 
 import Point from './Point';
@@ -87,13 +88,23 @@ const BaseSvg = (props) => {
     }
   }, [onRectScaled, onSinglePointMoved]);
 
+  const deactivatePoint = React.useCallback(() => {
+    setActivePoint({ shape: null, point: null });
+  }, []);
+
+  const deactivatePointOnEsc = React.useCallback((event) => {
+    if (event.key === Keys.ESC) {
+      deactivatePoint();
+    }
+  }, [deactivatePoint]);
+
   const onPointHeld = React.useCallback((event, shapeIndex, ptIndex, isActive) => {
     if (isActive) {
-      setActivePoint({ shape: null, point: null });
+      deactivatePoint();
     } else {
       setActivePoint({ shape: shapeIndex, point: ptIndex });
     }
-  }, []);
+  }, [deactivatePoint]);
 
   const pointHeldHandler = React.useCallback((event) => {
     const {
@@ -104,6 +115,14 @@ const BaseSvg = (props) => {
 
     onPointHeld(event, dataShape, dataPoint, dataActive);
   }, [onPointHeld]);
+
+  React.useEffect(() => {
+    window.addEventListener('keydown', deactivatePointOnEsc);
+
+    return () => {
+      window.removeEventListener('keydown', deactivatePointOnEsc);
+    };
+  }, [deactivatePointOnEsc]);
 
   return (
     <svg
