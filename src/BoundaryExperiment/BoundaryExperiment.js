@@ -52,6 +52,10 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
    * @type {React.MutableRefObject<HTMLInputElement>}
    */
   const svgWrapRef = React.useRef(null);
+  /**
+   * @type {React.MutableRefObject<null|HTMLImageElement>}
+   */
+  const imgRef = React.useRef(null);
   const [size, setSize] = React.useState({ width: 0, height: 0 });
   const [drawnShapes, setDrawnShapes] = React.useState(0);
   const [lastTag, setLastTag] = React.useState(window.lastTag || '');
@@ -113,13 +117,19 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
       const tapPoint = {x: clientX - bbox.x, y: clientY - bbox.y };
       const boxCorner = { x: tapPoint.x + 120, y: tapPoint.y + 120 };
       const boxPoints = getBoundingPoints([tapPoint, boxCorner]);
+      const size = imgRef.current
+        ? {
+          height: imgRef.current.height,
+          width: imgRef.current.width,
+        }
+        : { width: 0, height: 0 };
       return [...prev, {
         points: boxPoints,
         size,
         url: lastShape ? lastShape.url : undefined,
       }];
     });
-  }, [size]);
+  }, []);
 
   return (
     <React.Fragment>
@@ -208,6 +218,7 @@ const BoundaryExperiment = React.forwardRef((props, ref) => {
         }}
       >
         <Asset
+          ref={imgRef}
           assets={items.map((item => item.url))}
           data={{
             onLoad: (evt) => {

@@ -95,7 +95,7 @@ export const EggHuntButton = ({ backUrl }) => {
   );
 };
 
-export const Image = (props) => {
+export const Image = React.forwardRef((props, ref) => {
   const {
     className,
     idx,
@@ -191,6 +191,7 @@ export const Image = (props) => {
       })}
     >
       <img
+        ref={ref}
         tabIndex="0"
         className={className}
         src={url}
@@ -202,7 +203,7 @@ export const Image = (props) => {
       />
     </div>
   );
-};
+});
 
 export const Input = React.forwardRef((props, ref) => {
   const {

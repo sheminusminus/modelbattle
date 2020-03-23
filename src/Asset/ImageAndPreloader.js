@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Image } from '../components';
 
-const ImageAndPreloader = (props) => {
+const ImageAndPreloader = React.forwardRef((props, ref) => {
   const { assets, shouldPreload, ...rest } = props;
 
   const [activeAsset, ...preloadAssets] = assets;
@@ -20,10 +20,10 @@ const ImageAndPreloader = (props) => {
       ))}
 
       {!!activeAsset && (
-        <Image {...rest} url={activeAsset} />
+        <Image {...rest} ref={ref} url={activeAsset} />
       )}
     </React.Fragment>
   );
-};
+});
 
 export default ImageAndPreloader;
