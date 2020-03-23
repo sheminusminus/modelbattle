@@ -7,116 +7,16 @@ import Point from './Point';
 import Rect from './Rect';
 import Text from './Text';
 
-/**
- * @param {Object} options
- * @param {Point[]} options.points
- * @param {number} options.stablePtIndex
- * @param {Point} options.stablePoint
- * @param {number} options.dx
- * @param {number} options.dy
- * @return {Point[]}
- */
-const mapPointsOnScale = ({
-  points,
-  stablePtIndex,
-  stablePoint,
-  dx,
-  dy,
-}) => points.map((pt, idx) => {
-  if (idx === stablePtIndex) {
-    return pt;
-  }
+import {
+  makeShapePointsStrAccum,
+  getChildKey,
+  getDataAttributesFromTarget,
+  getNextShapesOnPointMove,
+  getNextShapesOnScale,
+  isPtActive,
+} from './svgHelpers';
 
-  if (pt.x === stablePoint.x) {
-    return {
-      x: pt.x,
-      y: pt.y + dy,
-    };
-  }
-
-  if (pt.y === stablePoint.y) {
-    return {
-      x: pt.x + dx,
-      y: pt.y,
-    };
-  }
-
-  return {
-    x: pt.x + dx,
-    y: pt.y + dy,
-  };
-});
-
-/**
- * @param {Object} options
- * @param {number} options.dx
- * @param {number} options.dy
- * @param {Shape[]} options.prev
- * @param {number} options.ptIndex
- * @param {number} options.shapeIndex
- * @return {Shape[]}
- */
-const getNextShapesOnScale = (options) => {
-  const {
-    dx,
-    dy,
-    prev,
-    ptIndex,
-    shapeIndex,
-  } = options;
-
-  const nextDrawShapes = [...prev];
-
-  const points = prev[shapeIndex].points;
-  const halfPointsCount = points.length / 2;
-
-  let stablePtIndex = ptIndex - halfPointsCount;
-  if (stablePtIndex < 0) {
-    stablePtIndex = points.length + stablePtIndex;
-  }
-
-  const stablePoint = points[stablePtIndex];
-
-  nextDrawShapes[shapeIndex].points = mapPointsOnScale({
-    points,
-    stablePoint,
-    stablePtIndex,
-    dx,
-    dy,
-  });
-
-  return nextDrawShapes;
-};
-
-/**
- * @param {number} shapeIndex
- * @param {number} [ptIndex]
- * @return {string}
- */
-const getChildKey = (shapeIndex, ptIndex) => {
-  const key = `shape-${shapeIndex}`;
-  if (ptIndex) {
-    return `${key}-pt-${ptIndex}`;
-  }
-  return key;
-};
-
-const makeShapePointsStrAccum = (length) => (str, pt, idx) => {
-  return `${str}${pt.x},${pt.y}${idx < length - 1 ? ' ' : ''}`;
-};
-
-const getDataAttributesFromTarget = (target) => {
-  const dataActive = target.getAttribute('data-active');
-  const dataPoint = parseInt(target.getAttribute('data-point'), 10);
-  const dataShape = parseInt(target.getAttribute('data-shape'), 10);
-  return {
-    dataActive,
-    dataPoint,
-    dataShape,
-  };
-};
-
-const Svg = (props) => {
+const BaseSvg = (props) => {
   const {
     /**
      * @type {Object}
@@ -153,14 +53,15 @@ const Svg = (props) => {
 
   const onSinglePointMoved = React.useCallback((event, shapeIndex, ptIndex) => {
     const { dx, dy } = event;
+
     setDrawShapes((prev) => {
-      const nextDrawShapes = [...prev];
-      const { x, y } = prev[shapeIndex].points[ptIndex];
-      nextDrawShapes[shapeIndex].points[ptIndex] = {
-        x: x + dx,
-        y: y + dy,
-      };
-      return nextDrawShapes;
+      return getNextShapesOnPointMove({
+        dx,
+        dy,
+        prev,
+        ptIndex,
+        shapeIndex,
+      });
     });
   }, []);
 
@@ -184,7 +85,7 @@ const Svg = (props) => {
       dataPoint,
       dataShape,
     } = getDataAttributesFromTarget(event.target);
-    if (dataActive === 'true') {
+    if (dataActive) {
       onSinglePointMoved(event, dataShape, dataPoint);
     } else {
       onRectScaled(event, dataShape, dataPoint);
@@ -206,7 +107,7 @@ const Svg = (props) => {
       dataShape,
     } = getDataAttributesFromTarget(event.target);
 
-    onPointHeld(event, dataShape, dataPoint, dataActive === 'true');
+    onPointHeld(event, dataShape, dataPoint, dataActive);
   }, [onPointHeld]);
 
   return (
@@ -237,7 +138,7 @@ const Svg = (props) => {
                 y={pt.y}
                 pointIndex={ptIndex}
                 shapeIndex={shapeIndex}
-                isActive={shapeIndex === activePoint.shape && ptIndex === activePoint.point}
+                isActive={isPtActive(shapeIndex, ptIndex, activePoint)}
               />
             ))}
 
@@ -257,14 +158,13 @@ const Svg = (props) => {
   );
 };
 
-Svg.propTypes = {
+BaseSvg.propTypes = {
   getRef: PT.shape().isRequired,
+  height: PT.number,
   initialPoints: PT.arrayOf(PT.shape({
     x: PT.number,
     y: PT.number,
   })),
-  width: PT.number,
-  height: PT.number,
   shapes: PT.arrayOf(PT.shape({
     points: PT.arrayOf(PT.shape({
       x: PT.number,
@@ -273,17 +173,18 @@ Svg.propTypes = {
     tag: PT.string,
   })),
   tags: PT.shape(),
+  width: PT.number,
 };
 
-Svg.defaultProps = {
-  initialPoints: undefined,
-  width: 0,
+BaseSvg.defaultProps = {
   height: 0,
+  initialPoints: undefined,
   shapes: [],
   tags: {},
+  width: 0,
 };
 
-const InteractableSvg = withInteract(Svg);
+const InteractableSvg = withInteract(BaseSvg);
 
 const TappableSvg = (props) => {
   const {
@@ -329,4 +230,5 @@ TappableSvg.defaultProps = {
   tags: {},
 };
 
+export { BaseSvg };
 export default TappableSvg;

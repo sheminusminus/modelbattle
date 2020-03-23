@@ -1,2 +1,2 @@
 export { default as Polygon } from './Polygon';
-export { default as Svg } from './Svg';
+export { default as Svg, BaseSvg } from './Svg';

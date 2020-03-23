@@ -67,3 +67,5 @@ export const createDownloadFile = (filename, text) => {
 
   document.body.removeChild(element);
 };
+
+export const strToBool = (val) => Boolean(val === 'true');

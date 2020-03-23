@@ -18,3 +18,12 @@
  * @property {string} tag
  * @property {Size} size
  */
+
+/**
+ * @typedef {Object} GetShapesOptions
+ * @property {number} dx
+ * @property {number} dy
+ * @property {Shape[]} prev
+ * @property {number} ptIndex
+ * @property {number} shapeIndex
+ */
