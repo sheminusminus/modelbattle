@@ -12,6 +12,7 @@ const Text = (props) => {
         stroke: color,
         strokeWidth: '1px',
         fontSize: '16px',
+        userSelect: 'none',
       }}
     >
       {children}

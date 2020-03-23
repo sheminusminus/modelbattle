@@ -6,7 +6,6 @@ const Rect = React.forwardRef((props, ref) => {
   return (
     <polygon
       ref={ref}
-      id="star"
       stroke={color}
       strokeWidth="6"
       strokeLinejoin="round"
