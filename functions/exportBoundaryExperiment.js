@@ -26,9 +26,11 @@ module.exports = functions.https.onCall(async (data, context) => {
 
   try {
 
+    /*
     if (!hasAuth(context.auth)) {
       throw new functions.https.HttpsError('unauthenticated', 'Authentication is required');
     }
+    */
 
     const allResults = [];
 
