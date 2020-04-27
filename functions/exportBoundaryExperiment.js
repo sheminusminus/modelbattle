@@ -26,9 +26,11 @@ module.exports = functions.https.onCall(async (data, context) => {
 
   try {
 
+    /*
     if (!hasAuth(context.auth)) {
       throw new functions.https.HttpsError('unauthenticated', 'Authentication is required');
     }
+    */
 
     const allResults = [];
 
@@ -115,7 +117,7 @@ module.exports = functions.https.onCall(async (data, context) => {
     const allResultsWithBoxData = allResults.map((res) => {
       const { width, height } = res.size;
       const xVals = res.points.map(pt => pt.x);
-      const yVals = res.points.map(pt => pt.x);
+      const yVals = res.points.map(pt => pt.y);
 
       const lowestX = Math.min(...xVals);
       const highestX = Math.max(...xVals);
