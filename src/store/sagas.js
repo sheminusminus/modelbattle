@@ -45,14 +45,10 @@ export function* listExperimentsTrigger() {
 
       const result = yield call(api.getExperiments);
       const userMetaResult = yield call(api.getUserMeta);
-      // get experiment results
-      // const test = yield call(api.getUserExperimentResultsForUrl, 'default', "https://firebasestorage.googleapis.com/v0/b/experiments-573d7.appspot.com/o/a%2Fdragonflies.jpg?alt=media&token=f8c5b0b6-e670-4b2c-a2ff-c3e0c6e6db62");
-      // console.log(test);
-      let experiments = result;
 
       if (result && userMetaResult) {
         const experimentIds = Object.keys(result);
-        experiments = experimentIds.reduce((obj, id) => {
+        const experiments = experimentIds.reduce((obj, id) => {
           const mainData = result[id];
           const userData = userMetaResult[id];
 
@@ -74,11 +70,14 @@ export function* listExperimentsTrigger() {
             [id]: mainData,
           };
         }, {});
-      }
 
-      yield put(listExperiments.success({ experiments }));
+        yield put(listExperiments.success({ experiments }));
+      }
     }
+
+    yield put(listExperiments.fulfill());
   } catch(err) {
+    console.log(err);
     yield put(listExperiments.failure(err));
   }
 }

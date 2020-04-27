@@ -30,7 +30,8 @@
   },
   "scripts": {
     "deploy": "yarn build && firebase deploy",
-    "start": "react-scripts start",
+    "start": "APP_ENV=production react-scripts start",
+    "dev": "APP_ENV=development react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

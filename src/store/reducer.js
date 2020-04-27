@@ -54,6 +54,7 @@ const experiments = (state = initialState[experimentsName], action = {}) => {
         isFetching: false,
       };
 
+    case listExperiments.FULFILL:
     case listExperiments.FAILURE:
       return {
         ...state,

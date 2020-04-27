@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "experiments-573d7"
+  },
+  "targets": {
+    "experiments-573d7": {
+      "hosting": {
+        "exp-dev": [
+          "experiments-573d7-dev"
+        ],
+        "exp-prod": [
+          "experiments-573d7"
+        ]
+      }
+    }
   }
 }
