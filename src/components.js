@@ -190,6 +190,7 @@ export const Image = (props) => {
         [wrapperClassName]: !!wrapperClassName,
       })}
     >
+    <center>
       <img
         tabIndex="0"
         className={className}
@@ -200,6 +201,7 @@ export const Image = (props) => {
         onKeyDown={handleKeyDown}
         onClick={handleClick}
       />
+    </center>
     </div>
   );
 };
