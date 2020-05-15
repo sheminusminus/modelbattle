@@ -49,10 +49,10 @@ export const getFile = async (url) => {
   return text
 };
 
-export const getList = async (path) => {
-  if (path.endsWith(".txt")) {
+export const getList = async (path, shouldShuffle) => {
+  if (path.split('?')[0].endsWith(".txt")) {
     const result = await getFile(path);
-    const urls = getLines(result);
+    const urls = shouldShuffle ? shuffle(getLines(result)) : getLines(result);
     const itemData = [];
     for (const url of urls) {
       if (url.toLowerCase().endsWith('.jpg')) {
@@ -121,16 +121,18 @@ export const listImages = async (expName) => {
     const {
       a_dir: dirA,
       b_dir: dirB,
+      // a_shuffle: shuffleA,
+      // b_shuffle: shuffleB,
     } = data;
 
-    const itemsA = await getList(dirA);
-    const itemsB = await getList(dirB);
+    const itemsA = await getList(dirA, true);
+    const itemsB = await getList(dirB, true);
 
-    return { a: [shuffle(itemsA)[0].url], b: [shuffle(itemsB)[0].url], skipText, tagline };
+    return { a: [itemsA[0].url], b: [itemsB[0].url], skipText, tagline };
   } else if (mode === ExperimentMode.BOUNDARY) {
-    const { dir } = data;
+    const { dir, shuffle: shouldShuffle } = data;
 
-    const items = await getList(dir);
+    const items = await getList(dir, shouldShuffle);
 
     return { items, skipText, tagline };
   }
