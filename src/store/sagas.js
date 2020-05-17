@@ -46,11 +46,11 @@ export function* listExperimentsTrigger() {
       const result = yield call(api.getExperiments);
       const userMetaResult = yield call(api.getUserMeta);
 
-      if (result && userMetaResult) {
+      if (result) {
         const experimentIds = Object.keys(result);
         const experiments = experimentIds.reduce((obj, id) => {
           const mainData = result[id];
-          const userData = userMetaResult[id];
+          const userData = (userMetaResult || {})[id];
 
           if (userData && userData.tags) {
             return {
