@@ -41,7 +41,7 @@ module.exports = functions.https.onCall(async (data, context) => {
     const { tags: experimentTags } = metaData;
 
     const userMetaDataByUserId = await valFromQuery(
-      admin.database().ref('user_meta').orderByChild('default/tags').startAt(true),
+      admin.database().ref('user_meta').orderByChild(`${experimentId}/tags`).startAt(true),
     );
 
     console.log('userMetaDataByUserId', userMetaDataByUserId);
