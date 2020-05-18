@@ -97,7 +97,7 @@ const refetchExperiment = async (experimentId) => {
 };
 
 const grabExperiment = async (experimentId) => {
-  const promise = refetchExperiment(experimentId); // no await; kick off in bg
+  refetchExperiment(experimentId); // no await; kick off in bg
   const cache = await caches.open('experimentResults');
   const res = await cache.match(experimentId);
   if (res != null) {

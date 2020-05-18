@@ -262,7 +262,7 @@ export const LegendKey = ({ children, className }) => (
 );
 
 export const LegendHotKeys = ({ experiment }) => (
-  experiment && experiment.mode == ExperimentMode.BOUNDARY ?
+  experiment && experiment.mode === ExperimentMode.BOUNDARY ?
     <div className="legend hide-mobile">
       <LegendDesc>Hotkeys: </LegendDesc>
 
@@ -416,7 +416,7 @@ export const TaglineAction = React.forwardRef((props, ref) => {
           {!isLoading && !userDidAction && skipText}
         </button>
 
-        {getUrl ? <a href={getUrl()} target={"_blank"}>{
+        {getUrl ? <a href={getUrl()} target="_blank" rel="noopener noreferrer">{
           <button
             ref={ref}
             className="btn done"

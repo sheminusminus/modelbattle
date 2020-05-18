@@ -71,10 +71,12 @@ const underline = (ctx, text, x, y) => {
   switch (ctx.textAlign) {
     case "center" : x -= (metrics.width / 2) ; break;
     case "right"  : x -= metrics.width       ; break;
+    default: break;
   }
   switch (ctx.textBaseline) {
     case "top"    : y += (fontSize)     ; break;
     case "middle" : y += (fontSize / 2) ; break;
+    default: break;
   }
   ctx.save();
   ctx.beginPath();
@@ -169,7 +171,6 @@ const BoundaryExperiment = (props) => {
   const {
     experimentId,
     items,
-    onAdvanceByValue,
     onDrawEnd,
     onDrawStart,
     onExportBoundaryExperiment,
@@ -325,7 +326,7 @@ const BoundaryExperiment = (props) => {
       }
       setCrosshair([loc]);
     }
-  }, [isDraw, locations, crosshair]);
+  }, [isDraw, locations]);
 
   if (!items.length) {
     return null;
