@@ -17,6 +17,7 @@ export const Keys = {
   ADV: 'd',
   NEXT: 'Enter',
   ESC: 'Escape',
+  SPC: 32,
   BACK: 'Backspace',
 };
 

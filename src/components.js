@@ -150,14 +150,14 @@ export const Image = (props) => {
     }
   };
 
-  return (url.endsWith('mp4') || url.endsWith('.webm') || url.endsWith('.mpg') || url.endsWith('.mpeg') || url.endsWith('.wmv')) ? (
+  return (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mpg') || url.endsWith('.mpeg') || url.endsWith('.wmv')) ? (
     <div
       className={classNames({
-        'img-bg': true,
         [wrapperClassName]: !!wrapperClassName,
       })}
     >
       <video
+        id={"playa"}
         tabIndex="0"
         className={className}
         src={url}
@@ -173,7 +173,6 @@ export const Image = (props) => {
   ) : (url.endsWith('mp3') || url.endsWith('.wav')) ? (
     <div
       className={classNames({
-        'img-bg': true,
         [wrapperClassName]: !!wrapperClassName,
       })}
     >
@@ -251,7 +250,7 @@ export const LegendDesc = ({ children }) => (
 
 export const LegendEntry = ({ descText, keyClassName, keyText }) => (
   <span>
-    <LegendKey className={keyClassName}>{keyText}</LegendKey> <LegendDesc>{descText}</LegendDesc>
+    <LegendKey className={keyClassName}>{keyText}</LegendKey>{keyText && ' - '}<LegendDesc>{descText}</LegendDesc>
   </span>
 );
 
@@ -266,11 +265,36 @@ export const LegendHotKeys = ({ experiment }) => (
     <div className="legend hide-mobile">
       <LegendDesc>Hotkeys: </LegendDesc>
 
-      <LegendEntry descText="(Save & Go Prev)" keyText="A" />
+      <br />
+      <LegendEntry descText="next/back" keyText="F/R" />
 
-      <Bar />
+      <br />
+      <LegendEntry descText="next video" keyText="1" />
 
-      <LegendEntry descText="(Save & Go Next)" keyText="D" />
+      <br />
+      <LegendEntry descText="next pic" keyText="2" />
+
+      <br />
+      <LegendEntry descText="random" keyText="P" />
+
+      <br />
+      <LegendEntry descText="next 10/100/1000" keyText="G/H/J" />
+
+      <br />
+      <LegendEntry descText="back 10/100/1000" keyText="T/Y/U" />
+
+      <br />
+      <LegendEntry descText="open in new window" keyText="V" />
+
+      <br />
+      <LegendEntry descText="undo tag" keyText="Z" />
+
+      <br />
+      <LegendEntry descText="• to save tags, go next/back" keyText="" />
+      <br />
+      <LegendEntry descText="• next/back wipes undo history" keyText="" />
+      <br />
+      <LegendEntry descText="• scroll with WASD" keyText="" />
     </div>
   :
   <div className="legend hide-mobile">
@@ -388,15 +412,24 @@ export const TaglineAction = React.forwardRef((props, ref) => {
     isLoading,
     nextText,
     skipText,
-    linkText = "Open",
+    linkText = "View",
     taglineText,
     userDidAction,
+    boundaryIndex,
+    boundaryItems,
   } = props;
+
+  // https://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
+  const numberWithCommas = (x) => {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
 
   return (
     <div className="title-wrapper">
       <span className="title">
         {taglineText}
+        <br />
+        {boundaryItems && `${numberWithCommas(boundaryIndex)} out of ${numberWithCommas(boundaryItems.length)}`}
       </span>
 
       <div className={"title-align"}>
@@ -412,8 +445,8 @@ export const TaglineAction = React.forwardRef((props, ref) => {
           {isLoading && (
             <Spinner isLoading={isLoading} />
           )}
-          {!isLoading && userDidAction && nextText}
-          {!isLoading && !userDidAction && skipText}
+          {!isLoading && userDidAction && (nextText + (getUrl ? ' (F)' : ''))}
+          {!isLoading && !userDidAction && (skipText + (getUrl ? ' (F)' : ''))}
         </button>
 
         {getUrl ? <a href={getUrl()} target="_blank" rel="noopener noreferrer">{
@@ -425,7 +458,7 @@ export const TaglineAction = React.forwardRef((props, ref) => {
             onFocus={(evt) => evt.preventDefault()}
             onBlur={(evt) => evt.preventDefault()}
           >
-            {linkText}
+            {linkText + ' (V)'}
           </button>
         }</a> : null}
       </div>

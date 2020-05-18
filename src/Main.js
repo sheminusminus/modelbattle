@@ -109,6 +109,49 @@ const Main = (props) => {
     setSubmitting(false);
   }, [activeExperiment, boundaryItems.length]);
 
+  const findNext = (f) => {
+    if (f === 'random') {
+      const i = Math.floor(Math.random() * boundaryItems.length);
+      return findNext(i);
+    }
+    if (typeof f === 'number') {
+      const advanceBy = f;
+      let nextIndex = boundaryIndex + advanceBy;
+      while ( nextIndex < 0 ) {
+        nextIndex += boundaryItems.length;
+      }
+      while ( nextIndex > boundaryItems.length ) {
+        nextIndex -= boundaryItems.length;
+      }
+      return nextIndex;
+    }
+    if (typeof f === 'string') {
+      f = [f];
+    }
+    if (Array.isArray(f)) {
+      let exts = f;
+      f = (url) => {
+        const u = url.toLowerCase();
+        for (const ext of exts) {
+          if (u.endsWith(ext)) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+    for (let i = 0; i < boundaryItems.length; i++) {
+      const at = (i + boundaryIndex + 1) % boundaryItems.length;
+      const item = boundaryItems[at];
+      if (!item) continue;
+      const url = item.url.toLowerCase();
+      if (!url) continue;
+      if (f(url)) {
+        return at;
+      }
+    }
+  };
+
   const onSubmit = React.useCallback(async ({ overrideSelected, advanceBy = 1 } = {}) => {
     const { mode: expMode, id: expName } = activeExperiment;
     const { uid } = firebase.auth().currentUser;
@@ -167,15 +210,9 @@ const Main = (props) => {
           await db.ref('results').child(expName).child(uid).push(data);
         }
 
-        let nextIndex = boundaryIndex + advanceBy;
-        while ( nextIndex < 0 ) {
-          nextIndex += boundaryItems.length;
-        }
-        while ( nextIndex > boundaryItems.length ) {
-          nextIndex -= boundaryItems.length;
-        }
-        if (advanceBy < 0) {
-          console.log('Fetching...')
+        let nextIndex = findNext(advanceBy);
+        if (nextIndex < boundaryIndex) {
+          console.log('Fetching...');
           onGetExperimentMeta();
         }
 
@@ -393,6 +430,8 @@ const Main = (props) => {
             taglineText={activeExperiment && activeExperiment.tagline}
             skipText={activeExperiment && activeExperiment.skipText}
             linkText={activeExperiment && activeExperiment.linkText}
+            boundaryIndex={boundaryIndex}
+            boundaryItems={boundaryItems}
           />
         </div>
 

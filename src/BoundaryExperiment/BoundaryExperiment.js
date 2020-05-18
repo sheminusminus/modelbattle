@@ -269,7 +269,7 @@ const BoundaryExperiment = (props) => {
   }, [drawnShapes, experimentId, inputVal, lastTag, onDrawEnd, onRefreshTags]);
 
   const handleKeyDown = React.useCallback((evt) => {
-    const { key } = evt;
+    const { key, which } = evt;
     const windowHeight = window.innerHeight || document.clientHeight || document.body.clientHeight;
     const windowWidth = window.innerWidth || document.clientWidth || document.body.clientWidth;
     const scrollEl = document.scrollingElement || document.body;
@@ -279,38 +279,96 @@ const BoundaryExperiment = (props) => {
     const prevScrolledLeft = window.prevScrolledLeft != null ? window.prevScrolledLeft : scrolledLeft;
     window.prevScrolledRight = scrolledRight;
     window.prevScrolledLeft = scrolledLeft;
+    console.log('keyDown', key, which);
     if (key === Keys.ESC && showInput) {
       evt.preventDefault();
       evt.stopPropagation();
       handleCancelLastBox();
       setInputVal(undefined);
-    } else if (key === 'e' && !showInput) {
+    } else if (which === Keys.SPC && !showInput) {
+      const playa = document.getElementById("playa");
+      if (playa) {
+        if (playa.paused) {
+          playa.play();
+        } else {
+          playa.pause();
+        }
+        evt.preventDefault();
+        evt.stopPropagation();
+      }
+    } else if (key === 'v' && !showInput) {
+      const url = (items[0] || {}).url;
+      if (url) {
+        window.open(url, '_blank')
+      }
+    } else if (key === 'z' && !showInput) {
+      // undo
+      doUndo();
+    } else if (key === '1') {
+      // next video
+      const exts = '.gif .mp4 .webm .mpg .mpeg .wmv'.split(' ');
+      onSubmit({ advanceBy: exts });
+    } else if (key === '2') {
+      // next pic
+      const exts = '.jpg .jpeg .bmp .png'.split(' ');
+      onSubmit({ advanceBy: exts });
+    } else if (key === 'p') {
+      // random
+      onSubmit({ advanceBy: 'random' });
+    } else if (key === 'j' && !showInput) {
+      // forward by 1000
+      window.advanceBy = 1000;
+      onSubmit({ advanceBy: 1000 });
+    } else if (key === 'u' && !showInput) {
+      // back by 100
+      window.advanceBy = -1000;
+      onSubmit({ advanceBy: -1000 });
+    } else if (key === 'h' && !showInput) {
+      // forward by 100
+      window.advanceBy = 100;
+      onSubmit({ advanceBy: 100 });
+    } else if (key === 'y' && !showInput) {
+      // back by 100
+      window.advanceBy = -100;
+      onSubmit({ advanceBy: -100 });
+    } else if (key === 'g' && !showInput) {
+      // forward by 10
       window.advanceBy = 10;
       onSubmit({ advanceBy: 10 });
-    } else if (key === 'q' && !showInput) {
+    } else if (key === 't' && !showInput) {
+      // back by 10
       window.advanceBy = -10;
       onSubmit({ advanceBy: -10 });
     } else if (key === 'f' && !showInput) {
+      // forward by 1
       window.advanceBy = 1;
       onSubmit({ advanceBy: 1 });
-    } else if (key === 'd' && !showInput) {
-      if (scrolledRight && prevScrolledRight) {
-        window.advanceBy = 1;
-        onSubmit({ advanceBy: 1 });
-      } else {
-        window.scrollBy(0.15 * windowWidth, 0);
-      }
+    } else if (key === 'r' && !showInput) {
+      // back by 1
+      window.advanceBy = -1;
+      onSubmit({ advanceBy: -1 });
+    } else if (key === 'w' && !showInput) {
+      // scroll up
+      window.scrollBy(0, -0.15 * windowHeight);
+    } else if (key === 's' && !showInput) {
+      // scroll down
+      window.scrollBy(0, 0.15 * windowHeight);
     } else if (key === 'a' && !showInput) {
-      if (scrolledLeft && prevScrolledLeft) {
+      // scroll left
+      if (scrolledLeft && prevScrolledLeft && false) {
         window.advanceBy = -1;
         onSubmit({ advanceBy: -1 });
       } else {
         window.scrollBy(-0.15 * windowWidth, 0);
       }
-    } else if (key === 's' && !showInput) {
-      window.scrollBy(0, 0.15 * windowHeight);
-    } else if (key === 'w' && !showInput) {
-      window.scrollBy(0, -0.15 * windowHeight);
+    } else if (key === 'd' && !showInput) {
+      // scroll right
+      if (scrolledRight && prevScrolledRight && false) {
+        window.advanceBy = 1;
+        onSubmit({ advanceBy: 1 });
+      } else {
+        window.scrollBy(0.15 * windowWidth, 0);
+      }
     }
   }, [handleCancelLastBox, onSubmit, showInput]);
 
@@ -408,6 +466,15 @@ const BoundaryExperiment = (props) => {
     }
   };
 
+  const doUndo = () => {
+    const nextShapes = [...drawnShapes];
+    nextShapes.pop();
+    setDrawnShapes(nextShapes);
+    setShowInput(false);
+    setLocations([]);
+    setCrosshair([]);
+  };
+
   const lastShape = drawnShapes[drawnShapes.length - 1];
   const sortedPoints = lastShape ? sortPoints(lastShape.points) : [];
   const renderTaggingUi = Boolean(showInput && sortedPoints.length);
@@ -421,14 +488,7 @@ const BoundaryExperiment = (props) => {
               disabled={drawnShapes.length === 0}
               className="undo-bound"
               type="button"
-              onClick={() => {
-                const nextShapes = [...drawnShapes];
-                nextShapes.pop();
-                setDrawnShapes(nextShapes);
-                setShowInput(false);
-                setLocations([]);
-                setCrosshair([]);
-              }}
+              onClick={() => doUndo()}
             >
               <i className="material-icons">
                 undo
@@ -491,12 +551,13 @@ const BoundaryExperiment = (props) => {
         )}
       </div>
 
+      <center>
       <div
         className="boundary-exp-wrapper"
-        style={{
+        style={(size.width && size.height) ? {
           height: `${size.height}px`,
           width: `${size.width}px`,
-        }}
+        } : {}}
       >
         <Asset
           assets={items.map((item => item.url))}
@@ -571,6 +632,7 @@ const BoundaryExperiment = (props) => {
           />
         )}
       </div>
+      </center>
     </React.Fragment>
   );
 };
