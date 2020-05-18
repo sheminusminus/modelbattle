@@ -331,6 +331,10 @@ const BoundaryExperiment = (props) => {
     }
   }, [isDraw, locations]);
 
+  const handleOut = React.useCallback((evt) => {
+    setCrosshair([]);
+  }, []);
+
   if (!items.length) {
     return null;
   }
@@ -494,6 +498,7 @@ const BoundaryExperiment = (props) => {
           height={size.height}
           onMouseDown={isMobile ? undefined : handleStart}
           onMouseMove={isMobile ? undefined : handleMove}
+          onMouseOut={isMobile ? undefined : handleOut}
           onTouchStart={isMobile ? handleStart : undefined}
           onTouchMove={isMobile ? handleMove : undefined}
         />
