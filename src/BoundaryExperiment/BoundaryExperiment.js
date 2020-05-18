@@ -290,6 +290,9 @@ const BoundaryExperiment = (props) => {
     } else if (key === 'q' && !showInput) {
       window.advanceBy = -10;
       onSubmit({ advanceBy: -10 });
+    } else if (key === 'f' && !showInput) {
+      window.advanceBy = 1;
+      onSubmit({ advanceBy: 1 });
     } else if (key === 'd' && !showInput) {
       if (scrolledRight && prevScrolledRight) {
         window.advanceBy = 1;
