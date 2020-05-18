@@ -128,15 +128,17 @@ function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') 
 
     if (text) {
       // https://stackoverflow.com/questions/13627111/drawing-text-with-an-outer-stroke-with-html5s-canvas
-      const drawStroked = (text, x, y, color, textStyle='', bgColor='black', lineWidth=3, font='14px sans-serif', textDecoration='none') => {
+      const drawStroked = (ctx, text, x, y, color, textStyle='', bgColor='black', lineWidth=3, font='14px sans-serif', textDecoration='none') => {
         if ((textStyle || '').length > 0) {
           ctx.font = textStyle + ' ' + font;
         } else {
           ctx.font = font;
         }
-        const metrics = ctx.measureText(text);
-        var y0 = Math.max(0, Math.min(y, ctx.canvas.height - Math.abs(metrics.fontBoundingBoxDescent)));
-        var x0 = Math.max(0, Math.min(x, ctx.canvas.width - metrics.width - 2));
+        //const metrics = ctx.measureText(text);
+        //var y0 = Math.max(0, Math.min(y, ctx.canvas.height - Math.abs(metrics.fontBoundingBoxDescent)));
+        //var x0 = Math.max(0, Math.min(x, ctx.canvas.width - metrics.width - 2));
+        let y0 = y;
+        let x0 = x;
         //ctx.font = '80px Sans-serif';
         const u = 0.7;
         ctx.globalAlpha = 0.7 * u;
@@ -162,7 +164,7 @@ function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') 
           underline(ctx, text, x0, y0);
         }
       };
-      drawStroked(text, locations[0].x, locations[1].y + 14, color, textStyle);
+      drawStroked(ctx, text, locations[0].x, locations[1].y + 14, color, textStyle);
     }
   }
 }
