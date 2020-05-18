@@ -269,10 +269,10 @@ export const LegendHotKeys = ({ experiment }) => (
       <LegendEntry descText="next/back" keyText="F/R" />
 
       <br />
-      <LegendEntry descText="next video" keyText="1" />
+      <LegendEntry descText="next video (with/without gifs)" keyText="1/3" />
 
       <br />
-      <LegendEntry descText="next pic" keyText="2" />
+      <LegendEntry descText="next pic (with/without gifs)" keyText="2/4" />
 
       <br />
       <LegendEntry descText="random" keyText="P" />

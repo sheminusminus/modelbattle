@@ -305,12 +305,24 @@ const BoundaryExperiment = (props) => {
       // undo
       doUndo();
     } else if (key === '1') {
-      // next video
+      // next video or gif
       const exts = '.gif .mp4 .webm .mpg .mpeg .wmv'.split(' ');
+      window.advanceBy = exts;
       onSubmit({ advanceBy: exts });
     } else if (key === '2') {
-      // next pic
+      // next pic or gif
+      const exts = '.gif .jpg .jpeg .bmp .png'.split(' ');
+      window.advanceBy = exts;
+      onSubmit({ advanceBy: exts });
+    } else if (key === '3') {
+      // next video (no gif)
+      const exts = '.mp4 .webm .mpg .mpeg .wmv'.split(' ');
+      window.advanceBy = exts;
+      onSubmit({ advanceBy: exts });
+    } else if (key === '4') {
+      // next pic (no gif)
       const exts = '.jpg .jpeg .bmp .png'.split(' ');
+      window.advanceBy = exts;
       onSubmit({ advanceBy: exts });
     } else if (key === 'p') {
       // random
