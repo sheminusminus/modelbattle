@@ -474,10 +474,8 @@ const BoundaryExperiment = (props) => {
               }
             },
             onError: () => {
-              setTimeout(() => {
-                console.log('404, advancing...');
-                onSubmit({ advanceBy: window.advanceBy || 1 });
-              }, 10);
+              console.log('404, advancing...');
+              onSubmit({ advanceBy: window.advanceBy || 1 });
             },
           }}
           shouldPreload={true}
