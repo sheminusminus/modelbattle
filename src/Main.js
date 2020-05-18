@@ -431,7 +431,7 @@ const Main = (props) => {
             skipText={activeExperiment && activeExperiment.skipText}
             linkText={activeExperiment && activeExperiment.linkText}
             boundaryIndex={boundaryIndex}
-            boundaryItems={boundaryItems}
+            boundaryItems={activeExperiment && activeExperiment.mode === ExperimentMode.BOUNDARY && boundaryItems}
           />
         </div>
 
