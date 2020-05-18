@@ -305,7 +305,7 @@ const BoundaryExperiment = (props) => {
       if (url) {
         window.open(url, '_blank')
       }
-    } else if (key === 'z' && !showInput) {
+    } else if (key === 'z' && !showInput && false) { // undo is broken right now
       // undo
       doUndo();
     } else if (key === '1') {
@@ -501,7 +501,7 @@ const BoundaryExperiment = (props) => {
         {items.length > 0 && (
           <div style={{ display: 'flex' }}>
             <button
-              disabled={drawnShapes.length === 0}
+              disabled={drawnShapes.length === 0 || true} // undo is broken right now
               className="undo-bound"
               type="button"
               onClick={() => doUndo()}

@@ -286,14 +286,14 @@ export const LegendHotKeys = ({ experiment }) => (
       <br />
       <LegendEntry descText="open in new window" keyText="V" />
 
-      <br />
-      <LegendEntry descText="undo tag" keyText="Z" />
+      {/*<br />*/}
+      {/*<LegendEntry descText="undo tag" keyText="Z" />*/}
 
       <br />
       <LegendEntry descText="• to save tags, go next/back" keyText="" />
       <br />
-      <LegendEntry descText="• next/back wipes undo history" keyText="" />
-      <br />
+      {/*<LegendEntry descText="• next/back wipes undo history" keyText="" />*/}
+      {/*<br />*/}
       <LegendEntry descText="• scroll with WASD" keyText="" />
     </div>
   :
