@@ -581,8 +581,9 @@ const BoundaryExperiment = (props) => {
                 onImageLoad(evt);
               }
             },
-            onError: () => {
-              console.log('404, advancing...');
+            onError: (e) => {
+              console.log('404, advancing...', e);
+              window.lastError = e;
               onSubmit({ advanceBy: window.advanceBy || 1 });
             },
           }}
