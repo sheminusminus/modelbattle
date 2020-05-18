@@ -269,7 +269,12 @@ const BoundaryExperiment = (props) => {
   }, [drawnShapes, experimentId, inputVal, lastTag, onDrawEnd, onRefreshTags]);
 
   const handleKeyDown = React.useCallback((evt) => {
-    const { key, which } = evt;
+    const { key, which, metaKey } = evt;
+    window.lastEvt = evt;
+    console.log('keyDown', key, which, metaKey, evt);
+    if ( metaKey ) {
+      return;
+    }
     const windowHeight = window.innerHeight || document.clientHeight || document.body.clientHeight;
     const windowWidth = window.innerWidth || document.clientWidth || document.body.clientWidth;
     const scrollEl = document.scrollingElement || document.body;
@@ -279,7 +284,6 @@ const BoundaryExperiment = (props) => {
     const prevScrolledLeft = window.prevScrolledLeft != null ? window.prevScrolledLeft : scrolledLeft;
     window.prevScrolledRight = scrolledRight;
     window.prevScrolledLeft = scrolledLeft;
-    console.log('keyDown', key, which);
     if (key === Keys.ESC && showInput) {
       evt.preventDefault();
       evt.stopPropagation();
