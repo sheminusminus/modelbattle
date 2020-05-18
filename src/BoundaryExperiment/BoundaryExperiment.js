@@ -235,13 +235,13 @@ const BoundaryExperiment = (props) => {
       if (locations.length > 0) {
         draw(ctx, locations);
       }
-      if (crosshair.length > 0) {
+      if (crosshair.length > 0 && !showInput) {
         draw(ctx, crosshair);
       }
     }
 
     drawShapes();
-  }, [drawShapes, isDraw, locations, crosshair]);
+  }, [drawShapes, isDraw, locations, crosshair, showInput]);
 
   const handleCancelLastBox = React.useCallback(() => {
     const nextShapes = drawnShapes.slice(0, drawnShapes.length - 1);
