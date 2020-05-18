@@ -100,6 +100,7 @@ function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') 
       const w = ctx.canvas.width;
       const h = ctx.canvas.height;
 
+      ctx.lineWidth = 1.0;
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, h);
@@ -224,14 +225,14 @@ const BoundaryExperiment = (props) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (locations.length > 0) {
         draw(ctx, locations);
-        if (crosshair.length > 0) {
-          draw(ctx, crosshair);
-        }
+      }
+      if (crosshair.length > 0) {
+        draw(ctx, crosshair);
       }
     }
 
     drawShapes();
-  }, [drawShapes, isDraw, locations]);
+  }, [drawShapes, isDraw, locations, crosshair]);
 
   const handleCancelLastBox = React.useCallback(() => {
     const nextShapes = drawnShapes.slice(0, drawnShapes.length - 1);
@@ -317,14 +318,14 @@ const BoundaryExperiment = (props) => {
       const { left, top } = bbox;
       const x = clientX - left;
       const y = clientY - top;
-      const loc = { x, y: y };
+      const loc = { x, y };
       if (isDraw) {
         const nextLocations = [locations[0], loc];
         setLocations(nextLocations);
-        setCrosshair([loc]);
       }
+      setCrosshair([loc]);
     }
-  }, [isDraw, locations]);
+  }, [isDraw, locations, crosshair]);
 
   if (!items.length) {
     return null;
