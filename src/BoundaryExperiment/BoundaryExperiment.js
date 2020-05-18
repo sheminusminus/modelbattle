@@ -6,7 +6,7 @@ import { Keys } from 'const';
 
 import { isMobileDevice, sortPoints } from 'helpers';
 
-import { addNewTag } from 'services/firebase';
+import { addNewTag, getUID } from 'services/firebase';
 
 import * as selectors from 'selectors'
 
@@ -65,13 +65,34 @@ const getClientXY = (evt) => {
   return { clientX, clientY };
 };
 
-function draw(ctx, locations, color = 'deepskyblue', text = '') {
+const underline = (ctx, text, x, y) => {
+  let metrics = ctx.measureText(text);
+  let fontSize = Math.floor(metrics.actualHeight * 1.4); // 140% the height
+  switch (ctx.textAlign) {
+    case "center" : x -= (metrics.width / 2) ; break;
+    case "right"  : x -= metrics.width       ; break;
+  }
+  switch (ctx.textBaseline) {
+    case "top"    : y += (fontSize)     ; break;
+    case "middle" : y += (fontSize / 2) ; break;
+  }
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle = ctx.fillStyle;
+  ctx.lineWidth = Math.ceil(fontSize * 0.08);
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + metrics.width, y);
+  ctx.stroke();
+  ctx.restore();
+};
+
+function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') {
   if (locations.length === 2) {
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.strokeStyle = color;
     ctx.shadowBlur = 20;
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 1.3;
     ctx.fillStyle = 'transparent';
 
 
@@ -87,13 +108,46 @@ function draw(ctx, locations, color = 'deepskyblue', text = '') {
       }
     });
 
-    if (text) {
-      ctx.font = '20px Arial';
-      ctx.fillStyle = color;
-      ctx.fillText(text, locations[0].x, locations[1].y + 20);
-    }
-
     ctx.stroke();
+
+    if (text) {
+      // https://stackoverflow.com/questions/13627111/drawing-text-with-an-outer-stroke-with-html5s-canvas
+      const drawStroked = (text, x, y, color, bgColor='black', lineWidth=3, font='14px Verdana, Geneva, sans-serif', textDecoration='none') => {
+        if (textStyle) {
+          ctx.font = textStyle + ' ' + font;
+        } else {
+          ctx.font = font;
+        }
+        const metrics = ctx.measureText(text);
+        var y0 = Math.max(0, Math.min(y, ctx.canvas.height - Math.abs(metrics.fontBoundingBoxDescent)));
+        var x0 = Math.max(0, Math.min(x, ctx.canvas.width - metrics.width - 2));
+        //ctx.font = '80px Sans-serif';
+        const u = 0.7;
+        ctx.globalAlpha = 0.7 * u;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth + 1;
+        ctx.strokeText(text, x0, y0);
+        if (textDecoration === 'underline') {
+          underline(ctx, text, x0, y0);
+        }
+        ctx.globalAlpha = 0.9 * u;
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = lineWidth - 1;
+        ctx.strokeText(text, x0, y0);
+        if (textDecoration === 'underline') {
+          underline(ctx, text, x0, y0);
+        }
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = 'white';
+        ctx.fillText(text, x0, y0);
+        if (textDecoration === 'underline') {
+          underline(ctx, text, x0, y0);
+        }
+      };
+      drawStroked(text, locations[0].x, locations[1].y + 14, color);
+    }
   }
 }
 
@@ -110,6 +164,7 @@ const BoundaryExperiment = (props) => {
     onSubmit,
     shapes = [],
     tags,
+    defaultTag,
   } = props;
 
   /**
@@ -126,7 +181,7 @@ const BoundaryExperiment = (props) => {
   const [drawnShapes, setDrawnShapes] = React.useState([]);
   const [showInput, setShowInput] = React.useState(false);
   const [inputVal, setInputVal] = React.useState(undefined);
-  const [lastTag, setLastTag] = React.useState(window.lastTag || '');
+  const [lastTag, setLastTag] = React.useState(defaultTag || '');
 
   const drawShapes = React.useCallback(() => {
     const canvas = canvasRef.current;
@@ -134,12 +189,14 @@ const BoundaryExperiment = (props) => {
     if (shapes && canvas) {
       const ctx = canvas.getContext('2d');
       [...shapes, ...drawnShapes].forEach((shape) => {
-        const { points, tag, url } = shape;
+        const { points, tag, url, user } = shape;
+        const uid = getUID();
 
         if (items[0] && url === items[0].url) {
-          const itemTag = tags[tag] || {};
+          const itemTag = tags[tag] || {text: tag};
           const sortedPoints = sortPoints(points);
-          draw(ctx, [sortedPoints[0], sortedPoints[2]], itemTag.color, itemTag.text);
+          const textStyle = (uid === user) ? 'italic' : '';
+          draw(ctx, [sortedPoints[0], sortedPoints[2]], itemTag.color, itemTag.text, textStyle);
         }
       });
     }
@@ -173,6 +230,7 @@ const BoundaryExperiment = (props) => {
       const lastIdx = drawnShapes.length - 1;
       const shapeData = drawnShapes[lastIdx];
       shapeData.tag = tagKey;
+      shapeData.user = getUID();
       setLastTag(tagKey);
       const nextShapes = [...drawnShapes.slice(0, lastIdx), shapeData];
       setDrawnShapes(nextShapes);
@@ -397,7 +455,7 @@ const BoundaryExperiment = (props) => {
               }, 10);
             },
           }}
-          shouldPreload={false}
+          shouldPreload={true}
           type="image/"
         />
         <canvas

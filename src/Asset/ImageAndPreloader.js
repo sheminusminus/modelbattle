@@ -3,13 +3,13 @@ import React from 'react';
 import { Image } from '../components';
 
 const ImageAndPreloader = (props) => {
-  const { assets, shouldPreload, ...rest } = props;
+  const { assets, shouldPreload, preloadCount=10, ...rest } = props;
 
   const [activeAsset, ...preloadAssets] = assets;
 
   return (
     <React.Fragment>
-      {shouldPreload === true && preloadAssets.map((asset) => (
+      {shouldPreload === true && preloadAssets.filter((asset, i) => (i < preloadCount) ? asset : null).map((asset) => (
         <div
           className="preloaded"
           key={asset}

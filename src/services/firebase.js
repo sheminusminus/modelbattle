@@ -97,7 +97,7 @@ export const getList = async (path, shouldShuffle) => {
       const url = await ref.getDownloadURL();
       return { contentType, url };
     }));
-    return itemData
+    return shouldShuffle ? shuffle(itemData) : itemData
   }
 };
 
@@ -137,6 +137,13 @@ export const listImages = async (expName) => {
     return { items, skipText, tagline };
   }
 };
+
+export const getUID = () => {
+  if (firebase.auth().currentUser) {
+    const { uid } = firebase.auth().currentUser;
+    return uid;
+  }
+}
 
 export const addNewTag = async (experimentId, input) => {
   const { uid } = firebase.auth().currentUser;

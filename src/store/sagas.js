@@ -82,6 +82,32 @@ export function* listExperimentsTrigger() {
   }
 }
 
+const refetchExperiment = async (experimentId) => {
+  const cache = await caches.open('experimentResults');
+  if (!window.experimentResultsFetching) {
+    window.experimentResultsFetching = true;
+    try {
+      const data = await api.exportBoundaryExperiment(experimentId);
+      await cache.put(experimentId, new Response(JSON.stringify(data)));
+      return data;
+    } finally {
+      window.experimentResultsFetching = false;
+    }
+  }
+};
+
+const grabExperiment = async (experimentId) => {
+  const promise = refetchExperiment(experimentId); // no await; kick off in bg
+  const cache = await caches.open('experimentResults');
+  const res = await cache.match(experimentId);
+  if (res != null) {
+    const exp = await res.json();
+    return exp;
+  } else {
+    return {}
+  }
+};
+
 export function* getExperimentMetaTrigger() {
   try {
     yield put(getExperimentMeta.request());
@@ -106,6 +132,7 @@ export function* getExperimentMetaTrigger() {
         userTags = userMetaResult.tags;
       }
 
+      const experimentResults = yield call(grabExperiment, experimentId);
       const experimentData = {
         ...mainResult,
         id: experimentId,
@@ -116,6 +143,7 @@ export function* getExperimentMetaTrigger() {
         shapes: [
           ...flatten(userShapes),
           ...Object.keys(mainResult.shapes || {}).map((key) => mainResult.shapes[key]),
+          ...((experimentResults || {}).result || []),
         ],
       };
 
@@ -178,7 +206,7 @@ export function* exportBoundaryExperimentTrigger(action) {
         const lineStr = JSON.stringify(obj);
         return `${str}${lineStr}\n`;
       }, '');
-      createDownloadFile(`${payload}.jsonl`, resultStr);
+      createDownloadFile(`${payload}.json`, resultStr);
     }
     yield put(exportBoundaryExperiment.success());
   } catch(err) {

@@ -6,6 +6,10 @@ import {
   useLocation,
 } from 'react-router-dom';
 
+import {
+  ExperimentMode,
+} from 'const';
+
 import firebase from 'services/firebase';
 import classNames from 'classNames';
 
@@ -257,7 +261,18 @@ export const LegendKey = ({ children, className }) => (
   </span>
 );
 
-export const LegendHotKeys = () => (
+export const LegendHotKeys = ({ experiment }) => (
+  experiment && experiment.mode == ExperimentMode.BOUNDARY ?
+    <div className="legend hide-mobile">
+      <LegendDesc>Hotkeys: </LegendDesc>
+
+      <LegendEntry descText="(Save & Go Prev)" keyText="A" />
+
+      <Bar />
+
+      <LegendEntry descText="(Save & Go Next)" keyText="D" />
+    </div>
+  :
   <div className="legend hide-mobile">
     <LegendDesc>Hotkeys: </LegendDesc>
 
@@ -369,9 +384,11 @@ export const Spinner = ({ isLoading }) => {
 export const TaglineAction = React.forwardRef((props, ref) => {
   const {
     handleAction,
+    getUrl,
     isLoading,
     nextText,
     skipText,
+    linkText = "Open",
     taglineText,
     userDidAction,
   } = props;
@@ -382,21 +399,36 @@ export const TaglineAction = React.forwardRef((props, ref) => {
         {taglineText}
       </span>
 
-      <button
-        ref={ref}
-        className="btn done"
-        disabled={isLoading}
-        type="button"
-        onFocus={(evt) => evt.preventDefault()}
-        onBlur={(evt) => evt.preventDefault()}
-        onClick={handleAction}
-      >
-        {isLoading && (
-          <Spinner isLoading={isLoading} />
-        )}
-        {!isLoading && userDidAction && nextText}
-        {!isLoading && !userDidAction && skipText}
-      </button>
+      <div className={"title-align"}>
+        <button
+          ref={ref}
+          className="btn done"
+          disabled={isLoading}
+          type="button"
+          onFocus={(evt) => evt.preventDefault()}
+          onBlur={(evt) => evt.preventDefault()}
+          onClick={handleAction}
+        >
+          {isLoading && (
+            <Spinner isLoading={isLoading} />
+          )}
+          {!isLoading && userDidAction && nextText}
+          {!isLoading && !userDidAction && skipText}
+        </button>
+
+        {getUrl ? <a href={getUrl()} target={"_blank"}>{
+          <button
+            ref={ref}
+            className="btn done"
+            disabled={isLoading}
+            type="button"
+            onFocus={(evt) => evt.preventDefault()}
+            onBlur={(evt) => evt.preventDefault()}
+          >
+            {linkText}
+          </button>
+        }</a> : null}
+      </div>
     </div>
   );
 });

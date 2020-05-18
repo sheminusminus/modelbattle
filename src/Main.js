@@ -359,6 +359,7 @@ const Main = (props) => {
           onDrawEnd={(shapeData) => {
             setBoundaryShapes(shapeData);
           }}
+          defaultTag={window.lastTag || activeExperiment.defaultTag}
         />
       );
     }
@@ -374,12 +375,15 @@ const Main = (props) => {
         })}
       >
         <div className={classNames({ heading: true, loading: submitting })}>
-          <Totals shouldShow={menuOpen} totals={totals} />
+          {activeExperiment && activeExperiment.mode === ExperimentMode.AB &&
+            <Totals shouldShow={menuOpen} totals={totals} />
+          }
 
-          <LegendHotKeys />
+          <LegendHotKeys experiment={activeExperiment}/>
 
           <TaglineAction
             handleAction={() => onSubmit()}
+            getUrl={activeExperiment && activeExperiment.mode === ExperimentMode.BOUNDARY && (() => (boundaryItems[boundaryIndex] || {}).url)}
             isLoading={submitting}
             userDidAction={Boolean(
               (activeExperiment && activeExperiment.mode === ExperimentMode.AB && selected && selected.length > 0)
@@ -388,6 +392,7 @@ const Main = (props) => {
             ref={nextBtnRef}
             taglineText={activeExperiment && activeExperiment.tagline}
             skipText={activeExperiment && activeExperiment.skipText}
+            linkText={activeExperiment && activeExperiment.linkText}
           />
         </div>
 
