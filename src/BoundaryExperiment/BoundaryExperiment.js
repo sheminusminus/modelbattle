@@ -270,20 +270,44 @@ const BoundaryExperiment = (props) => {
 
   const handleKeyDown = React.useCallback((evt) => {
     const { key } = evt;
+    const windowHeight = window.innerHeight || document.clientHeight || document.body.clientHeight;
+    const windowWidth = window.innerWidth || document.clientWidth || document.body.clientWidth;
+    const scrollEl = document.scrollingElement || document.body;
+    const scrolledRight = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth;
+    const scrolledLeft = scrollEl.scrollLeft <= 0;
+    const prevScrolledRight = window.prevScrolledRight != null ? window.prevScrolledRight : scrolledRight;
+    const prevScrolledLeft = window.prevScrolledLeft != null ? window.prevScrolledLeft : scrolledLeft;
+    window.prevScrolledRight = scrolledRight;
+    window.prevScrolledLeft = scrolledLeft;
     if (key === Keys.ESC && showInput) {
       evt.preventDefault();
       evt.stopPropagation();
       handleCancelLastBox();
       setInputVal(undefined);
-    } else if (key === Keys.SKIP && !showInput) {
-      window.advanceBy = 1;
-      onSubmit();
-    } else if (key === Keys.ADV && !showInput) {
-      window.advanceBy = 1;
-      onSubmit();
-    } else if (key === Keys.PRV && !showInput) {
-      window.advanceBy = -1;
-      onSubmit({ advanceBy: -1 });
+    } else if (key === 'e' && !showInput) {
+      window.advanceBy = 10;
+      onSubmit({ advanceBy: 10 });
+    } else if (key === 'q' && !showInput) {
+      window.advanceBy = -10;
+      onSubmit({ advanceBy: -10 });
+    } else if (key === 'd' && !showInput) {
+      if (scrolledRight && prevScrolledRight) {
+        window.advanceBy = 1;
+        onSubmit({ advanceBy: 1 });
+      } else {
+        window.scrollBy(0.15 * windowWidth, 0);
+      }
+    } else if (key === 'a' && !showInput) {
+      if (scrolledLeft && prevScrolledLeft) {
+        window.advanceBy = -1;
+        onSubmit({ advanceBy: -1 });
+      } else {
+        window.scrollBy(-0.15 * windowWidth, 0);
+      }
+    } else if (key === 's' && !showInput) {
+      window.scrollBy(0, 0.15 * windowHeight);
+    } else if (key === 'w' && !showInput) {
+      window.scrollBy(0, -0.15 * windowHeight);
     }
   }, [handleCancelLastBox, onSubmit, showInput]);
 
