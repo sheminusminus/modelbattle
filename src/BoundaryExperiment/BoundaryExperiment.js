@@ -128,18 +128,19 @@ function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') 
 
     if (text) {
       // https://stackoverflow.com/questions/13627111/drawing-text-with-an-outer-stroke-with-html5s-canvas
-      const drawStroked = (ctx, text, x, y, color, textStyle='', bgColor='black', lineWidth=3, font='14px sans-serif', textDecoration='none') => {
-        if ((textStyle || '').length > 0) {
+      const drawStroked = (ctx, text, x, y, color, textStyle='', bgColor='black', lineWidth=3, font='14px Verdana, Geneva, sans-serif', textDecoration='none') => {
+        if (textStyle) {
           ctx.font = textStyle + ' ' + font;
         } else {
           ctx.font = font;
         }
+        // This breaks on Windows!
         //const metrics = ctx.measureText(text);
         //var y0 = Math.max(0, Math.min(y, ctx.canvas.height - Math.abs(metrics.fontBoundingBoxDescent)));
         //var x0 = Math.max(0, Math.min(x, ctx.canvas.width - metrics.width - 2));
-        let y0 = y;
-        let x0 = x;
-        //ctx.font = '80px Sans-serif';
+        // This works.
+        const y0 = Math.max(0, Math.min(y, ctx.canvas.height));
+        const x0 = Math.max(0, Math.min(x, ctx.canvas.width - 80));
         const u = 0.7;
         ctx.globalAlpha = 0.7 * u;
         ctx.strokeStyle = color;
