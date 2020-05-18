@@ -29,7 +29,7 @@
     "xstate": "^4.8.0"
   },
   "scripts": {
-    "deploy": "yarn build && firebase deploy",
+    "deploy": "yarn build && firebase deploy --only hosting",
     "start": "APP_ENV=production react-scripts start",
     "dev": "APP_ENV=development react-scripts start",
     "build": "react-scripts build",
