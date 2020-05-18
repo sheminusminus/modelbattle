@@ -87,7 +87,7 @@ const underline = (ctx, text, x, y) => {
 };
 
 function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') {
-  if (locations.length === 2) {
+  if (locations.length > 0) {
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.strokeStyle = color;
@@ -95,20 +95,33 @@ function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') 
     ctx.lineWidth = 1.3;
     ctx.fillStyle = 'transparent';
 
+    if (locations.length === 1) {
+      const { x, y } = locations[0];
+      const w = ctx.canvas.width;
+      const h = ctx.canvas.height;
 
-    const drawLocations = getBoundingPoints(locations);
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
 
-    ctx.beginPath();
+    } else {
+      ctx.beginPath();
 
-    drawLocations.forEach((loc, idx) => {
-      ctx.moveTo(loc.x, loc.y);
-      const nextLoc = drawLocations[idx + 1];
-      if (nextLoc) {
-        ctx.lineTo(nextLoc.x, nextLoc.y);
-      }
-    });
+      const drawLocations = getBoundingPoints(locations);
 
-    ctx.stroke();
+      drawLocations.forEach((loc, idx) => {
+        ctx.moveTo(loc.x, loc.y);
+        const nextLoc = drawLocations[idx + 1];
+        if (nextLoc) {
+          ctx.lineTo(nextLoc.x, nextLoc.y);
+        }
+      });
+
+      ctx.stroke();
+    }
 
     if (text) {
       // https://stackoverflow.com/questions/13627111/drawing-text-with-an-outer-stroke-with-html5s-canvas
@@ -176,6 +189,7 @@ const BoundaryExperiment = (props) => {
    */
   const inputRef = React.useRef(null);
   const [locations, setLocations] = React.useState([]);
+  const [crosshair, setCrosshair] = React.useState([]);
   const [isDraw, setIsDraw] = React.useState(false);
   const [size, setSize] = React.useState({ width: 0, height: 0 });
   const [drawnShapes, setDrawnShapes] = React.useState([]);
@@ -208,7 +222,12 @@ const BoundaryExperiment = (props) => {
     if (canvas) {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      draw(ctx, locations);
+      if (locations.length > 0) {
+        draw(ctx, locations);
+        if (crosshair.length > 0) {
+          draw(ctx, crosshair);
+        }
+      }
     }
 
     drawShapes();
@@ -218,6 +237,7 @@ const BoundaryExperiment = (props) => {
     const nextShapes = drawnShapes.slice(0, drawnShapes.length - 1);
     setDrawnShapes(nextShapes);
     setLocations([]);
+    setCrosshair([]);
     setShowInput(false);
   }, [drawnShapes]);
 
@@ -235,6 +255,7 @@ const BoundaryExperiment = (props) => {
       const nextShapes = [...drawnShapes.slice(0, lastIdx), shapeData];
       setDrawnShapes(nextShapes);
       setLocations([]);
+      setCrosshair([]);
       setShowInput(false);
       setInputVal(undefined);
       onDrawEnd(nextShapes);
@@ -287,19 +308,20 @@ const BoundaryExperiment = (props) => {
   }, []);
 
   const handleMove = React.useCallback((evt) => {
-    if (isDraw) {
-      const canvas = canvasRef.current;
+    const canvas = canvasRef.current;
 
-      const { clientX, clientY } = getClientXY(evt);
+    const { clientX, clientY } = getClientXY(evt);
 
-      if (clientX && clientY) {
-        const bbox = canvas.getBoundingClientRect();
-        const { left, top } = bbox;
-        const x = clientX - left;
-        const y = clientY - top;
-        const loc = { x, y: y };
+    if (clientX && clientY) {
+      const bbox = canvas.getBoundingClientRect();
+      const { left, top } = bbox;
+      const x = clientX - left;
+      const y = clientY - top;
+      const loc = { x, y: y };
+      if (isDraw) {
         const nextLocations = [locations[0], loc];
         setLocations(nextLocations);
+        setCrosshair([loc]);
       }
     }
   }, [isDraw, locations]);
@@ -325,6 +347,7 @@ const BoundaryExperiment = (props) => {
         const loc = { x, y: y };
         const nextLocations = [loc];
         setLocations(nextLocations);
+        setCrosshair([loc]);
 
         setIsDraw(true);
 
@@ -368,6 +391,7 @@ const BoundaryExperiment = (props) => {
                 setDrawnShapes(nextShapes);
                 setShowInput(false);
                 setLocations([]);
+                setCrosshair([]);
               }}
             >
               <i className="material-icons">
