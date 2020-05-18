@@ -211,16 +211,18 @@ const Main = (props) => {
         }
 
         let nextIndex = findNext(advanceBy);
-        if (nextIndex < boundaryIndex) {
-          console.log('Fetching...');
-          onGetExperimentMeta();
-        }
+        if (nextIndex != null) {
+          if (nextIndex < boundaryIndex) {
+            console.log('Fetching...');
+            onGetExperimentMeta();
+          }
 
-        setBoundaryIndex(nextIndex);
-        setBoundaryShapes([]);
+          setBoundaryIndex(nextIndex);
+          setBoundaryShapes([]);
 
-        if (boundaryRef.current) {
-          boundaryRef.current.resetShapes();
+          if (boundaryRef.current) {
+            boundaryRef.current.resetShapes();
+          }
         }
       }
     }
