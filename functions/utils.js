@@ -9,3 +9,5 @@ module.exports.makeResponse = (data, meta = {}) => ({
   result: data,
   meta,
 });
+
+module.exports.memoize = require("memoizee");

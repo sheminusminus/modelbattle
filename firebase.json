@@ -23,6 +23,10 @@
     ],
     "rewrites": [
       {
+        "source":"/tags/**",
+        "function":"exportBoundaryExperiment"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
