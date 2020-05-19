@@ -23,7 +23,7 @@
     ],
     "rewrites": [
       {
-        "source":"/tags/**",
+        "source":"/tags.json/**",
         "function":"exportBoundaryExperiment"
       },
       {

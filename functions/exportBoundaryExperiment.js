@@ -168,7 +168,7 @@ const getExperimentsData = async (experimentIds) => {
 
 module.exports = functions.https.onRequest(async (req, res) => {
   const data = req.body && req.body.data ? req.body.data : req.query;
-  const experiments = (data.experimentId != null ? data.experimentId : data.id) || "";
+  const experiments = ((data.experimentId !== null && data.experimentId !== undefined) ? data.experimentId : data.id) || "";
 
   res.setHeader('Content-Type', 'application/json');
   try {
