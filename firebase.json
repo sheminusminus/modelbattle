@@ -23,12 +23,12 @@
     ],
     "rewrites": [
       {
-        "source":"/tags.json/**",
-        "function":"exportBoundaryExperiment"
-      },
-      {
         "source": "**",
         "destination": "/index.html"
+      },
+      {
+        "source":"/tags.json/**",
+        "function":"exportBoundaryExperiment"
       }
     ]
   }],
