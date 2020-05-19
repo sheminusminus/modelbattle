@@ -427,7 +427,7 @@ export const TaglineAction = React.forwardRef((props, ref) => {
   return (
     <div className="title-wrapper">
       <span className="title">
-        {taglineText}
+        <span dangerouslySetInnerHTML={{__html: taglineText}} />
         <br />
         {boundaryItems && `${numberWithCommas(boundaryIndex)} out of ${numberWithCommas(boundaryItems.length)}`}
       </span>
