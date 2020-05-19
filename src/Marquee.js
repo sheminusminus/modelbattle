@@ -9,18 +9,18 @@ const Marquee = (props) => {
   } = props;
 
   return (
-    <ul className="marquee">
+    <div className="marquee">
       {Object.entries(data).map(([label, value], idx) => {
         return (
-          <li
+          <a
             className="marquee-item"
             key={label}
           >
             {transform(label, value)}
-          </li>
+          </a>
         );
       })}
-    </ul>
+    </div>
   );
 };
 
