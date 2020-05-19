@@ -1,5 +1,5 @@
 import { eventChannel } from 'redux-saga';
-import { all, call, put, select, spawn, take } from 'redux-saga/effects';
+import { all, call, put, select, spawn, take, fork } from 'redux-saga/effects';
 import { push } from 'connected-react-router'
 
 import { ExperimentMode } from 'const';
@@ -304,10 +304,25 @@ export function* watchAuth() {
   }
 }
 
-export function* watchResults() {
-  const { payload } = yield take(streamDbResults.TRIGGER);
+const sleep = (seconds) => new Promise(res => setTimeout(res, Math.floor(1000 * seconds)));
 
-  const channel = yield call(listenForResults, payload);
+export function* watchResults() {
+  let { payload: experimentId } = yield take(streamDbResults.TRIGGER);
+
+  const checkChannel = function* () {
+    while (true) {
+      const currentId = yield select(getExperimentsActiveId);
+      yield call(sleep, 1.5);
+      if (experimentId !== currentId && currentId) {
+        console.log(currentId, "CHANGED", experimentId);
+        window.location.reload(true);
+      }
+    }
+  };
+
+  yield fork(checkChannel);
+
+  const channel = yield call(listenForResults, experimentId);
 
   while (true) {
     const snapshotValue = yield take(channel);
