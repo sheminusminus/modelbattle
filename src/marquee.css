@@ -18,4 +18,6 @@
     text-align: center;
     display: block;
     margin-right: 10px;
+    max-width: 80vh;
+    word-break: break-all;
 }
