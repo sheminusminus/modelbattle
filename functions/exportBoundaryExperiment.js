@@ -118,7 +118,7 @@ const getExperimentData = memoize(async (experimentId) => {
   });
 
   return allResults;
-}, { maxAge: 60000 });;
+}, { maxAge: 60000 });
 
 const getExperimentsData = async (experimentIds) => {
   if (typeof experimentIds === 'string') {
@@ -129,9 +129,9 @@ const getExperimentsData = async (experimentIds) => {
     const result = await getExperiments();
     experimentIds = Object.keys(result);
   }
+
   const allResults = [];
-  for (const experimentId of experimentIds) {
-    const results = await getExperimentData(experimentId);
+  for (const results of await Promise.all(experimentIds.map(getExperimentData))) {
     allResults.push(...results);
   }
 
