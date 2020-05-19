@@ -306,9 +306,9 @@ const BoundaryExperiment = (props) => {
       if (url) {
         window.open(url, '_blank')
       }
-    } else if (key === 'z' && !showInput && false) { // undo is broken right now
+    } else if (key === 'z' && !showInput) {
       // undo
-      doUndo();
+      doUndo()
     } else if (key === '1' && !showInput) {
       // next video or gif
       const exts = '.gif .mp4 .webm .mpg .mpeg .wmv'.split(' ');
@@ -490,6 +490,7 @@ const BoundaryExperiment = (props) => {
     setShowInput(false);
     setLocations([]);
     setCrosshair([]);
+    onDrawEnd(nextShapes);
   };
 
   const lastShape = drawnShapes[drawnShapes.length - 1];
@@ -502,10 +503,12 @@ const BoundaryExperiment = (props) => {
         {items.length > 0 && (
           <div style={{ display: 'flex' }}>
             <button
-              disabled={drawnShapes.length === 0 || true} // undo is broken right now
+              disabled={drawnShapes.length === 0}
               className="undo-bound"
               type="button"
-              onClick={() => doUndo()}
+              onClick={() => {
+                doUndo()
+              }}
             >
               <i className="material-icons">
                 undo
