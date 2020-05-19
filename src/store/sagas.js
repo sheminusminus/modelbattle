@@ -172,7 +172,8 @@ export function* getExperimentMetaTrigger() {
 
       const isLoading = yield select(getCacheIsLoading);
       if (isLoading) {
-        yield delay(10000);
+        // uncomment to get enough delay to read things
+        // yield delay(4000);
         yield put(initialDataLoaded.success());
       }
     } else {
@@ -339,7 +340,8 @@ export function* watchResults() {
     const isLoading = yield select(getCacheIsLoading);
 
     if (isLoading) {
-      yield delay(10000);
+      // uncomment to get enough delay to read things
+      // yield delay(4000);
       yield put(initialDataLoaded.success());
     }
   }
