@@ -220,6 +220,7 @@ export const Input = React.forwardRef((props, ref) => {
     style = {},
     value,
     wrapperStyle = {},
+    completions = ""
   } = props;
 
   return (
@@ -239,6 +240,7 @@ export const Input = React.forwardRef((props, ref) => {
         ref={ref}
         style={style}
         value={value}
+        list={completions}
       />
     </div>
   );

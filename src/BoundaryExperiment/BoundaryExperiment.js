@@ -648,6 +648,7 @@ const BoundaryExperiment = (props) => {
               width: Math.abs(sortedPoints[1].x - sortedPoints[2].x),
               top: sortedPoints[1].y - 3,
             }}
+            completions={"marquee"}
           />
         )}
       </div>

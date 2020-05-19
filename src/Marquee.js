@@ -9,18 +9,21 @@ const Marquee = (props) => {
   } = props;
 
   return (
-    <div className="marquee">
+    <datalist className="marquee" id="marquee">
       {Object.entries(data).map(([label, value], idx) => {
         return (
+        <React.Fragment key={label + "_frag"}>
+          <option value={label} key={label + "_label"} />
           <a
             className="marquee-item"
             key={label}
           >
             {transform(label, value)}
           </a>
+        </React.Fragment>
         );
       })}
-    </div>
+    </datalist>
   );
 };
 
