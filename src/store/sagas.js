@@ -230,8 +230,8 @@ export function* exportBoundaryExperimentTrigger(action) {
   try {
     const { payload } = action;
     const response = yield call(api.exportBoundaryExperiment, payload);
-    if (response && response.result) {
-      const resultStr = response.result.reduce((str, obj) => {
+    if (response) {
+      const resultStr = response.reduce((str, obj) => {
         const lineStr = JSON.stringify(obj);
         return `${str}${lineStr}\n`;
       }, '');
