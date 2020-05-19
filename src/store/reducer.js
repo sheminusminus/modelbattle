@@ -14,12 +14,14 @@ import {
   getExperimentMeta,
   streamDbResults,
   tagCountResults,
+  initialDataLoaded,
 } from 'types';
 
 export const sessionName = 'session';
 export const experimentsName = 'experiments';
 export const resultsStreamName = 'resultsStream';
 export const tagCountsName = 'tagCounts';
+export const uiName = 'ui';
 
 export const initialState = {
   [sessionName]: {
@@ -34,6 +36,11 @@ export const initialState = {
   },
   [resultsStreamName]: [],
   [tagCountsName]: {},
+  [uiName]: {
+    isLoading: true,
+    description: '',
+    message: '',
+  },
 };
 
 const experiments = (state = initialState[experimentsName], action = {}) => {
@@ -211,8 +218,30 @@ const tagCounts = (state = initialState[tagCountsName], action = {}) => {
   }
 };
 
+const ui = (state = initialState[uiName], action = {}) => {
+  switch (action.type) {
+    case initialDataLoaded.TRIGGER:
+      return {
+        ...state,
+        description: action.payload.description,
+        message: action.payload.message,
+      };
+
+    case initialDataLoaded.SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+      };
+
+    default:
+      return state;
+  }
+};
+
+
 export default combineReducers({
   experiments,
+  ui,
   resultsStream,
   router: connectRouter(history),
   session,

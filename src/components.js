@@ -10,8 +10,32 @@ import {
   ExperimentMode,
 } from 'const';
 
+import gifImage from 'resources/preloader.gif';
+
 import firebase from 'services/firebase';
 import classNames from 'classNames';
+
+export const PreLoader = ({ className, description, message, style }) => (
+  <div className="preload-wrapper">
+    <img
+      alt="preloader"
+      className={classNames({
+        preloader: true,
+        [className]: !!className,
+      })}
+      src={gifImage}
+      style={style}
+    />
+
+    <span className="preloader-message">
+      {description}
+    </span>
+
+    <span className="preloader-desc">
+      {message}
+    </span>
+  </div>
+);
 
 export const ArrowButton = ({ onClick, name, style }) => (
   <button

@@ -56,3 +56,18 @@ export const getTagCounts = createSelector(
   [queries.queryTagCounts],
   tagCounts => tagCounts,
 );
+
+export const getCacheIsLoading = createSelector(
+  [queries.queryUiState],
+  ui => ui.isLoading,
+);
+
+export const getLoadingMessage = createSelector(
+  [queries.queryUiState],
+  ui => ui.message,
+);
+
+export const getLoadingDesc = createSelector(
+  [queries.queryUiState],
+  ui => ui.description,
+);

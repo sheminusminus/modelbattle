@@ -200,4 +200,21 @@ export const getBoundaryExperimentExport = async (experimentId) => {
   return fn({ experimentId });
 };
 
+export const getRandomLoadingMessage = async () => {
+  const rnd = Math.floor(Math.random() * 237);
+  const snapshot = await firebase.database().ref('ui').child('messages').child(rnd).once('value');
+  return snapshot.val();
+};
+
+export const getLoadingDescriptionAndRandomMessage = async () => {
+  const rnd = Math.floor(Math.random() * 31);
+  const snapshot = await firebase.database().ref('ui').once('value');
+  const ui = snapshot.val();
+
+  return {
+    message: ui.messages[rnd],
+    description: ui.description,
+  };
+};
+
 export default firebase;

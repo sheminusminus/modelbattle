@@ -1,23 +1,29 @@
 import { eventChannel } from 'redux-saga';
-import { all, call, put, select, spawn, take } from 'redux-saga/effects';
+import { all, call, delay, put, select, spawn, take } from 'redux-saga/effects';
 import { push } from 'connected-react-router'
 
 import { ExperimentMode } from 'const';
 
 import {
-  getExperimentMeta,
-  setSession,
-  listExperiments,
-  setActiveExperiment,
-  refreshExperimentTags,
   exportBoundaryExperiment,
+  getExperimentMeta,
+  initialDataLoaded,
+  listExperiments,
+  refreshExperimentTags,
+  setActiveExperiment,
+  setSession,
   streamDbResults,
   tagCountResults,
 } from 'types'
 
-import { getExperimentsIsFetching, getExperimentsActiveId, getExperimentMetaForActiveId } from 'selectors';
+import {
+  getExperimentsIsFetching,
+  getExperimentsActiveId,
+  getExperimentMetaForActiveId,
+  getCacheIsLoading,
+} from 'selectors';
 
-import firebase from 'services/firebase';
+import firebase, { getLoadingDescriptionAndRandomMessage } from 'services/firebase';
 
 import { flatten, createDownloadFile } from 'helpers';
 
@@ -162,20 +168,13 @@ export function* getExperimentMetaTrigger() {
         ],
       };
 
-      // const tagCounts = (experimentData.shapes).reduce((obj, res) => {
-      //   const { tag } = res;
-      //
-      //   if (obj[tag]) {
-      //     return { ...obj, [tag]: obj[tag] += 1 };
-      //   }
-      //
-      //   return { ...obj, [tag]: 1 };
-      // }, {});
+      yield put(getExperimentMeta.success(experimentData));
 
-      yield all([
-        put(getExperimentMeta.success(experimentData)),
-        // put(tagCountResults.success(tagCounts)),
-      ]);
+      const isLoading = yield select(getCacheIsLoading);
+      if (isLoading) {
+        yield delay(10000);
+        yield put(initialDataLoaded.success());
+      }
     } else {
       yield put(getExperimentMeta.fulfill());
     }
@@ -299,6 +298,9 @@ export function* watchAuth() {
       default:
         break;
     }
+
+    const payload = yield call(getLoadingDescriptionAndRandomMessage);
+    yield put(initialDataLoaded.trigger(payload));
   }
 }
 
@@ -333,6 +335,13 @@ export function* watchResults() {
     });
 
     yield put(tagCountResults.success(tagCounts));
+
+    const isLoading = yield select(getCacheIsLoading);
+
+    if (isLoading) {
+      yield delay(10000);
+      yield put(initialDataLoaded.success());
+    }
   }
 }
 
