@@ -174,7 +174,7 @@ const app = express();
 // Automatically allow cross-origin requests
 app.use(cors({ origin: true }));
 
-app.get('/:id.json', async (req, res) => {
+app.all('/:id.json', async (req, res) => {
   const experiments = req.params.id || "";
 
   res.setHeader('Content-Type', 'application/json');
@@ -186,7 +186,7 @@ app.get('/:id.json', async (req, res) => {
   }
 });
 
-app.get('/', async (req, res) => {
+app.all('/', async (req, res) => {
   const data = req.body && req.body.data ? req.body.data : req.query;
   const experiments = ((data.experimentId !== null && data.experimentId !== undefined) ? data.experimentId : data.id) || "";
 
