@@ -29,6 +29,7 @@
     "xstate": "^4.8.0"
   },
   "scripts": {
+    "monkeypatch": "sed \"s/ENV = 'production'/ENV = 'development'/g\" node_modules/react-scripts/scripts/build.js | sponge node_modules/react-scripts/scripts/build.js",
     "deploy": "yarn build && firebase deploy --only hosting",
     "start": "APP_ENV=production react-scripts start",
     "dev": "APP_ENV=development react-scripts start",
