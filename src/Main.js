@@ -113,7 +113,7 @@ const Main = (props) => {
     setSubmitting(false);
   }, [activeExperiment, boundaryItems.length]);
 
-  const findNext = (f) => {
+  const findNext = React.useCallback((f) => {
     if (f === 'random') {
       const i = Math.floor(Math.random() * boundaryItems.length);
       return findNext(i);
@@ -154,7 +154,7 @@ const Main = (props) => {
         return at;
       }
     }
-  };
+  }, [boundaryIndex, boundaryItems]);
 
   const onSubmit = React.useCallback(async ({ overrideSelected, advanceBy = 1 } = {}) => {
     const { mode: expMode, id: expName } = activeExperiment;
@@ -230,7 +230,7 @@ const Main = (props) => {
         }
       }
     }
-  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryShapes, boundaryIndex, boundaryItems.length, onGetExperimentMeta]);
+  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryShapes, boundaryIndex, onGetExperimentMeta, findNext]);
 
   const onSelection = ({ index, whichImg, urls }) => {
     if (selected[index] && selected[index].vote === whichImg) {

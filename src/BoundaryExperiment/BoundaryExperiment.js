@@ -267,6 +267,16 @@ const BoundaryExperiment = (props) => {
     }
   }, [drawnShapes, experimentId, inputVal, lastTag, onDrawEnd, onRefreshTags]);
 
+  const doUndo = React.useCallback(() => {
+    const nextShapes = [...drawnShapes];
+    nextShapes.pop();
+    setDrawnShapes(nextShapes);
+    setShowInput(false);
+    setLocations([]);
+    setCrosshair([]);
+    onDrawEnd(nextShapes);
+  }, [drawnShapes, onDrawEnd]);
+
   const handleKeyDown = React.useCallback((evt) => {
     const { key, which, metaKey } = evt;
     window.lastEvt = evt;
@@ -385,7 +395,7 @@ const BoundaryExperiment = (props) => {
         window.scrollBy(0.15 * windowWidth, 0);
       }
     }
-  }, [handleCancelLastBox, onSubmit, showInput]);
+  }, [handleCancelLastBox, onSubmit, showInput, doUndo, items]);
 
   React.useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -479,16 +489,6 @@ const BoundaryExperiment = (props) => {
       setDrawnShapes(nextShapes);
       setShowInput(true);
     }
-  };
-
-  const doUndo = () => {
-    const nextShapes = [...drawnShapes];
-    nextShapes.pop();
-    setDrawnShapes(nextShapes);
-    setShowInput(false);
-    setLocations([]);
-    setCrosshair([]);
-    onDrawEnd(nextShapes);
   };
 
   const lastShape = drawnShapes[drawnShapes.length - 1];
