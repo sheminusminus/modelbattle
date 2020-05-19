@@ -11,6 +11,7 @@ import {
   setActiveExperiment,
   refreshExperimentTags,
   exportBoundaryExperiment,
+  streamDbResults,
 } from 'types'
 
 import { getExperimentsIsFetching, getExperimentsActiveId, getExperimentMetaForActiveId } from 'selectors';
@@ -22,6 +23,19 @@ import { flatten, createDownloadFile } from 'helpers';
 import * as api from './api';
 
 let authHandler;
+
+const listenForResults = (experiment) => eventChannel((emitter) => {
+  const unlisten = firebase.database().ref(`results/${experiment}`).on('value', (snapshot) => {
+    if (snapshot) {
+      const val = snapshot.val();
+      if (val) {
+        emitter(val);
+      }
+    }
+  });
+
+  return unlisten;
+});
 
 const listenForAuth = () => eventChannel((emitter) => {
   authHandler = firebase.auth().onAuthStateChanged((user) => {
@@ -191,6 +205,7 @@ export function* setActiveExperimentTrigger(action) {
     const { payload } = action;
     if (payload) {
       yield put(setActiveExperiment.success({ id: payload }));
+      yield put(streamDbResults.trigger({ experiment: payload }));
     }
   } catch(err) {
     yield put(setActiveExperiment.failure(err));
@@ -273,6 +288,17 @@ export function* watchAuth() {
   }
 }
 
+export function* watchResults() {
+  const { payload } = yield take(streamDbResults.TRIGGER);
+
+  const channel = yield call(listenForResults, payload);
+
+  while (true) {
+    const snapshotValue = yield take(channel);
+    yield put(streamDbResults.success(snapshotValue));
+  }
+}
+
 export default function* root() {
-  yield all([watch(), watchAuth()]);
+  yield all([watch(), watchAuth(), watchResults()]);
 }

@@ -183,6 +183,7 @@ const BoundaryExperiment = (props) => {
     shapes = [],
     tags,
     defaultTag,
+    resultsStream,
   } = props;
 
   /**
@@ -207,7 +208,7 @@ const BoundaryExperiment = (props) => {
 
     if (shapes && canvas) {
       const ctx = canvas.getContext('2d');
-      [...shapes, ...drawnShapes].forEach((shape) => {
+      [...resultsStream, ...shapes, ...drawnShapes].forEach((shape) => {
         const { points, tag, url, user } = shape;
         const uid = getUID();
 
@@ -219,7 +220,7 @@ const BoundaryExperiment = (props) => {
         }
       });
     }
-  }, [drawnShapes, items, shapes, tags]);
+  }, [drawnShapes, items, shapes, tags, resultsStream]);
 
   React.useEffect(() => {
     const canvas = canvasRef.current;
@@ -657,10 +658,12 @@ const BoundaryExperiment = (props) => {
 BoundaryExperiment.defaultProps = {
   shapes: [],
   tags: [],
+  resultsStream: {},
 };
 
 const mapStateToProps = createStructuredSelector({
   experimentId: selectors.getExperimentsActiveId,
+  resultsStream: selectors.getResultsStream,
   shapes: selectors.getExperimentShapesForActiveId,
   tags: selectors.getExperimentTagsForActiveId,
 });

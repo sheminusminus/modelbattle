@@ -46,3 +46,8 @@ export const getExperimentShapesForActiveId = createSelector(
   [getExperimentMetaForActiveId],
   queries.queryExperimentShapesForActiveId,
 );
+
+export const getResultsStream = createSelector(
+  [queries.queryResultsStream],
+  stream => stream,
+);

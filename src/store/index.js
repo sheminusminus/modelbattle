@@ -4,6 +4,8 @@ import { routerMiddleware } from 'connected-react-router'
 
 import history from 'createHistory';
 
+import { streamDbResults } from '../types';
+
 import rootReducer from 'store/reducer';
 import rootSaga from 'store/sagas';
 
@@ -32,6 +34,10 @@ const configureStore = (hydrator = {}) => {
   };
 
   sagaMiddleware.run(rootSaga);
+
+  if (hydrator.experiments.activeId) {
+    store.dispatch(streamDbResults.trigger(hydrator.experiments.activeId));
+  }
 
   return store;
 };

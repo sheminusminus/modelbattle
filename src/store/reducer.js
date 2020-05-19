@@ -12,10 +12,12 @@ import {
   changeActiveExperiment,
   refreshExperimentTags,
   getExperimentMeta,
+  streamDbResults,
 } from 'types';
 
 export const sessionName = 'session';
 export const experimentsName = 'experiments';
+export const resultsStreamName = 'resultsStream';
 
 export const initialState = {
   [sessionName]: {
@@ -28,6 +30,7 @@ export const initialState = {
     ids: [],
     isFetching: false,
   },
+  [resultsStreamName]: [],
 };
 
 const experiments = (state = initialState[experimentsName], action = {}) => {
@@ -165,8 +168,36 @@ const session = (state = initialState[sessionName], action = {}) => {
   }
 };
 
+const resultsStream = (state = initialState[resultsStreamName], action = {}) => {
+  switch (action.type) {
+    case streamDbResults.SUCCESS:
+      return [
+        ...state,
+        ...Object.keys(action.payload).reduce((accum, userId) => {
+          const actions = action.payload[userId];
+
+          if (actions) {
+            Object.keys(actions).forEach((actionId) => {
+              const shapes = actions[actionId];
+
+              if (Array.isArray(shapes)) {
+                return accum.push(...shapes);
+              }
+            });
+          }
+
+          return accum;
+        }, []),
+      ];
+
+    default:
+      return state;
+  }
+};
+
 export default combineReducers({
   experiments,
+  resultsStream,
   router: connectRouter(history),
   session,
 });

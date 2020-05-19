@@ -211,7 +211,7 @@ const Main = (props) => {
         }
 
         let nextIndex = findNext(advanceBy);
-        if (nextIndex != null) {
+        if (nextIndex != null && nextIndex !== boundaryIndex) {
           if (nextIndex < boundaryIndex) {
             console.log('Fetching...');
             onGetExperimentMeta();
