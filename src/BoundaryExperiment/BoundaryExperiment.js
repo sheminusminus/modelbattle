@@ -308,27 +308,27 @@ const BoundaryExperiment = (props) => {
     } else if (key === 'z' && !showInput && false) { // undo is broken right now
       // undo
       doUndo();
-    } else if (key === '1') {
+    } else if (key === '1' && !showInput) {
       // next video or gif
       const exts = '.gif .mp4 .webm .mpg .mpeg .wmv'.split(' ');
       window.advanceBy = exts;
       onSubmit({ advanceBy: exts });
-    } else if (key === '2') {
+    } else if (key === '2' && !showInput) {
       // next pic or gif
       const exts = '.gif .jpg .jpeg .bmp .png'.split(' ');
       window.advanceBy = exts;
       onSubmit({ advanceBy: exts });
-    } else if (key === '3') {
+    } else if (key === '3' && !showInput) {
       // next video (no gif)
       const exts = '.mp4 .webm .mpg .mpeg .wmv'.split(' ');
       window.advanceBy = exts;
       onSubmit({ advanceBy: exts });
-    } else if (key === '4') {
+    } else if (key === '4' && !showInput) {
       // next pic (no gif)
       const exts = '.jpg .jpeg .bmp .png'.split(' ');
       window.advanceBy = exts;
       onSubmit({ advanceBy: exts });
-    } else if (key === 'p') {
+    } else if (key === 'p' && !showInput) {
       // random
       onSubmit({ advanceBy: 'random' });
     } else if (key === 'j' && !showInput) {
