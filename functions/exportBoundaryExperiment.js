@@ -180,7 +180,7 @@ app.all('/:id.json', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
     const results = await getExperimentsData(experiments);
-    res.send(results);
+    res.status(200).json(results);
   } catch (err) {
     res.status(500).send({ error: err })
   }
@@ -194,7 +194,7 @@ app.all('/', async (req, res) => {
   try {
     const results = await getExperimentsData(experiments);
     res.set('Cache-Control', 'public, max-age=10, s-maxage=15');
-    res.send(results);
+    res.status(200).json(results);
   } catch (err) {
     res.status(500).send({ error: err })
   }
