@@ -51,3 +51,8 @@ export const getResultsStream = createSelector(
   [queries.queryResultsStream],
   stream => stream,
 );
+
+export const getTagCounts = createSelector(
+  [queries.queryTagCounts],
+  tagCounts => tagCounts,
+);

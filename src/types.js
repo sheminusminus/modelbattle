@@ -15,3 +15,5 @@ export const setActiveExperiment = createRoutine('SET_ACTIVE_EXPERIMENT');
 export const exportBoundaryExperiment = createRoutine('EXPORT_BOUNDARY_EXPERIMENT');
 
 export const streamDbResults = createRoutine('STREAM_DB_RESULTS');
+
+export const tagCountResults = createRoutine('TAG_COUNT_RESULTS');

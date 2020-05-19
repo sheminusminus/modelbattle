@@ -12,6 +12,7 @@ import {
   refreshExperimentTags,
   exportBoundaryExperiment,
   streamDbResults,
+  tagCountResults,
 } from 'types'
 
 import { getExperimentsIsFetching, getExperimentsActiveId, getExperimentMetaForActiveId } from 'selectors';
@@ -26,6 +27,7 @@ let authHandler;
 
 const listenForResults = (experiment) => eventChannel((emitter) => {
   const unlisten = firebase.database().ref(`results/${experiment}`).on('value', (snapshot) => {
+    console.log('value event');
     if (snapshot) {
       const val = snapshot.val();
       if (val) {
@@ -139,7 +141,6 @@ export function* getExperimentMetaTrigger() {
 
       if (userResults) {
         userShapes = Object.keys(userResults).map((key) => userResults[key]);
-        console.log(userShapes);
       }
 
       if (userMetaResult && userMetaResult.tags) {
@@ -161,7 +162,20 @@ export function* getExperimentMetaTrigger() {
         ],
       };
 
-      yield put(getExperimentMeta.success(experimentData));
+      // const tagCounts = (experimentData.shapes).reduce((obj, res) => {
+      //   const { tag } = res;
+      //
+      //   if (obj[tag]) {
+      //     return { ...obj, [tag]: obj[tag] += 1 };
+      //   }
+      //
+      //   return { ...obj, [tag]: 1 };
+      // }, {});
+
+      yield all([
+        put(getExperimentMeta.success(experimentData)),
+        // put(tagCountResults.success(tagCounts)),
+      ]);
     } else {
       yield put(getExperimentMeta.fulfill());
     }
@@ -295,7 +309,30 @@ export function* watchResults() {
 
   while (true) {
     const snapshotValue = yield take(channel);
+
     yield put(streamDbResults.success(snapshotValue));
+
+    const tagCounts = {};
+
+    Object.keys(snapshotValue || {}).forEach((userId) => {
+      const actions = snapshotValue[userId];
+
+      if (actions) {
+        Object.keys(actions).forEach((actionId) => {
+          const shapes = actions[actionId];
+
+          if (Array.isArray(shapes)) {
+            shapes.forEach((shape) => {
+              const { tag } = shape;
+              if (tagCounts[tag]) { tagCounts[tag] += 1; }
+              else { tagCounts[tag] = 1; }
+            });
+          }
+        });
+      }
+    });
+
+    yield put(tagCountResults.success(tagCounts));
   }
 }
 

@@ -24,6 +24,8 @@ import * as selectors from "selectors";
 import ABTestExperiment from 'ABTestExperiment';
 import Asset from 'Asset';
 import BoundaryExperiment from './BoundaryExperiment';
+import Marquee from './Marquee';
+import { TagCountsContainer } from './containers';
 import {
   EggHuntButton,
   LegendHotKeys,
@@ -37,6 +39,8 @@ import { changeActiveExperiment, getExperimentMeta } from 'types';
 import { useInitTotalsHistory } from 'hooks';
 
 const db = firebase.database();
+
+const TagCountMarquee = TagCountsContainer(Marquee);
 
 const Main = (props) => {
   const {
@@ -450,6 +454,8 @@ const Main = (props) => {
 
         {contents}
       </div>
+
+      <TagCountMarquee />
 
       <EggHuntButton backUrl={`${loc.pathname}${loc.search}`} />
     </div>

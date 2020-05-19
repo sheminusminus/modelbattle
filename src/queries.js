@@ -1,4 +1,4 @@
-import { sessionName, experimentsName, resultsStreamName } from 'store/reducer';
+import { sessionName, experimentsName, resultsStreamName, tagCountsName } from 'store/reducer';
 
 export const querySessionState = (state) => state[sessionName];
 export const querySessionUser = session => session.user;
@@ -14,3 +14,5 @@ export const queryExperimentTagsForActiveId = (experiment) => experiment.tags;
 export const queryExperimentShapesForActiveId = (experiment) => experiment.shapes;
 
 export const queryResultsStream = state => state[resultsStreamName];
+
+export const queryTagCounts = state => state[tagCountsName];

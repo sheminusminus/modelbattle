@@ -13,11 +13,13 @@ import {
   refreshExperimentTags,
   getExperimentMeta,
   streamDbResults,
+  tagCountResults,
 } from 'types';
 
 export const sessionName = 'session';
 export const experimentsName = 'experiments';
 export const resultsStreamName = 'resultsStream';
+export const tagCountsName = 'tagCounts';
 
 export const initialState = {
   [sessionName]: {
@@ -31,6 +33,7 @@ export const initialState = {
     isFetching: false,
   },
   [resultsStreamName]: [],
+  [tagCountsName]: {},
 };
 
 const experiments = (state = initialState[experimentsName], action = {}) => {
@@ -195,9 +198,23 @@ const resultsStream = (state = initialState[resultsStreamName], action = {}) => 
   }
 };
 
+const tagCounts = (state = initialState[tagCountsName], action = {}) => {
+  switch (action.type) {
+    case tagCountResults.SUCCESS:
+      return {
+        ...state,
+        ...action.payload,
+      };
+
+    default:
+      return state;
+  }
+};
+
 export default combineReducers({
   experiments,
   resultsStream,
   router: connectRouter(history),
   session,
+  tagCounts,
 });
