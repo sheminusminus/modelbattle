@@ -139,7 +139,7 @@ function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') 
         //var y0 = Math.max(0, Math.min(y, ctx.canvas.height - Math.abs(metrics.fontBoundingBoxDescent)));
         //var x0 = Math.max(0, Math.min(x, ctx.canvas.width - metrics.width - 2));
         // This works.
-        const y0 = Math.max(0, Math.min(y, ctx.canvas.height));
+        const y0 = Math.max(0, Math.min(y, ctx.canvas.height - 5));
         const x0 = Math.max(0, Math.min(x, ctx.canvas.width - 80));
         const u = 0.7;
         ctx.globalAlpha = 0.7 * u;
@@ -151,7 +151,7 @@ function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') 
         }
         ctx.globalAlpha = 0.9 * u;
         ctx.strokeStyle = 'black';
-        ctx.lineWidth = lineWidth - 1;
+        ctx.lineWidth = lineWidth;
         ctx.strokeText(text, x0, y0);
         if (textDecoration === 'underline') {
           underline(ctx, text, x0, y0);
