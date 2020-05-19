@@ -195,7 +195,6 @@ const BoundaryExperiment = (props) => {
    */
   const inputRef = React.useRef(null);
   const [locations, setLocations] = React.useState([]);
-  const [crosshair, setCrosshair] = React.useState([]);
   const [isDraw, setIsDraw] = React.useState(false);
   const [size, setSize] = React.useState({ width: 0, height: 0 });
   const [drawnShapes, setDrawnShapes] = React.useState([]);
@@ -203,8 +202,19 @@ const BoundaryExperiment = (props) => {
   const [inputVal, setInputVal] = React.useState(undefined);
   const [lastTag, setLastTag] = React.useState(defaultTag || '');
 
-  const drawShapes = React.useCallback(() => {
+  const drawShapes = React.useCallback(window.tp_drawShapes = () => {
     const canvas = canvasRef.current;
+
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (locations.length > 0) {
+        draw(ctx, locations);
+      }
+      if (window.tp_crosshair && window.tp_crosshair.length > 0 && !showInput) {
+        draw(ctx, window.tp_crosshair);
+      }
+    }
 
     if (shapes && canvas) {
       const ctx = canvas.getContext('2d');
@@ -222,22 +232,10 @@ const BoundaryExperiment = (props) => {
     }
   }, [drawnShapes, items, shapes, tags, resultsStream]);
 
-  React.useEffect(() => {
-    const canvas = canvasRef.current;
-
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (locations.length > 0) {
-        draw(ctx, locations);
-      }
-      if (crosshair.length > 0 && !showInput) {
-        draw(ctx, crosshair);
-      }
-    }
-
-    drawShapes();
-  }, [drawShapes, isDraw, locations, crosshair, showInput]);
+  const setCrosshair = (value) => {
+    window.tp_crosshair = value;
+    window.tp_drawShapes()
+  };
 
   const handleCancelLastBox = React.useCallback(() => {
     const nextShapes = drawnShapes.slice(0, drawnShapes.length - 1);

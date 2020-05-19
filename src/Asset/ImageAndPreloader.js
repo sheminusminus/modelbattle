@@ -3,7 +3,7 @@ import React from 'react';
 import { Image } from '../components';
 
 const ImageAndPreloader = (props) => {
-  const { assets, shouldPreload, preloadCount=0, ...rest } = props;
+  const { assets, shouldPreload, preloadCount=10, ...rest } = props;
 
   const [activeAsset, ...preloadAssets] = assets;
 
