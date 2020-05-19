@@ -120,7 +120,9 @@ const grabExperiment = async (experimentId) => {
     const exp = await res.json();
     return exp;
   } else {
-    return {}
+    const data = await api.exportBoundaryExperiment(experimentId);
+    await cache.put(experimentId, new Response(JSON.stringify(data)));
+    return data;
   }
 };
 
@@ -158,7 +160,7 @@ export function* getExperimentMetaTrigger() {
         shapes: [
           ...flatten(userShapes),
           ...Object.keys(mainResult.shapes || {}).map((key) => mainResult.shapes[key]),
-          ...((experimentResults || {}).result || []),
+          ...(experimentResults || []),
         ],
       };
 
