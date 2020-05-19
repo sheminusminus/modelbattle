@@ -118,7 +118,7 @@ const getExperimentData = memoize(async (experimentId) => {
   });
 
   return allResults;
-}, { maxAge: 60000 });
+}, { maxAge: 5000 });
 
 const getExperimentsData = async (experimentIds) => {
   if (typeof experimentIds === 'string') {
@@ -166,9 +166,16 @@ const getExperimentsData = async (experimentIds) => {
   return makeResponse(allResultsWithBoxData);
 };
 
-module.exports = functions.https.onRequest(async (req, res) => {
-  const data = req.body && req.body.data ? req.body.data : req.query;
-  const experiments = ((data.experimentId !== null && data.experimentId !== undefined) ? data.experimentId : data.id) || "";
+const express = require('express');
+const cors = require('cors');
+
+const app = express();
+
+// Automatically allow cross-origin requests
+app.use(cors({ origin: true }));
+
+app.get('/:id.json', async (req, res) => {
+  const experiments = req.params.id || "";
 
   res.setHeader('Content-Type', 'application/json');
   try {
@@ -178,3 +185,19 @@ module.exports = functions.https.onRequest(async (req, res) => {
     res.status(500).send({ error: err })
   }
 });
+
+app.get('/', async (req, res) => {
+  const data = req.body && req.body.data ? req.body.data : req.query;
+  const experiments = ((data.experimentId !== null && data.experimentId !== undefined) ? data.experimentId : data.id) || "";
+
+  res.setHeader('Content-Type', 'application/json');
+  try {
+    const results = await getExperimentsData(experiments);
+    res.set('Cache-Control', 'public, max-age=10, s-maxage=15');
+    res.send(results);
+  } catch (err) {
+    res.status(500).send({ error: err })
+  }
+});
+
+module.exports = functions.https.onRequest(app);

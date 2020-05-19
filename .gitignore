@@ -31,3 +31,4 @@ yarn-error.log*
 creds.json
 
 .firebase
+firebase-debug.log
