@@ -40,7 +40,6 @@ body {
 
 .App-header, .choose-exp {
   padding: 125px 40px 40px;
-  min-height: 120vh;
 }
 
 .choose-exp {

@@ -417,7 +417,6 @@ const Main = (props) => {
           [wrapperClasses]: true,
         })}
       >
-        <TagCountMarquee />
         <div className={classNames({ heading: true, loading: submitting })}>
           {activeExperiment && activeExperiment.mode === ExperimentMode.AB &&
             <Totals shouldShow={menuOpen} totals={totals} />
@@ -455,6 +454,7 @@ const Main = (props) => {
 
         {contents}
       </div>
+      <TagCountMarquee />
 
       <EggHuntButton backUrl={`${loc.pathname}${loc.search}`} />
     </div>
