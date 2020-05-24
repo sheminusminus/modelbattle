@@ -9,12 +9,16 @@
     ],
     "rewrites": [
       {
-        "source": "**",
-        "destination": "/index.html"
+        "source":"/tags.json",
+        "function":"exportBoundaryExperiments"
       },
       {
-        "source":"/tags.json/**",
-        "function":"exportBoundaryExperiment"
+        "source":"/tags/*.json",
+        "function":"exportBoundaryExperiments"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
       }
     ]
   }, {
@@ -27,12 +31,16 @@
     ],
     "rewrites": [
       {
-        "source": "**",
-        "destination": "/index.html"
+        "source":"/tags.json",
+        "function":"exportBoundaryExperiments"
       },
       {
-        "source":"/tags.json/**",
-        "function":"exportBoundaryExperiment"
+        "source":"/tags/*.json",
+        "function":"exportBoundaryExperiments"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
       }
     ]
   }],

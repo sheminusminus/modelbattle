@@ -166,6 +166,15 @@ const getExperimentsData = async (experimentIds) => {
   return makeResponse(allResultsWithBoxData);
 };
 
+function either(x, ...ys) {
+  if (x !== null && x !== undefined) {
+    return x;
+  }
+  if (ys.length > 0) {
+    return either(...ys);
+  }
+}
+
 const express = require('express');
 const cors = require('cors');
 
@@ -174,30 +183,32 @@ const app = express();
 // Automatically allow cross-origin requests
 app.use(cors({ origin: true }));
 
-app.all('/:id.json', async (req, res) => {
-  const experiments = req.params.id || "";
-
+const handleExperimentData = async (experiments, req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
     const results = await getExperimentsData(experiments);
     res.status(200).json(results);
   } catch (err) {
-    res.status(500).send({ error: err })
+    res.status(500).send({ error: { message: err.message } })
   }
+};
+
+// All experiments
+app.all('/tags.json', async (req, res) => {
+  const experiments = "";
+  await handleExperimentData(experiments, req, res);
+});
+
+// One specific experiment
+app.all('/tags/:id.json', async (req, res) => {
+  const experiments = req.params.id;
+  await handleExperimentData(experiments, req, res);
 });
 
 app.all('/', async (req, res) => {
   const data = req.body && req.body.data ? req.body.data : req.query;
   const experiments = ((data.experimentId !== null && data.experimentId !== undefined) ? data.experimentId : data.id) || "";
-
-  res.setHeader('Content-Type', 'application/json');
-  try {
-    const results = await getExperimentsData(experiments);
-    res.set('Cache-Control', 'public, max-age=10, s-maxage=15');
-    res.status(200).json(results);
-  } catch (err) {
-    res.status(500).send({ error: err })
-  }
+  await handleExperimentData(experiments, req, res);
 });
 
 module.exports = functions.https.onRequest(app);
