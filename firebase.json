@@ -11,6 +11,10 @@
       {
         "source": "**",
         "destination": "/index.html"
+      },
+      {
+        "source":"/tags.json/**",
+        "function":"exportBoundaryExperiment"
       }
     ]
   }, {
