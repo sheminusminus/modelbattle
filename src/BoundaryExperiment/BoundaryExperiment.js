@@ -102,7 +102,7 @@ function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') 
       const w = ctx.canvas.width;
       const h = ctx.canvas.height;
 
-      ctx.lineWidth = 1.0;
+      ctx.lineWidth = 2.0;
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, h);
