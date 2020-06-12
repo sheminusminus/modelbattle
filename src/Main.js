@@ -34,7 +34,7 @@ import {
   Totals,
 } from 'components';
 
-import { changeActiveExperiment, getExperimentMeta } from 'types';
+import { changeActiveExperiment } from 'types';
 
 import { useInitTotalsHistory } from 'hooks';
 
@@ -49,7 +49,6 @@ const Main = (props) => {
     isFetchingData,
     isLoading,
     onChangeExperiment,
-    onGetExperimentMeta,
     user,
   } = props;
 
@@ -57,14 +56,6 @@ const Main = (props) => {
   const [isAFirst, setIsAFirst] = React.useState(coinFlip());
   const [totals, setTotals] = React.useState({ a: 0, b: 0, none: 0 });
   const [wrapperClasses, setWrapperClasses] = React.useState('');
-  const [loadedExperiment, setLoadedExperiment] = React.useState(false);
-
-  React.useEffect(() => {
-    if (activeExperiment && !loadedExperiment) {
-      setLoadedExperiment(true);
-      onGetExperimentMeta();
-    }
-  }, [activeExperiment, loadedExperiment, onGetExperimentMeta]);
 
   /**
    * @type {React.MutableRefObject<HTMLButtonElement>}
@@ -216,11 +207,6 @@ const Main = (props) => {
 
         let nextIndex = findNext(advanceBy);
         if (nextIndex != null && nextIndex !== boundaryIndex) {
-          if (nextIndex < boundaryIndex) {
-            console.log('Fetching...');
-            onGetExperimentMeta();
-          }
-
           setBoundaryIndex(nextIndex);
           setBoundaryShapes([]);
 
@@ -230,7 +216,7 @@ const Main = (props) => {
         }
       }
     }
-  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryShapes, boundaryIndex, onGetExperimentMeta, findNext]);
+  }, [activeExperiment, submitting, selected, totals.a, totals.b, totals.none, urlsA, urlsB, loadedTime, loadImages, boundaryShapes, boundaryIndex, findNext]);
 
   const onSelection = ({ index, whichImg, urls }) => {
     if (selected[index] && selected[index].vote === whichImg) {
@@ -470,7 +456,6 @@ const mapStateToProps = createStructuredSelector({
 
 const mapDispatchToProps = {
   onChangeExperiment: changeActiveExperiment.trigger,
-  onGetExperimentMeta: getExperimentMeta.trigger,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Main);
