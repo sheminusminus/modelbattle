@@ -7,11 +7,12 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 
 import {
+  ExperimentMode,
   Keys,
+  RoutePath,
+  Vote,
   instantSubmitKeys,
   validKeyDownKeys,
-  Vote,
-  ExperimentMode,
 } from 'const';
 
 import firebase, { listImages } from 'services/firebase';
@@ -52,6 +53,9 @@ const Main = (props) => {
     onGetExperimentMeta,
     user,
   } = props;
+
+  const hasNext = activeExperiment?.hasNext ?? true;
+  const hasSkip = activeExperiment?.hasSkip ?? true;
 
   const boundaryRef = React.useRef(null);
   const [isAFirst, setIsAFirst] = React.useState(coinFlip());
@@ -105,7 +109,9 @@ const Main = (props) => {
           setIsAFirst(coinFlip());
         } else if (activeExperiment.mode === ExperimentMode.BOUNDARY) {
           const { items: itemData } = images;
-          setBoundaryItems(itemData);
+          if (itemData) {
+            setBoundaryItems(itemData);
+          }
         }
       }
     }
@@ -425,19 +431,21 @@ const Main = (props) => {
           <LegendHotKeys experiment={activeExperiment}/>
 
           <TaglineAction
-            handleAction={() => onSubmit()}
+            boundaryIndex={boundaryIndex}
+            boundaryItems={activeExperiment && activeExperiment.mode === ExperimentMode.BOUNDARY && boundaryItems}
             getUrl={activeExperiment && activeExperiment.mode === ExperimentMode.BOUNDARY && (() => (boundaryItems[boundaryIndex] || {}).url)}
+            handleAction={() => onSubmit()}
+            hasNext={hasNext}
+            hasSkip={hasSkip}
             isLoading={submitting}
+            linkText={activeExperiment && activeExperiment.linkText}
+            ref={nextBtnRef}
+            skipText={activeExperiment && activeExperiment.skipText}
+            taglineText={activeExperiment && activeExperiment.tagline}
             userDidAction={Boolean(
               (activeExperiment && activeExperiment.mode === ExperimentMode.AB && selected && selected.length > 0)
               || (activeExperiment && activeExperiment.mode === ExperimentMode.BOUNDARY && boundaryShapes.length > 0)
             )}
-            ref={nextBtnRef}
-            taglineText={activeExperiment && activeExperiment.tagline}
-            skipText={activeExperiment && activeExperiment.skipText}
-            linkText={activeExperiment && activeExperiment.linkText}
-            boundaryIndex={boundaryIndex}
-            boundaryItems={activeExperiment && activeExperiment.mode === ExperimentMode.BOUNDARY && boundaryItems}
           />
         </div>
 
@@ -445,7 +453,7 @@ const Main = (props) => {
           <Nav
             onChooseExperiment={() => {
               onChangeExperiment();
-              history.push('/exp/choose');
+              history.push(RoutePath.CHOOSE_EXPERIMENT);
             }}
             isOpen={menuOpen}
             setOpen={setMenuOpen}
@@ -454,6 +462,7 @@ const Main = (props) => {
 
         {contents}
       </div>
+
       <TagCountMarquee />
 
       <EggHuntButton backUrl={`${loc.pathname}${loc.search}`} />

@@ -2,10 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import qs from 'query-string';
 
+import { isOldExpUrl } from 'helpers';
+
 import * as serviceWorker from 'serviceWorker';
 
 import configureStore, { history } from 'store';
-import { experimentsName, initialState } from 'store/reducer';
+import { experimentsName, initialState, metaName } from 'store/reducer';
 
 import App from 'App';
 
@@ -29,11 +31,18 @@ if (u) {
   u = localStorage.getItem('u');
 }
 
+const shouldRedirect = isOldExpUrl(n);
+console.log('shouldRedirect', shouldRedirect);
+
 const stateHydrator = {
-  experiments: {
+  [experimentsName]: {
     ...initialState[experimentsName],
     activeId: n || null,
     resultsFor: u || null,
+  },
+  [metaName]: {
+    ...initialState[metaName],
+    attemptedUrl: window.location.href,
   },
 };
 

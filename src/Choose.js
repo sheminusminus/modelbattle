@@ -1,6 +1,9 @@
 import React from 'react';
+import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
+
+import { RoutePath } from 'const';
 
 import { groupByPublic } from 'helpers';
 
@@ -23,15 +26,14 @@ const Choose = (props) => {
     onListExperiments();
   }, [onListExperiments]);
 
-  if (activeId) {
-    history.push(`/exp?n=${activeId}`);
-  }
-
   const [showNSFW, setShowNSFW] = React.useState(false);
+
+  if (activeId) {
+    return <Redirect to={RoutePath.singleExperiment(activeId)} />;
+  }
 
   const { pub, priv } = groupByPublic(Object.values(experiments));
 
-  console.log(experiments, pub, priv);
   return (
     <div className="choose-exp">
       <span className="title">Available experiments:</span>
@@ -93,66 +95,3 @@ const mapDispatchToProps = {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Choose);
-
-
-// import React from 'react';
-// import { connect } from 'react-redux';
-// import { createStructuredSelector } from 'reselect';
-//
-// import { listExperiments, setActiveExperiment } from 'types';
-//
-// import { getExperimentsIds, getExperimentsActiveId } from 'selectors';
-//
-// import { ArrowButton } from 'components';
-//
-// const Choose = (props) => {
-//   const {
-//     activeId,
-//     experimentIds,
-//     history,
-//     onListExperiments,
-//     onSetActiveExperiment,
-//   } = props;
-//
-//   React.useEffect(() => {
-//     onListExperiments();
-//   }, [onListExperiments]);
-//
-//   if (activeId) {
-//     history.push(`/exp?n=${activeId}`);
-//   }
-//
-//   return (
-//     <div className="choose-exp">
-//       <span className="title">Available experiments:</span>
-//
-//       <br />
-//
-//       <div className="choose-btns">
-//         {experimentIds.map((id) => {
-//           return (
-//             <ArrowButton
-//               key={id}
-//               onClick={() => {
-//                 onSetActiveExperiment(id);
-//               }}
-//               name={id}
-//             />
-//           );
-//         })}
-//       </div>
-//     </div>
-//   );
-// };
-//
-// const mapStateToProps = createStructuredSelector({
-//   activeId: getExperimentsActiveId,
-//   experimentIds: getExperimentsIds,
-// });
-//
-// const mapDispatchToProps = {
-//   onListExperiments: listExperiments.trigger,
-//   onSetActiveExperiment: setActiveExperiment.trigger,
-// };
-//
-// export default connect(mapStateToProps, mapDispatchToProps)(Choose);

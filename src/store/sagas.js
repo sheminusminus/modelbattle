@@ -2,7 +2,7 @@ import { eventChannel } from 'redux-saga';
 import { all, call, put, select, spawn, take, fork } from 'redux-saga/effects';
 import { push } from 'connected-react-router'
 
-import { ExperimentMode } from 'const';
+import { ExperimentMode, RoutePath } from 'const';
 
 import {
   getExperimentMeta,
@@ -291,11 +291,11 @@ export function* watchAuth() {
 
     switch(action.type) {
       case setSession.FAILURE:
-        yield put(push('/'));
+        yield put(push(RoutePath.AUTH));
         break;
 
       case setSession.SUCCESS:
-        yield put(push('/exp/choose'));
+        yield put(push(RoutePath.CHOOSE_EXPERIMENT));
         break;
 
       default:
@@ -307,7 +307,9 @@ export function* watchAuth() {
 const sleep = (seconds) => new Promise(res => setTimeout(res, Math.floor(1000 * seconds)));
 
 export function* watchResults() {
-  let { payload: experimentId } = yield take(streamDbResults.TRIGGER);
+  let { payload } = yield take(streamDbResults.TRIGGER);
+
+  const { experiment: experimentId } = payload;
 
   const checkChannel = function* () {
     while (true) {

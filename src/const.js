@@ -39,3 +39,17 @@ export const validKeyDownKeys = Object.values(Keys);
  * @type {Keys[]}
  */
 export const instantSubmitKeys = validKeyDownKeys.filter(k => k !== Keys.NEXT);
+
+const experimentPathName = 'e';
+
+/**
+ * @type {Object.<string, string>}
+ */
+export const RoutePath = {
+  AUTH: '/',
+  EASTER_EGG: '/egg',
+  EXPERIMENT_OLD: '/exp',
+  EXPERIMENT: `/${experimentPathName}`,
+  CHOOSE_EXPERIMENT: '/choose',
+  singleExperiment: (id = ':id') => `/${experimentPathName}/${id}`,
+};

@@ -67,3 +67,8 @@ export const createDownloadFile = (filename, text) => {
 
   document.body.removeChild(element);
 };
+
+export const isOldExpUrl = (expName, location = window.location) => {
+  const expRegex = /^\/exp/;
+  return expRegex.test(location.pathname);
+};

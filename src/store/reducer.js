@@ -20,6 +20,7 @@ export const sessionName = 'session';
 export const experimentsName = 'experiments';
 export const resultsStreamName = 'resultsStream';
 export const tagCountsName = 'tagCounts';
+export const metaName = 'meta';
 
 export const initialState = {
   [sessionName]: {
@@ -34,6 +35,7 @@ export const initialState = {
   },
   [resultsStreamName]: [],
   [tagCountsName]: {},
+  [metaName]: {},
 };
 
 const experiments = (state = initialState[experimentsName], action = {}) => {
@@ -211,10 +213,15 @@ const tagCounts = (state = initialState[tagCountsName], action = {}) => {
   }
 };
 
+const meta = (state = initialState[metaName], action = {}) => {
+  return state;
+};
+
 export default combineReducers({
-  experiments,
-  resultsStream,
+  [experimentsName]: experiments,
+  [metaName]: meta,
+  [resultsStreamName]: resultsStream,
   router: connectRouter(history),
-  session,
-  tagCounts,
+  [sessionName]: session,
+  [tagCountsName]: tagCounts,
 });

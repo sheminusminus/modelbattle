@@ -6,6 +6,8 @@ import {
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 
+import { RoutePath } from 'const';
+
 import { getSessionIsLoading } from 'selectors';
 
 import Auth from './Auth';
@@ -24,12 +26,12 @@ const Routes = (props) => {
     <Switch>
       <Route
         exact
-        path="/exp/choose"
+        path={RoutePath.CHOOSE_EXPERIMENT}
         component={Choose}
       />
-      <Route path="/exp" component={Main} />
-      <Route path="/egg" component={Easter} />
-      <Route path="/" component={Auth} />
+      <Route path={RoutePath.singleExperiment()} component={Main} />
+      <Route path={RoutePath.EASTER_EGG} component={Easter} />
+      <Route path={RoutePath.AUTH} component={Auth} />
     </Switch>
   );
 };

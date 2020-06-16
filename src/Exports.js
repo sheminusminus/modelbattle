@@ -2,6 +2,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 
+import { RoutePath } from 'const';
+
 import { groupByPublic } from 'helpers';
 
 import { listExperiments, setActiveExperiment } from 'types';
@@ -10,7 +12,7 @@ import { getExperimentsById, getExperimentsIds, getExperimentsActiveId } from 's
 
 import { ArrowButton } from 'components';
 
-const Choose = (props) => {
+const Exports = (props) => {
   const {
     activeId,
     experiments,
@@ -24,7 +26,7 @@ const Choose = (props) => {
   }, [onListExperiments]);
 
   if (activeId) {
-    history.push(`/exp?n=${activeId}`);
+    history.push(RoutePath.singleExperiment(activeId));
   }
 
   const { pub, priv } = groupByPublic(Object.values(experiments));
@@ -75,4 +77,4 @@ const mapDispatchToProps = {
   onSetActiveExperiment: setActiveExperiment.trigger,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Choose);
+export default connect(mapStateToProps, mapDispatchToProps)(Exports);

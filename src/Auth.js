@@ -4,13 +4,15 @@ import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { Redirect } from 'react-router-dom';
 
+import { RoutePath } from 'const';
+
 import firebase, { firebaseUiConfig } from 'services/firebase';
 
 import * as selectors from 'selectors';
 
 const Auth = ({ user }) => {
   if (user) {
-    return <Redirect to="/exp" />;
+    return <Redirect to={RoutePath.EXPERIMENT} />;
   }
 
   return (

@@ -50,7 +50,7 @@ export const getFile = async (url) => {
 };
 
 export const getList = async (path, shouldShuffle) => {
-  if (path.split('?')[0].endsWith(".txt")) {
+  if (path?.split?.('?')[0].endsWith(".txt")) {
     const result = await getFile(path);
     const urls = shouldShuffle ? shuffle(getLines(result)) : getLines(result);
     const itemData = [];
@@ -90,7 +90,9 @@ export const getList = async (path, shouldShuffle) => {
       }
     }
     return itemData;
-  } else {
+  }
+
+  if (path) {
     const { items } = await firebase.storage().ref(path).listAll();
     const itemData = await Promise.all(items.map(async (ref) => {
       const { contentType } = await ref.getMetadata();
@@ -99,6 +101,8 @@ export const getList = async (path, shouldShuffle) => {
     }));
     return shouldShuffle ? shuffle(itemData) : itemData
   }
+
+  return undefined;
 };
 
 /**

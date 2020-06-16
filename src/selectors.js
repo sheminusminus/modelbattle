@@ -56,3 +56,13 @@ export const getTagCounts = createSelector(
   [queries.queryTagCounts],
   tagCounts => tagCounts,
 );
+
+export const getMeta = createSelector(
+  [queries.queryMetaState],
+  meta => meta,
+);
+
+export const getMetaAttemptedUrl = createSelector(
+  [getMeta],
+  queries.queryMetaAttemptedUrl,
+);

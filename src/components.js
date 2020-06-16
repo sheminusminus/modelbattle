@@ -8,6 +8,7 @@ import {
 
 import {
   ExperimentMode,
+  RoutePath,
 } from 'const';
 
 import firebase from 'services/firebase';
@@ -22,7 +23,7 @@ export const ArrowButton = ({ onClick, name, style }) => (
   >
     <a
       className="cta-btn"
-      href={`/exp?n=${name}`}
+      href={RoutePath.singleExperiment(name)}
       onClick={evt => evt.preventDefault()}
     >
       <span>{name}</span>
@@ -39,7 +40,7 @@ export const BackButton = () => {
 
   const { state } = loc;
 
-  const linkTo = state && state.backUrl ? state.backUrl : '/exp/choose';
+  const linkTo = state && state.backUrl ? state.backUrl : RoutePath.CHOOSE_EXPERIMENT;
 
   return (
     <Link to={linkTo}>
@@ -409,22 +410,27 @@ export const Spinner = ({ isLoading }) => {
 
 export const TaglineAction = React.forwardRef((props, ref) => {
   const {
-    handleAction,
-    getUrl,
-    isLoading,
-    nextText,
-    skipText,
-    linkText = "View",
-    taglineText,
-    userDidAction,
     boundaryIndex,
     boundaryItems,
+    getUrl,
+    handleAction,
+    hasNext,
+    hasSkip,
+    isLoading,
+    linkText = "View",
+    nextText,
+    skipText,
+    taglineText,
+    userDidAction,
   } = props;
 
   // https://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
   const numberWithCommas = (x) => {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
+
+  const isButtonNext = hasNext && !isLoading && userDidAction;
+  const isButtonSkip = hasSkip && !isLoading && !userDidAction;
 
   return (
     <div className="title-wrapper">
@@ -435,23 +441,7 @@ export const TaglineAction = React.forwardRef((props, ref) => {
       </span>
 
       <div className={"title-align"}>
-        <button
-          ref={ref}
-          className="btn done"
-          disabled={isLoading}
-          type="button"
-          onFocus={(evt) => evt.preventDefault()}
-          onBlur={(evt) => evt.preventDefault()}
-          onClick={handleAction}
-        >
-          {isLoading && (
-            <Spinner isLoading={isLoading} />
-          )}
-          {!isLoading && userDidAction && (nextText + (getUrl ? ' (F)' : ''))}
-          {!isLoading && !userDidAction && (skipText + (getUrl ? ' (F)' : ''))}
-        </button>
-
-        {getUrl ? <a href={getUrl()} target="_blank" rel="noopener noreferrer">{
+        {(isButtonNext || isButtonSkip) && (
           <button
             ref={ref}
             className="btn done"
@@ -459,10 +449,30 @@ export const TaglineAction = React.forwardRef((props, ref) => {
             type="button"
             onFocus={(evt) => evt.preventDefault()}
             onBlur={(evt) => evt.preventDefault()}
+            onClick={handleAction}
           >
-            {linkText + ' (V)'}
+            {isLoading && (
+              <Spinner isLoading={isLoading} />
+            )}
+            {isButtonNext && (nextText + (getUrl ? ' (F)' : ''))}
+            {isButtonSkip && (skipText + (getUrl ? ' (F)' : ''))}
           </button>
-        }</a> : null}
+        )}
+
+        {getUrl ? (
+          <a href={getUrl()} target="_blank" rel="noopener noreferrer">
+            <button
+              ref={ref}
+              className="btn done"
+              disabled={isLoading}
+              type="button"
+              onFocus={(evt) => evt.preventDefault()}
+              onBlur={(evt) => evt.preventDefault()}
+            >
+              {linkText + ' (V)'}
+            </button>
+          </a>
+        ) : null}
       </div>
     </div>
   );
