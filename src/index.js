@@ -35,7 +35,12 @@ const handleSetExperimentAndUser = () => {
   }
 };
 
+const handleAttemptedUrl = () => {
+  lsSet(LSKey.ATTEMPTED_URL, window.location.href);
+};
+
 handleSetExperimentAndUser();
+handleAttemptedUrl();
 
 const stateHydrator = {
   [experimentsName]: {

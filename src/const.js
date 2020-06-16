@@ -41,6 +41,7 @@ export const validKeyDownKeys = Object.values(Keys);
 export const instantSubmitKeys = validKeyDownKeys.filter(k => k !== Keys.NEXT);
 
 const experimentPathName = 'e';
+const tagsPathName = 'tags';
 
 /**
  * @type {Object.<string, string>}
@@ -52,12 +53,17 @@ export const RoutePath = {
   EXPERIMENT: `/${experimentPathName}`,
   CHOOSE_EXPERIMENT: '/choose',
   singleExperiment: (id = ':id') => `/${experimentPathName}/${id}`,
+  singleExperimentTags: (id = ':id') => `/${experimentPathName}/${id}/${tagsPathName}`,
+  singleExperimentTagsImage: (id = ':id', imageUrl = ':imageUrl') => (
+    `/${experimentPathName}/${id}/${tagsPathName}/${imageUrl}`
+  ),
 };
 
 /**
  * @enum {string}
  */
 export const LSKey = {
+  ATTEMPTED_URL: 'attempted_url',
   NAME: 'name',
   USER: 'u',
 };

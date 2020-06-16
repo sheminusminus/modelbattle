@@ -22,7 +22,7 @@ export const firebaseUiConfig = {
       const name = lsGet(LSKey.NAME);
 
       if (name) {
-        window.location.replace(RoutePath.singleExperiment(name));
+        window.location.replace(RoutePath.singleExperimentTags(name));
       } else {
         window.location.replace(RoutePath.CHOOSE_EXPERIMENT);
       }

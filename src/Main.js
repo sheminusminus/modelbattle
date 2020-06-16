@@ -55,6 +55,8 @@ const Main = (props) => {
     user,
   } = props;
 
+  console.log(match);
+
   const hasNext = activeExperiment?.hasNext ?? true;
   const hasSkip = activeExperiment?.hasSkip ?? true;
 

@@ -26,6 +26,7 @@ import firebase from 'services/firebase';
 import {
   createDownloadFile,
   flatten,
+  getImagePathSegmentFromUrl,
   lsGet,
   lsSet,
 } from 'helpers';
@@ -179,19 +180,8 @@ export function* getExperimentMetaTrigger() {
         ],
       };
 
-      // const tagCounts = (experimentData.shapes).reduce((obj, res) => {
-      //   const { tag } = res;
-      //
-      //   if (obj[tag]) {
-      //     return { ...obj, [tag]: obj[tag] += 1 };
-      //   }
-      //
-      //   return { ...obj, [tag]: 1 };
-      // }, {});
-
       yield all([
         put(getExperimentMeta.success(experimentData)),
-        // put(tagCountResults.success(tagCounts)),
       ]);
     } else {
       yield put(getExperimentMeta.fulfill());
@@ -314,9 +304,14 @@ export function* watchAuth() {
         const expName = lsGet(LSKey.NAME);
 
         if (expName) {
+          const nextPathWithTagsImage = getImagePathSegmentFromUrl();
+          const nextPath = nextPathWithTagsImage
+            ? RoutePath.singleExperimentTagsImage(expName, nextPathWithTagsImage)
+            : RoutePath.singleExperimentTags(expName);
+
           yield all([,
             put(listExperiments.trigger({ nextActiveId: expName })),
-            put(push(RoutePath.singleExperiment(expName))),
+            put(push(nextPath)),
           ]);
         } else {
           yield put(push(RoutePath.CHOOSE_EXPERIMENT));

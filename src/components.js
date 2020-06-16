@@ -26,7 +26,7 @@ export const ArrowButton = ({ onClick, name, style }) => (
   >
     <a
       className="cta-btn"
-      href={RoutePath.singleExperiment(name)}
+      href={RoutePath.singleExperimentTags(name)}
       onClick={evt => evt.preventDefault()}
     >
       <span>{name}</span>

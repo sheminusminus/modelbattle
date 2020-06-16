@@ -26,7 +26,7 @@ const Exports = (props) => {
   }, [onListExperiments]);
 
   if (activeId) {
-    history.push(RoutePath.singleExperiment(activeId));
+    history.push(RoutePath.singleExperimentTags(activeId));
   }
 
   const { pub, priv } = groupByPublic(Object.values(experiments));

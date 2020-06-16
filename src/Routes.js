@@ -22,8 +22,9 @@ const Routes = (props) => {
 
   React.useEffect(() => {
     if (isOldExpUrl()) {
+      console.log('old url, redirecting');
       const expName = getQueryParam(QueryParamKey.NAME) || lsGet(LSKey.NAME);
-      window.location.assign(RoutePath.singleExperiment(expName));
+      window.location.assign(RoutePath.singleExperimentTags(expName));
     }
   }, []);
 
@@ -38,7 +39,8 @@ const Routes = (props) => {
         path={RoutePath.CHOOSE_EXPERIMENT}
         component={Choose}
       />
-      <Route path={RoutePath.singleExperiment()} component={Main} />
+      <Route path={RoutePath.singleExperimentTagsImage()} component={Main} />
+      <Route path={RoutePath.singleExperimentTags()} component={Main} />
       <Route path={RoutePath.EASTER_EGG} component={Easter} />
       <Route path={RoutePath.AUTH} component={Auth} />
     </Switch>

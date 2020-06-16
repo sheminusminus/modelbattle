@@ -90,15 +90,27 @@ export const isOldExpUrl = (location = window.location) => {
   return expRegex.test(location.pathname);
 };
 
+export const getImagePathSegmentFromUrl = (location = window.location) => {
+  const experimentName = expNameFromUrlParam(location);
+  if (experimentName) {
+    const { pathname, search } = location;
+    /* eslint-disable-next-line no-unused-vars */
+    const [_, __, $, $$, ...imageUrlElements] = pathname.split('/');
+    return imageUrlElements.join('/').concat(search);
+  }
+  return undefined;
+};
+
 export const lsSet = (k, v) => localStorage.setItem(k, v);
 export const lsGet = (k) => localStorage.getItem(k);
 export const lsGetParse = (k) => JSON.parse(lsGet(k));
+export const lsRemove = (k) => localStorage.removeItem(k);
 
 export const getQueryParams = (location = window.location) => {
   return qs.parse(location.search);
 };
 
-export const getQueryParam = (key, location = undefined) => {
+export const getQueryParam = (key, location = window.location) => {
   const params = getQueryParams(location);
   return params[key];
 };

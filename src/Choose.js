@@ -29,7 +29,7 @@ const Choose = (props) => {
   const [showNSFW, setShowNSFW] = React.useState(false);
 
   if (activeId) {
-    return <Redirect to={RoutePath.singleExperiment(activeId)} />;
+    return <Redirect to={RoutePath.singleExperimentTags(activeId)} />;
   }
 
   const { pub, priv } = groupByPublic(Object.values(experiments));
