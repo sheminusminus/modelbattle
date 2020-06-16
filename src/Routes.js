@@ -1,12 +1,14 @@
 import React from 'react';
 import {
-  Switch,
   Route,
+  Switch,
 } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 
-import { RoutePath } from 'const';
+import { LSKey, QueryParamKey, RoutePath } from 'const';
+
+import { getQueryParam, isOldExpUrl, lsGet } from 'helpers';
 
 import { getSessionIsLoading } from 'selectors';
 
@@ -17,6 +19,13 @@ import Main from './Main';
 
 const Routes = (props) => {
   const { sessionIsLoading } = props;
+
+  React.useEffect(() => {
+    if (isOldExpUrl()) {
+      const expName = getQueryParam(QueryParamKey.NAME) || lsGet(LSKey.NAME);
+      window.location.assign(RoutePath.singleExperiment(expName));
+    }
+  }, []);
 
   if (sessionIsLoading) {
     return <div />;

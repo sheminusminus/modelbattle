@@ -53,3 +53,18 @@ export const RoutePath = {
   CHOOSE_EXPERIMENT: '/choose',
   singleExperiment: (id = ':id') => `/${experimentPathName}/${id}`,
 };
+
+/**
+ * @enum {string}
+ */
+export const LSKey = {
+  NAME: 'name',
+  USER: 'u',
+};
+
+/**
+ * @enum {string}
+ */
+export const QueryParamKey = {
+  NAME: 'n',
+};

@@ -49,6 +49,7 @@ const Main = (props) => {
     history,
     isFetchingData,
     isLoading,
+    match,
     onChangeExperiment,
     onGetExperimentMeta,
     user,
@@ -223,7 +224,6 @@ const Main = (props) => {
         let nextIndex = findNext(advanceBy);
         if (nextIndex != null && nextIndex !== boundaryIndex) {
           if (nextIndex < boundaryIndex) {
-            console.log('Fetching...');
             onGetExperimentMeta();
           }
 
@@ -315,7 +315,7 @@ const Main = (props) => {
   const isBSelected = selected[0] && selected[0].vote === Vote.B;
 
   if (!isLoading && !user) {
-    return <Redirect to="/" />
+    return <Redirect to={RoutePath.AUTH} />
   }
 
   let contents = null;

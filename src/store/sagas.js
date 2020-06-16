@@ -2,7 +2,7 @@ import { eventChannel } from 'redux-saga';
 import { all, call, put, select, spawn, take, fork } from 'redux-saga/effects';
 import { push } from 'connected-react-router'
 
-import { ExperimentMode, RoutePath } from 'const';
+import { ExperimentMode, LSKey, RoutePath } from 'const';
 
 import {
   getExperimentMeta,
@@ -15,11 +15,20 @@ import {
   tagCountResults,
 } from 'types'
 
-import { getExperimentsIsFetching, getExperimentsActiveId, getExperimentMetaForActiveId } from 'selectors';
+import {
+  getExperimentMetaForActiveId,
+  getExperimentsActiveId,
+  getExperimentsIsFetching,
+} from 'selectors';
 
 import firebase from 'services/firebase';
 
-import { flatten, createDownloadFile } from 'helpers';
+import {
+  createDownloadFile,
+  flatten,
+  lsGet,
+  lsSet,
+} from 'helpers';
 
 import * as api from './api';
 
@@ -27,7 +36,6 @@ let authHandler;
 
 const listenForResults = (experiment) => eventChannel((emitter) => {
   const unlisten = firebase.database().ref(`results/${experiment}`).on('value', (snapshot) => {
-    console.log('value event');
     if (snapshot) {
       const val = snapshot.val();
       if (val) {
@@ -53,9 +61,12 @@ const listenForAuth = () => eventChannel((emitter) => {
   };
 });
 
-export function* listExperimentsTrigger() {
+export function* listExperimentsTrigger(action) {
   try {
+    const nextId = action.payload?.nextActiveId;
+
     const isFetching = yield select(getExperimentsIsFetching);
+
     if (!isFetching) {
       yield put(listExperiments.request());
 
@@ -88,6 +99,10 @@ export function* listExperimentsTrigger() {
         }, {});
 
         yield put(listExperiments.success({ experiments }));
+
+        if (nextId) {
+          yield put(setActiveExperiment.trigger(nextId));
+        }
       }
     }
 
@@ -218,10 +233,11 @@ export function* refreshExperimentTagsTrigger() {
 
 export function* setActiveExperimentTrigger(action) {
   try {
-    const { payload } = action;
-    if (payload) {
-      yield put(setActiveExperiment.success({ id: payload }));
-      yield put(streamDbResults.trigger({ experiment: payload }));
+    const { payload: id } = action;
+    if (id) {
+      lsSet(LSKey.NAME, id);
+      yield put(setActiveExperiment.success({ id }));
+      yield put(streamDbResults.trigger({ experiment: id }));
     }
   } catch(err) {
     yield put(setActiveExperiment.failure(err));
@@ -257,7 +273,7 @@ export function* watch() {
 
     switch (action.type) {
       case listExperiments.TRIGGER:
-        yield spawn(listExperimentsTrigger);
+        yield spawn(listExperimentsTrigger, action);
         break;
 
       case setActiveExperiment.TRIGGER:
@@ -294,9 +310,19 @@ export function* watchAuth() {
         yield put(push(RoutePath.AUTH));
         break;
 
-      case setSession.SUCCESS:
-        yield put(push(RoutePath.CHOOSE_EXPERIMENT));
+      case setSession.SUCCESS: {
+        const expName = lsGet(LSKey.NAME);
+
+        if (expName) {
+          yield all([,
+            put(listExperiments.trigger({ nextActiveId: expName })),
+            put(push(RoutePath.singleExperiment(expName))),
+          ]);
+        } else {
+          yield put(push(RoutePath.CHOOSE_EXPERIMENT));
+        }
         break;
+      }
 
       default:
         break;

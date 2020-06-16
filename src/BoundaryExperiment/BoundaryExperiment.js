@@ -280,7 +280,6 @@ const BoundaryExperiment = (props) => {
   const handleKeyDown = React.useCallback((evt) => {
     const { key, which, metaKey } = evt;
     window.lastEvt = evt;
-    console.log('keyDown', key, which, metaKey, evt);
     if ( metaKey ) {
       return;
     }
@@ -633,7 +632,6 @@ const BoundaryExperiment = (props) => {
             autoFocus={true}
             onChange={handleInputChange}
             onKeyDown={async (evt) => {
-              console.log(evt.key);
               const { key } = evt;
               if (key === Keys.NEXT) {
                 await handleInputEnter();

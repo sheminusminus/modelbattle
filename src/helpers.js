@@ -1,5 +1,8 @@
 import * as R from 'ramda';
 import * as changeCase from 'change-case';
+import qs from 'query-string';
+
+import { RoutePath } from 'const';
 
 export const coinFlip = () => Math.floor(Math.random() * 2) === 0;
 
@@ -68,7 +71,34 @@ export const createDownloadFile = (filename, text) => {
   document.body.removeChild(element);
 };
 
-export const isOldExpUrl = (expName, location = window.location) => {
-  const expRegex = /^\/exp/;
+export const expNameFromUrlParam = (location = window.location) => {
+  const { pathname } = location;
+
+  const testRegex = new RegExp(`^${RoutePath.EXPERIMENT}/`);
+
+  if (testRegex.test(pathname)) {
+    /* eslint-disable-next-line no-unused-vars */
+    const [_, __, experimentName] = pathname.split('/');
+    return experimentName;
+  }
+
+  return undefined;
+};
+
+export const isOldExpUrl = (location = window.location) => {
+  const expRegex = new RegExp(`^${RoutePath.EXPERIMENT_OLD}`);
   return expRegex.test(location.pathname);
+};
+
+export const lsSet = (k, v) => localStorage.setItem(k, v);
+export const lsGet = (k) => localStorage.getItem(k);
+export const lsGetParse = (k) => JSON.parse(lsGet(k));
+
+export const getQueryParams = (location = window.location) => {
+  return qs.parse(location.search);
+};
+
+export const getQueryParam = (key, location = undefined) => {
+  const params = getQueryParams(location);
+  return params[key];
 };

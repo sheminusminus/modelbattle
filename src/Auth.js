@@ -10,9 +10,16 @@ import firebase, { firebaseUiConfig } from 'services/firebase';
 
 import * as selectors from 'selectors';
 
-const Auth = ({ user }) => {
+const Auth = ({ attemptedUrl, user }) => {
   if (user) {
-    return <Redirect to={RoutePath.EXPERIMENT} />;
+    console.log('attemptedUrl', attemptedUrl);
+    if (attemptedUrl) {
+      const url = new URL(attemptedUrl);
+      const { pathname, search } = url;
+      return <Redirect to={`${pathname}${search}`} />;
+    }
+
+    return <Redirect to={RoutePath.CHOOSE_EXPERIMENT} />;
   }
 
   return (
@@ -24,6 +31,7 @@ const Auth = ({ user }) => {
 };
 
 const mapStateToProps = createStructuredSelector({
+  attemptedUrl: selectors.getMetaAttemptedUrl,
   isLoading: selectors.getSessionIsLoading,
   user: selectors.getSessionUser,
 });

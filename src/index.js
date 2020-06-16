@@ -2,7 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import qs from 'query-string';
 
-import { isOldExpUrl } from 'helpers';
+import { LSKey } from 'const';
+
+import { expNameFromUrlParam, lsGet, lsSet } from 'helpers';
 
 import * as serviceWorker from 'serviceWorker';
 
@@ -17,27 +19,28 @@ import 'App.css';
 import 'BoundaryExperiment.css';
 import 'marquee.css';
 
-let { n, u } = qs.parse(window.location.search);
+let { name: n, u } = qs.parse(window.location.search);
 
-if (n) {
-  localStorage.setItem('n', n);
-} else {
-  n = localStorage.getItem('n');
-}
+const handleSetExperimentAndUser = () => {
+  let experimentName = expNameFromUrlParam() || n || lsGet(LSKey.NAME);
 
-if (u) {
-  localStorage.setItem('u', u);
-} else {
-  u = localStorage.getItem('u');
-}
+  if (experimentName) {
+    lsSet(LSKey.NAME, experimentName);
+  }
 
-const shouldRedirect = isOldExpUrl(n);
-console.log('shouldRedirect', shouldRedirect);
+  if (u) {
+    lsSet(LSKey.USER, u);
+  } else {
+    u = lsGet(LSKey.USER);
+  }
+};
+
+handleSetExperimentAndUser();
 
 const stateHydrator = {
   [experimentsName]: {
     ...initialState[experimentsName],
-    activeId: n || null,
+    activeId: null,
     resultsFor: u || null,
   },
   [metaName]: {

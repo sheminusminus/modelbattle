@@ -8,8 +8,11 @@ import {
 
 import {
   ExperimentMode,
+  LSKey,
   RoutePath,
 } from 'const';
+
+import { lsGet, lsSet } from 'helpers';
 
 import firebase from 'services/firebase';
 import classNames from 'classNames';
@@ -71,10 +74,10 @@ export const EggHuntButton = ({ backUrl }) => {
 
   return (
     <Link
-      to="/egg"
+      to={RoutePath.EASTER_EGG}
       onClick={(evt) => {
         evt.preventDefault();
-        history.push('/egg', { backUrl });
+        history.push(RoutePath.EASTER_EGG, { backUrl });
       }}
     >
       <div
@@ -372,14 +375,14 @@ export const Nav = ({ isOpen, onChooseExperiment, setOpen }) => {
             className="btn logout"
             type="button"
             onClick={async () => {
-              const expName = localStorage.getItem('name');
+              const expName = lsGet(LSKey.NAME);
               localStorage.clear();
               await firebase.auth().signOut();
               const saveName = typeof expName === 'string'
                 ? expName.replace('?', '')
                 : expName;
-              localStorage.setItem('name', saveName);
-              history.push('/');
+              lsSet(LSKey.NAME, saveName);
+              history.push(RoutePath.AUTH);
             }}
           >
             Logout

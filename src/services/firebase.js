@@ -4,9 +4,9 @@ import * as firebaseUi from 'firebaseui';
 
 import firebaseConfig from './firebaseConfig';
 
-import { ExperimentMode } from 'const';
+import { ExperimentMode, LSKey, RoutePath } from 'const';
 
-import { randomColor, shuffle } from 'helpers';
+import { lsGet, randomColor, shuffle } from 'helpers';
 
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
@@ -19,16 +19,12 @@ export const firebaseUiConfig = {
   signInFlow: 'popup',
   callbacks: {
     signInSuccess: () => {
-      if (window.location.href.includes('choose')) {
-        window.location.replace('/exp/choose');
-      } else {
-        const name = localStorage.getItem('name');
+      const name = lsGet(LSKey.NAME);
 
-        if (name) {
-          window.location.replace(`/exp?n=${name}`);
-        } else {
-          window.location.replace('/exp/choose');
-        }
+      if (name) {
+        window.location.replace(RoutePath.singleExperiment(name));
+      } else {
+        window.location.replace(RoutePath.CHOOSE_EXPERIMENT);
       }
     },
   },
