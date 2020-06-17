@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "ui": {
+      ".read": "auth.uid !== null",
+      ".write": "auth.uid === 'yQwhEik6DBfeN6Jisj5IBo31DRz1'",
+      "messages": {
+        ".read": true,
+        ".write": "auth.uid === 'yQwhEik6DBfeN6Jisj5IBo31DRz1'",
+      },
+    },
+    "results": {
+      ".read": "auth.uid !== null",
+      "$exp": {
+        "$uid": {
+          ".write": "auth.uid === $uid && data.val() === null && newData.val() !== null",
+      	},
+      },
+    },
+    "meta": {
+      ".read": "auth.uid !== null",
+    	".write": false,
+    },
+    "user_meta": {
+      ".read": "auth.uid !== null",
+      "$uid": {
+    		".write": "auth.uid === $uid && data.val() === null && newData.val() !== null",
+      },
+    },
+    "users": {
+      "$uid": {
+        ".read": "false",
+    		".write": "auth.uid === $uid && data.val() === null && newData.val() !== null",
+      },
+    },
+  },
+}

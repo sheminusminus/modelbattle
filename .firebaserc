@@ -1,15 +1,15 @@
 {
   "projects": {
-    "default": "experiments-573d7"
+    "default": "tagpls-test"
   },
   "targets": {
-    "experiments-573d7": {
+    "tagpls-test": {
       "hosting": {
         "exp-dev": [
-          "experiments-573d7-dev"
+          "tagpls-test"
         ],
         "exp-prod": [
-          "experiments-573d7"
+          "tagpls-test"
         ]
       }
     }

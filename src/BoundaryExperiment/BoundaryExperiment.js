@@ -102,7 +102,7 @@ function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') 
       const w = ctx.canvas.width;
       const h = ctx.canvas.height;
 
-      ctx.lineWidth = 2.0;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, h);
@@ -144,7 +144,7 @@ function draw(ctx, locations, color = 'deepskyblue', text = '', textStyle = '') 
         const u = 0.7;
         ctx.globalAlpha = 0.7 * u;
         ctx.strokeStyle = color;
-        ctx.lineWidth = lineWidth + 1;
+        ctx.lineWidth = lineWidth + 1.5;
         ctx.strokeText(text, x0, y0);
         if (textDecoration === 'underline') {
           underline(ctx, text, x0, y0);

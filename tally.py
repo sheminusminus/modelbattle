@@ -8,7 +8,7 @@ from collections import Counter
 cred = credentials.Certificate('creds.json')
 # Initialize the app with a service account, granting admin privileges
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://experiments-573d7.firebaseio.com/'
+    'databaseURL': 'https://tagpls-test.firebaseio.com/'
 })
 
 #def val(x): assert(len(x) == 1); return x[0] if isinstance(x, list) else [v for v in x.values()][0]
