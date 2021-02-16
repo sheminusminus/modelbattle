@@ -1,6 +1,6 @@
 const functions = require('firebase-functions');
 
-const { hasAuth, makeResponse, valFromQuery, memoize } = require('./utils');
+const { makeResponse, valFromQuery, memoize } = require('./utils');
 
 const admin = require('./services/admin');
 const db = admin.database();
@@ -29,12 +29,6 @@ const getExperiments = async () => {
 
 const getExperimentData = memoize(async (experimentId) => {
   const allResults = [];
-
-  /*
-  if (!hasAuth(context.auth)) {
-    throw new functions.https.HttpsError('unauthenticated', 'Authentication is required');
-  }
-  */
 
   const metaData = await valFromQuery(
     db.ref('meta').child(experimentId),
@@ -175,14 +169,6 @@ function either(x, ...ys) {
   }
 }
 
-const express = require('express');
-const cors = require('cors');
-
-const app = express();
-
-// Automatically allow cross-origin requests
-app.use(cors({ origin: true }));
-
 const handleExperimentData = async (experiments, req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
@@ -193,22 +179,24 @@ const handleExperimentData = async (experiments, req, res) => {
   }
 };
 
-// All experiments
-app.all('/tags.json', async (req, res) => {
-  const experiments = "";
-  await handleExperimentData(experiments, req, res);
-});
+module.exports = (app) => {
+  // All experiments
+  app.all('/tags.json', async (req, res) => {
+    const experiments = "";
+    await handleExperimentData(experiments, req, res);
+  });
 
-// One specific experiment
-app.all('/tags/:id.json', async (req, res) => {
-  const experiments = req.params.id;
-  await handleExperimentData(experiments, req, res);
-});
+  // One specific experiment
+  app.all('/tags/:id.json', async (req, res) => {
+    const experiments = req.params.id;
+    await handleExperimentData(experiments, req, res);
+  });
 
-app.all('/', async (req, res) => {
-  const data = req.body && req.body.data ? req.body.data : req.query;
-  const experiments = ((data.experimentId !== null && data.experimentId !== undefined) ? data.experimentId : data.id) || "";
-  await handleExperimentData(experiments, req, res);
-});
+  app.all('/', async (req, res) => {
+    const data = req.body && req.body.data ? req.body.data : req.query;
+    const experiments = ((data.experimentId !== null && data.experimentId !== undefined) ? data.experimentId : data.id) || "";
+    await handleExperimentData(experiments, req, res);
+  });
 
-module.exports = functions.https.onRequest(app);
+  return functions.https.onRequest(app);
+};
